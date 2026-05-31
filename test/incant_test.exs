@@ -1,8 +1,7 @@
 defmodule IncantTest do
-  use ExUnit.Case
-  doctest Incant
+  use ExUnit.Case, async: true
 
-  test "greets the world" do
-    assert Incant.hello() == :world
+  test "raises for modules without Incant metadata" do
+    assert_raise ArgumentError, fn -> Incant.metadata(String) end
   end
 end
