@@ -13,6 +13,8 @@ defmodule Incant do
   """
   @spec metadata(module) :: struct
   def metadata(module) when is_atom(module) do
+    Code.ensure_loaded(module)
+
     cond do
       function_exported?(module, :__incant_admin__, 0) -> module.__incant_admin__()
       function_exported?(module, :__incant_resource__, 0) -> module.__incant_resource__()

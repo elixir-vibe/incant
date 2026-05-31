@@ -6,6 +6,16 @@ It is currently in its first implementation pass. The initial package provides c
 
 See [PLAN.md](PLAN.md) for the full product thesis and roadmap.
 
+## Playground
+
+A Phoenix playground lives in [`examples/playground`](examples/playground). It uses the local Incant package and VibeKit, then defines sample resources, a dashboard, and a theme contract.
+
+```sh
+cd examples/playground
+mix setup
+mix phx.server
+```
+
 ## Example resource
 
 ```elixir
