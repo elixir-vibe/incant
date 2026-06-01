@@ -14,10 +14,15 @@ defmodule IncantPlaygroundWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", IncantPlaygroundWeb do
+  scope "/" do
     pipe_through :browser
 
-    get "/", PageController, :home
+    get "/", IncantPlaygroundWeb.PageController, :home
+
+    live_session :incant,
+      session: %{"admin" => IncantPlayground.Admin, "base_path" => "/admin"} do
+      live "/admin", Incant.Live.AdminLive, :index
+    end
   end
 
   # Other scopes may use custom stacks.

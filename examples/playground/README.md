@@ -16,7 +16,7 @@ mix setup
 mix phx.server
 ```
 
-Visit [`localhost:4000`](http://localhost:4000).
+Visit [`localhost:4000`](http://localhost:4000) for the metadata overview or [`localhost:4000/admin`](http://localhost:4000/admin) for the generic Incant LiveView renderer.
 
 ## Checks
 
