@@ -20,6 +20,9 @@ defmodule Playground.Admin.Resources.Product do
     filter(:status, :select, options: [:draft, :active, :archived])
     filter(:inserted_at, :date_range)
 
+    action(:edit)
+    action(:archive, confirm: true)
+
     transformer :inventory_health, label: "Inventory Health" do
       query_transformer(&__MODULE__.inventory_health/3)
     end

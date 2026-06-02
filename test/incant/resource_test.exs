@@ -20,6 +20,9 @@ defmodule Incant.ResourceTest do
       filter(:status, :select, options: [:draft, :published])
       filter(:inserted_at, :date_range)
 
+      action(:edit)
+      action(:archive, confirm: true)
+
       transformer(:sales_performance, query: &__MODULE__.sales_performance/3)
 
       search([:title, :body])
@@ -51,6 +54,8 @@ defmodule Incant.ResourceTest do
 
     assert List.last(metadata.table.filters).type == :transformer
     assert List.last(metadata.table.filters).query == (&PostResource.sales_performance/3)
+    assert Enum.map(metadata.table.actions, & &1.name) == [:edit, :archive]
+    assert List.last(metadata.table.actions).opts == [confirm: true]
     assert hd(metadata.table.columns).opts == [link: true]
   end
 

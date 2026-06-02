@@ -43,9 +43,12 @@ defmodule Incant.Live.ResourceComponents do
             <p class="text-sm text-[var(--incant-text-muted)]">Detail</p>
             <h3 class="mt-1 text-xl font-semibold tracking-tight">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
           </div>
-          <.back_link patch={resource_path(@base_path, @resource)}>
-            Back to list
-          </.back_link>
+          <div class="flex items-center gap-2">
+            <.row_actions resource={@resource} row={@selected_row} />
+            <.back_link patch={resource_path(@base_path, @resource)}>
+              Back to list
+            </.back_link>
+          </div>
         </div>
         <dl class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div :for={column <- @resource.table.columns} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
@@ -81,6 +84,7 @@ defmodule Incant.Live.ResourceComponents do
                   <span :if={sort_column(@table_state.sort) == to_string(column.name)}>{sort_direction(@table_state.sort)}</span>
                 </button>
               </th>
+              <th :if={@resource.table.actions != []} class="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[var(--incant-border)]">
@@ -92,6 +96,9 @@ defmodule Incant.Live.ResourceComponents do
             <tr :for={row <- @rows} class="hover:bg-[var(--incant-bg-accented)]">
               <td :for={column <- @resource.table.columns} class={cell_class(column)}>
                 <.resource_cell row={row} column={column} resource={@resource} base_path={@base_path} />
+              </td>
+              <td :if={@resource.table.actions != []} class="px-4 py-3 text-right">
+                <.row_actions resource={@resource} row={row} />
               </td>
             </tr>
           </tbody>
@@ -107,6 +114,29 @@ defmodule Incant.Live.ResourceComponents do
   def filter_control(assigns) do
     ~H"""
     {Incant.Filter.control(@filter, @value, assigns)}
+    """
+  end
+
+  attr(:resource, Incant.Resource.Metadata, required: true)
+  attr(:row, :any, required: true)
+
+  def row_actions(assigns) do
+    assigns = assign(assigns, :row_id, Incant.Live.Rows.id(assigns.row))
+
+    ~H"""
+    <div class="inline-flex items-center gap-1">
+      <button
+        :for={action <- @resource.table.actions}
+        type="button"
+        class={action_class(action)}
+        phx-click="row_action"
+        phx-value-action={action.name}
+        phx-value-id={@row_id}
+        data-confirm={action.opts[:confirm] && "Are you sure?"}
+      >
+        {action_label(action)}
+      </button>
+    </div>
     """
   end
 
@@ -148,6 +178,18 @@ defmodule Incant.Live.ResourceComponents do
       nil -> format_value(value, column.opts[:format])
       render -> Incant.Callback.call(render, value, row)
     end
+  end
+
+  defp action_label(action), do: action.opts[:label] || humanize(action.name)
+
+  defp action_class(action) do
+    [
+      "rounded-lg px-2 py-1 text-xs transition",
+      action.opts[:tone] == :danger &&
+        "text-[var(--incant-error)] hover:bg-[color-mix(in_oklab,var(--incant-error)_12%,transparent)]",
+      action.opts[:tone] != :danger &&
+        "text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
+    ]
   end
 
   defp extra_fields(row, resource) do

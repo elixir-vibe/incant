@@ -5,7 +5,7 @@ defmodule Incant.Resource do
 
   alias Incant.Resource.Metadata
   alias Incant.Table
-  alias Incant.Table.{Column, Filter}
+  alias Incant.Table.{Action, Column, Filter}
 
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
@@ -14,6 +14,7 @@ defmodule Incant.Resource do
       Module.register_attribute(__MODULE__, :incant_resource_opts, persist: false)
       Module.register_attribute(__MODULE__, :incant_columns, accumulate: true, persist: false)
       Module.register_attribute(__MODULE__, :incant_filters, accumulate: true, persist: false)
+      Module.register_attribute(__MODULE__, :incant_actions, accumulate: true, persist: false)
       Module.register_attribute(__MODULE__, :incant_table_opts, persist: false)
       Module.register_attribute(__MODULE__, :incant_search, persist: false)
       Module.register_attribute(__MODULE__, :incant_query, persist: false)
@@ -29,6 +30,7 @@ defmodule Incant.Resource do
     opts = Module.get_attribute(env.module, :incant_resource_opts) || []
     columns = env.module |> Module.get_attribute(:incant_columns) |> Enum.reverse()
     filters = env.module |> Module.get_attribute(:incant_filters) |> Enum.reverse()
+    actions = env.module |> Module.get_attribute(:incant_actions) |> Enum.reverse()
 
     table = %Table{
       columns:
@@ -37,6 +39,8 @@ defmodule Incant.Resource do
         Enum.map(filters, fn {name, type, filter_opts, query} ->
           %Filter{name: name, type: type, opts: filter_opts, query: query}
         end),
+      actions:
+        Enum.map(actions, fn {name, action_opts} -> %Action{name: name, opts: action_opts} end),
       search: Module.get_attribute(env.module, :incant_search),
       opts: Module.get_attribute(env.module, :incant_table_opts) || []
     }
@@ -75,6 +79,12 @@ defmodule Incant.Resource do
   defmacro filter(name, type \\ :auto, opts \\ []) do
     quote bind_quoted: [name: name, type: type, opts: opts] do
       @incant_filters {name, type, opts, Keyword.get(opts, :query)}
+    end
+  end
+
+  defmacro action(name, opts \\ []) do
+    quote bind_quoted: [name: name, opts: opts] do
+      @incant_actions {name, opts}
     end
   end
 
