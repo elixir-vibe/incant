@@ -27,7 +27,7 @@ defmodule Incant.Live.FormComponents do
 
       <pre :if={@changeset && !form_like?(@changeset)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(@changeset, pretty: true) %></pre>
 
-      <.form :let={_form} for={%{}} as={:resource} phx-change="validate_form" phx-submit="save_form" class="mt-5 grid gap-4 md:grid-cols-2">
+      <.form :let={_form} for={form_source(@changeset)} as={:resource} phx-change="validate_form" phx-submit="save_form" class="mt-5 grid gap-4 md:grid-cols-2">
         <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={form_value(@changeset, @record, field.name)} errors={field_errors(@changeset, field.name)} />
         <div class="md:col-span-2">
           <button type="submit" class="rounded-xl bg-[var(--incant-primary)] px-4 py-2 text-sm font-medium text-[var(--incant-text-inverted)]">
@@ -125,7 +125,11 @@ defmodule Incant.Live.FormComponents do
     end)
   end
 
+  defp form_source(nil), do: %{}
+  defp form_source(changeset), do: changeset
+
   defp form_like?(%{__struct__: Phoenix.HTML.Form}), do: true
+  defp form_like?(%{__struct__: Ecto.Changeset}), do: true
   defp form_like?(_value), do: false
 
   defp form_eyebrow(:new), do: "New record"
