@@ -7,12 +7,13 @@ defmodule Incant.FormsTest do
   alias Incant.Resource.Metadata
 
   defmodule Product do
-    defstruct [:name, :price, :published]
+    use Ecto.Schema
 
-    def __schema__(:fields), do: [:id, :name, :price, :published, :inserted_at, :updated_at]
-    def __schema__(:type, :name), do: :string
-    def __schema__(:type, :price), do: :decimal
-    def __schema__(:type, :published), do: :boolean
+    embedded_schema do
+      field(:name, :string)
+      field(:price, :decimal)
+      field(:published, :boolean)
+    end
   end
 
   test "uses explicit form fields" do

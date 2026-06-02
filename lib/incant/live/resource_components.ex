@@ -7,17 +7,23 @@ defmodule Incant.Live.ResourceComponents do
   import Incant.Live.FormComponents
   import Incant.Live.Routes
 
-  attr(:resource, Incant.Resource.Metadata, required: true)
-  attr(:rows, :list, default: [])
-  attr(:selected_row, :any, default: nil)
-  attr(:detail_id, :string, default: nil)
-  attr(:base_path, :string, required: true)
-  attr(:form_mode, :atom, default: nil)
-  attr(:form_record, :any, default: nil)
-  attr(:form_changeset, :any, default: nil)
-  attr(:table_state, :map, default: %{})
+  attr(:context, Incant.Live.Context, required: true)
 
   def resource_view(assigns) do
+    context = assigns.context
+
+    assigns =
+      assigns
+      |> assign(:resource, context.resource)
+      |> assign(:rows, context.rows)
+      |> assign(:selected_row, context.selected_row)
+      |> assign(:detail_id, context.detail_id)
+      |> assign(:base_path, context.base_path)
+      |> assign(:form_mode, context.form_mode)
+      |> assign(:form_record, context.form_record)
+      |> assign(:form_changeset, context.form_changeset)
+      |> assign(:table_state, context.table_state)
+
     ~H"""
     <section class="space-y-6">
       <.card class="p-5">
@@ -55,7 +61,7 @@ defmodule Incant.Live.ResourceComponents do
             <h3 class="mt-1 text-xl font-semibold tracking-tight">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
           </div>
           <div class="flex items-center gap-2">
-            <.row_actions resource={@resource} row={@selected_row} base_path={@base_path} />
+            <.row_actions context={@context} row={@selected_row} />
             <.back_link patch={resource_path(@base_path, @resource)}>
               Back to list
             </.back_link>
@@ -106,10 +112,10 @@ defmodule Incant.Live.ResourceComponents do
             </tr>
             <tr :for={row <- @rows} class="hover:bg-[var(--incant-bg-accented)]">
               <td :for={column <- @resource.table.columns} class={cell_class(column)}>
-                <.resource_cell row={row} column={column} resource={@resource} base_path={@base_path} />
+                <.resource_cell context={@context} row={row} column={column} />
               </td>
               <td :if={@resource.table.actions != []} class="px-4 py-3 text-right">
-                <.row_actions resource={@resource} row={row} base_path={@base_path} />
+                <.row_actions context={@context} row={row} />
               </td>
             </tr>
           </tbody>
@@ -128,12 +134,15 @@ defmodule Incant.Live.ResourceComponents do
     """
   end
 
-  attr(:resource, Incant.Resource.Metadata, required: true)
+  attr(:context, Incant.Live.Context, required: true)
   attr(:row, :any, required: true)
-  attr(:base_path, :string, required: true)
 
   def row_actions(assigns) do
-    assigns = assign(assigns, :row_id, Incant.Live.Rows.id(assigns.row))
+    assigns =
+      assigns
+      |> assign(:resource, assigns.context.resource)
+      |> assign(:base_path, assigns.context.base_path)
+      |> assign(:row_id, Incant.Live.Rows.id(assigns.row))
 
     ~H"""
     <div class="inline-flex items-center gap-1">
@@ -157,14 +166,15 @@ defmodule Incant.Live.ResourceComponents do
     """
   end
 
+  attr(:context, Incant.Live.Context, required: true)
   attr(:row, :any, required: true)
   attr(:column, Incant.Table.Column, required: true)
-  attr(:resource, Incant.Resource.Metadata, required: true)
-  attr(:base_path, :string, required: true)
 
   def resource_cell(assigns) do
     assigns =
       assigns
+      |> assign(:resource, assigns.context.resource)
+      |> assign(:base_path, assigns.context.base_path)
       |> assign(:value, Incant.Live.Rows.field(assigns.row, assigns.column.name))
       |> assign(:row_id, Incant.Live.Rows.id(assigns.row))
 

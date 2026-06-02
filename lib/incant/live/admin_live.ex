@@ -43,20 +43,39 @@ defmodule Incant.Live.AdminLive do
     form_record = form_record(selected_resource, params["id"], form_mode)
     form_changeset = form_changeset(selected_resource, form_record, form_mode)
 
+    selected_row = Incant.Live.Rows.one(selected_resource, params["id"])
+    widget_values = widget_values(selected_dashboard)
+
+    context = %Incant.Live.Context{
+      base_path: socket.assigns.base_path,
+      resource: selected_resource,
+      dashboard: selected_dashboard,
+      section: section,
+      detail_id: params["id"],
+      selected_row: selected_row,
+      form_mode: form_mode,
+      form_record: form_record,
+      form_changeset: form_changeset,
+      table_state: table_state,
+      rows: resource_rows,
+      widget_values: widget_values
+    }
+
     {:noreply,
      socket
      |> assign(:params, params)
+     |> assign(:context, context)
      |> assign(:section, section)
      |> assign(:selected_resource, selected_resource)
      |> assign(:selected_dashboard, selected_dashboard)
      |> assign(:detail_id, params["id"])
-     |> assign(:selected_row, Incant.Live.Rows.one(selected_resource, params["id"]))
+     |> assign(:selected_row, selected_row)
      |> assign(:form_mode, form_mode)
      |> assign(:form_record, form_record)
      |> assign(:form_changeset, form_changeset)
      |> assign(:table_state, table_state)
      |> assign(:resource_rows, resource_rows)
-     |> assign(:widget_values, widget_values(selected_dashboard))}
+     |> assign(:widget_values, widget_values)}
   end
 
   @impl Phoenix.LiveView
@@ -141,18 +160,7 @@ defmodule Incant.Live.AdminLive do
         dashboard={@selected_dashboard}
         widget_values={@widget_values}
       />
-      <.resource_view
-        :if={@section == "resource" and @selected_resource}
-        resource={@selected_resource}
-        rows={@resource_rows}
-        selected_row={@selected_row}
-        detail_id={@detail_id}
-        base_path={@base_path}
-        form_mode={@form_mode}
-        form_record={@form_record}
-        form_changeset={@form_changeset}
-        table_state={@table_state}
-      />
+      <.resource_view :if={@section == "resource" and @selected_resource} context={@context} />
     </.admin_shell>
     """
   end
