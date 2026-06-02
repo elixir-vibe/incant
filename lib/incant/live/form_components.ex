@@ -28,7 +28,7 @@ defmodule Incant.Live.FormComponents do
       <pre :if={@changeset && !form_like?(@changeset)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(@changeset, pretty: true) %></pre>
 
       <.form :let={_form} for={%{}} as={:resource} phx-change="validate_form" phx-submit="save_form" class="mt-5 grid gap-4 md:grid-cols-2">
-        <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={Incant.Live.Rows.field(@record, field.name)} />
+        <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={form_value(@changeset, @record, field.name)} errors={field_errors(@changeset, field.name)} />
         <div class="md:col-span-2">
           <button type="submit" class="rounded-xl bg-[var(--incant-primary)] px-4 py-2 text-sm font-medium text-[var(--incant-text-inverted)]">
             Save
@@ -41,12 +41,14 @@ defmodule Incant.Live.FormComponents do
 
   attr(:field, Incant.Form.Field, required: true)
   attr(:value, :any, default: nil)
+  attr(:errors, :list, default: [])
 
   def form_field(%{field: %{type: :select}} = assigns) do
     ~H"""
     <label class="grid gap-1 text-sm">
       <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
       <.select name={"resource[#{@field.name}]"} value={@value} options={@field.opts[:options] || []} disabled={@field.opts[:readonly]} />
+      <.field_errors errors={@errors} />
     </label>
     """
   end
@@ -67,6 +69,7 @@ defmodule Incant.Live.FormComponents do
         rows={@field.opts[:rows] || 5}
         class="rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]"
       >{to_string(@value || "")}</textarea>
+      <.field_errors errors={@errors} />
     </label>
     """
   end
@@ -76,6 +79,7 @@ defmodule Incant.Live.FormComponents do
     <label class="grid gap-1 text-sm">
       <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
       <.select name={"resource[#{@field.name}]"} value={@value} options={[{"Yes", "true"}, {"No", "false"}]} disabled={@field.opts[:readonly]} />
+      <.field_errors errors={@errors} />
     </label>
     """
   end
@@ -85,8 +89,40 @@ defmodule Incant.Live.FormComponents do
     <label class="grid gap-1 text-sm">
       <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
       <.input type={input_type(@field)} name={"resource[#{@field.name}]"} value={@value} readonly={@field.opts[:readonly]} step={@field.opts[:step]} />
+      <.field_errors errors={@errors} />
     </label>
     """
+  end
+
+  attr(:errors, :list, default: [])
+
+  def field_errors(assigns) do
+    ~H"""
+    <p :for={error <- @errors} class="text-xs text-[var(--incant-error)]">{error}</p>
+    """
+  end
+
+  defp form_value(%{changes: changes}, record, field) when is_map(changes) do
+    Map.get(changes, field, Incant.Live.Rows.field(record, field))
+  end
+
+  defp form_value(_changeset, record, field), do: Incant.Live.Rows.field(record, field)
+
+  defp field_errors(%{errors: errors}, field) when is_list(errors) do
+    errors
+    |> Keyword.get_values(field)
+    |> Enum.map(fn
+      {message, opts} -> interpolate_error(message, opts)
+      message -> to_string(message)
+    end)
+  end
+
+  defp field_errors(_changeset, _field), do: []
+
+  defp interpolate_error(message, opts) do
+    Enum.reduce(opts, message, fn {key, value}, message ->
+      String.replace(message, "%{#{key}}", to_string(value))
+    end)
   end
 
   defp form_like?(%{__struct__: Phoenix.HTML.Form}), do: true
