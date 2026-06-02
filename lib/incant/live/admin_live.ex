@@ -6,6 +6,7 @@ defmodule Incant.Live.AdminLive do
   use Phoenix.LiveView
 
   import Incant.Live.Components
+  import Incant.Live.Routes
 
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
@@ -541,7 +542,7 @@ defmodule Incant.Live.AdminLive do
   defp select_by_module(collection, nil), do: List.first(collection)
 
   defp select_by_module(collection, module_id) do
-    Enum.find(collection, &(module_id(&1.module) == module_id))
+    Enum.find(collection, &(module_slug(&1.module) == module_id))
   end
 
   defp section(%{"resource" => _resource_param}, _dashboard, _selected_resource), do: "resource"
@@ -551,55 +552,6 @@ defmodule Incant.Live.AdminLive do
 
   defp section(_params, nil, _resource), do: "resource"
   defp section(_params, _dashboard, _resource), do: "dashboard"
-
-  defp current_path(
-         %{
-           section: "resource",
-           selected_resource: resource,
-           params: params,
-           base_path: base_path
-         },
-         query_params
-       ) do
-    case params["id"] do
-      nil -> resource_path(base_path, resource, query_params)
-      id -> resource_detail_path(base_path, resource, id, query_params)
-    end
-  end
-
-  defp current_path(
-         %{section: "dashboard", selected_dashboard: dashboard, base_path: base_path},
-         query_params
-       ) do
-    dashboard_path(base_path, dashboard, query_params)
-  end
-
-  defp dashboard_path(base_path, dashboard, query_params \\ %{}) do
-    path([base_path, "dashboards", module_id(dashboard.module)], query_params)
-  end
-
-  defp resource_path(base_path, resource, query_params \\ %{}) do
-    path([base_path, "resources", module_id(resource.module)], query_params)
-  end
-
-  defp resource_detail_path(base_path, resource, id, query_params \\ %{}) do
-    path([base_path, "resources", module_id(resource.module), id], query_params)
-  end
-
-  defp path([base_path | segments], query_params) do
-    suffix =
-      segments
-      |> Enum.map(fn segment -> URI.encode(to_string(segment), &URI.char_unreserved?/1) end)
-      |> Enum.join("/")
-
-    path = base_path <> "/" <> suffix
-    query_params = reject_empty_values(query_params)
-
-    case URI.encode_query(query_params) do
-      "" -> path
-      query -> path <> "?" <> query
-    end
-  end
 
   defp page_title(%{section: "resource", selected_resource: resource})
        when not is_nil(resource) do
@@ -612,13 +564,6 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp page_title(_assigns), do: "Incant"
-
-  defp module_id(module) do
-    module
-    |> Module.split()
-    |> List.last()
-    |> Macro.underscore()
-  end
 
   defp short_module(module) do
     module
