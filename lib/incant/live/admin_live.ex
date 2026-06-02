@@ -149,12 +149,13 @@ defmodule Incant.Live.AdminLive do
            socket.assigns.form_record,
            attrs
          ) do
-      {:ok, message, _record} ->
+      {:ok, message, record} ->
         {:noreply,
          socket
          |> put_flash(:info, message)
          |> push_patch(
-           to: resource_path(socket.assigns.base_path, socket.assigns.selected_resource)
+           to:
+             saved_record_path(socket.assigns.base_path, socket.assigns.selected_resource, record)
          )}
 
       {:error, changeset} when is_map(changeset) ->
@@ -252,6 +253,13 @@ defmodule Incant.Live.AdminLive do
   defp form_mode(:resource_new), do: :new
   defp form_mode(:resource_edit), do: :edit
   defp form_mode(_action), do: nil
+
+  defp saved_record_path(base_path, resource, record) do
+    case Incant.Live.Rows.id(record) do
+      nil -> resource_path(base_path, resource)
+      id -> resource_detail_path(base_path, resource, id)
+    end
+  end
 
   defp form_record(_resource, _id, nil), do: nil
   defp form_record(resource, _id, :new), do: Incant.Forms.new_record(resource)
