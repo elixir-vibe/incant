@@ -7,6 +7,7 @@ defmodule Incant.Filters.MultiSelect do
 
   use Phoenix.Component
 
+  import Ecto.Query
   import Incant.Live.Components
 
   alias Incant.Filters.Shared
@@ -36,6 +37,14 @@ defmodule Incant.Filters.MultiSelect do
 
   @impl true
   def apply_query(filter, queryable, value, context) do
-    Shared.apply_query_callback(filter, queryable, value, context)
+    values = value |> List.wrap() |> Enum.reject(&(&1 in [nil, ""]))
+
+    if Shared.custom_query?(filter) or values == [] do
+      Shared.apply_query_callback(filter, queryable, value, context)
+    else
+      where(queryable, [row], field(row, ^filter.name) in ^values)
+    end
+  rescue
+    _error -> queryable
   end
 end

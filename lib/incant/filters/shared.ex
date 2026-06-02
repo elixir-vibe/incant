@@ -3,6 +3,8 @@ defmodule Incant.Filters.Shared do
 
   def blank?(value), do: value in [nil, "", [], %{}]
 
+  def custom_query?(%{query: query}), do: not is_nil(query)
+
   def row_value(row, field) do
     Map.get(row, field, Map.get(row, to_string(field), ""))
   end

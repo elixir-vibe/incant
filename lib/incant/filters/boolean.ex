@@ -7,6 +7,7 @@ defmodule Incant.Filters.Boolean do
 
   use Phoenix.Component
 
+  import Ecto.Query
   import Incant.Live.Components
 
   alias Incant.Filters.Shared
@@ -38,6 +39,14 @@ defmodule Incant.Filters.Boolean do
 
   @impl true
   def apply_query(filter, queryable, value, context) do
-    Shared.apply_query_callback(filter, queryable, value, context)
+    if Shared.custom_query?(filter) or Shared.blank?(value) do
+      Shared.apply_query_callback(filter, queryable, value, context)
+    else
+      where(queryable, [row], field(row, ^filter.name) == ^boolean_value(value))
+    end
+  rescue
+    _error -> queryable
   end
+
+  defp boolean_value(value), do: value in [true, "true", 1, "1"]
 end

@@ -7,6 +7,7 @@ defmodule Incant.Filters.DateRange do
 
   use Phoenix.Component
 
+  import Ecto.Query
   import Incant.Live.Components
 
   alias Incant.Filters.Shared
@@ -51,8 +52,26 @@ defmodule Incant.Filters.DateRange do
 
   @impl true
   def apply_query(filter, queryable, value, context) do
-    Shared.apply_query_callback(filter, queryable, value, context)
+    if Shared.custom_query?(filter) or Shared.blank?(value) do
+      Shared.apply_query_callback(filter, queryable, value, context)
+    else
+      queryable
+      |> apply_from(filter, date_value(Map.get(value, "from")))
+      |> apply_to(filter, date_value(Map.get(value, "to")))
+    end
+  rescue
+    _error -> queryable
   end
+
+  defp apply_from(queryable, _filter, nil), do: queryable
+
+  defp apply_from(queryable, filter, from),
+    do: where(queryable, [row], field(row, ^filter.name) >= ^from)
+
+  defp apply_to(queryable, _filter, nil), do: queryable
+
+  defp apply_to(queryable, filter, to),
+    do: where(queryable, [row], field(row, ^filter.name) <= ^to)
 
   defp filter_value(value, key) when is_map(value), do: Map.get(value, key, "")
   defp filter_value(_value, _key), do: ""

@@ -1,13 +1,11 @@
 defmodule Incant.Live.Rows do
   @moduledoc false
 
+  import Ecto.Query
+
   def list(nil, _table_state), do: []
 
-  def list(resource, table_state) do
-    resource
-    |> all(table_state)
-    |> paginate(table_state)
-  end
+  def list(resource, table_state), do: page(resource, table_state).rows
 
   def page(nil, table_state), do: page([], table_state)
 
@@ -99,15 +97,18 @@ defmodule Incant.Live.Rows do
   defp queryable(resource, table_state) do
     queryable = base_queryable(resource, table_state)
 
-    Incant.Filter.apply_filters(
-      resource.table.filters,
-      queryable,
-      table_state_filters(table_state),
-      %{
-        resource: resource,
-        table: table_state
-      }
-    )
+    filtered =
+      Incant.Filter.apply_filters(
+        resource.table.filters,
+        queryable,
+        table_state_filters(table_state),
+        %{
+          resource: resource,
+          table: table_state
+        }
+      )
+
+    paginate_query(filtered, table_state)
   end
 
   defp base_queryable(%{query: nil, schema: schema}, _table_state), do: schema
@@ -115,6 +116,19 @@ defmodule Incant.Live.Rows do
   defp base_queryable(resource, table_state) do
     Incant.Callback.call(resource.query, resource.schema, %{table: table_state})
   end
+
+  defp paginate_query(queryable, %{page: page, page_size: page_size}) do
+    page = positive_integer(page, 1)
+    page_size = positive_integer(page_size, 25)
+
+    queryable
+    |> limit(^page_size)
+    |> offset(^((page - 1) * page_size))
+  rescue
+    _error -> queryable
+  end
+
+  defp paginate_query(queryable, _table_state), do: queryable
 
   defp table_state_filters(%{filters: filters}), do: filters
   defp table_state_filters(_table_state), do: %{}
