@@ -32,12 +32,40 @@ defmodule Incant.Live.AdminLive do
       select_by_module(dashboards, params["dashboard"]) || List.first(dashboards)
 
     section = params["section"] || default_section(selected_dashboard, selected_resource)
+    table_state = table_state(params)
 
     {:noreply,
      socket
+     |> assign(:params, params)
      |> assign(:section, section)
      |> assign(:selected_resource, selected_resource)
-     |> assign(:selected_dashboard, selected_dashboard)}
+     |> assign(:selected_dashboard, selected_dashboard)
+     |> assign(:table_state, table_state)
+     |> assign(:resource_rows, resource_rows(selected_resource, table_state))
+     |> assign(:widget_values, widget_values(selected_dashboard))}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("table_state", %{"table" => table_params}, socket) do
+    resource = socket.assigns.selected_resource
+
+    params =
+      socket.assigns.params
+      |> Map.take(["section", "resource", "dashboard"])
+      |> Map.merge(flatten_table_params(table_params))
+      |> reject_empty_values()
+
+    {:noreply,
+     push_patch(socket, to: path(socket.assigns.base_path, params_for_resource(params, resource)))}
+  end
+
+  def handle_event("sort", %{"column" => column}, socket) do
+    params =
+      socket.assigns.params
+      |> Map.put("sort", next_sort(socket.assigns.params["sort"], column))
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: path(socket.assigns.base_path, params))}
   end
 
   @impl Phoenix.LiveView
@@ -95,8 +123,17 @@ defmodule Incant.Live.AdminLive do
         </div>
 
         <div class="p-5 lg:p-8">
-          <.dashboard_view :if={@section == "dashboard" and @selected_dashboard} dashboard={@selected_dashboard} />
-          <.resource_view :if={@section == "resource" and @selected_resource} resource={@selected_resource} />
+          <.dashboard_view
+            :if={@section == "dashboard" and @selected_dashboard}
+            dashboard={@selected_dashboard}
+            widget_values={@widget_values}
+          />
+          <.resource_view
+            :if={@section == "resource" and @selected_resource}
+            resource={@selected_resource}
+            rows={@resource_rows}
+            table_state={@table_state}
+          />
         </div>
       </main>
     </div>
@@ -123,6 +160,7 @@ defmodule Incant.Live.AdminLive do
   end
 
   attr(:dashboard, Incant.Dashboard.Metadata, required: true)
+  attr(:widget_values, :map, default: %{})
 
   def dashboard_view(assigns) do
     ~H"""
@@ -152,7 +190,10 @@ defmodule Incant.Live.AdminLive do
             </div>
             <span class="rounded-full bg-violet-500/15 px-2.5 py-1 text-xs text-violet-200">span {widget.opts[:span] || "auto"}</span>
           </div>
-          <pre class="mt-5 overflow-auto rounded-xl bg-black/30 p-3 text-xs text-zinc-400"><%= inspect(widget.opts, pretty: true) %></pre>
+          <div :if={Map.has_key?(@widget_values, widget.id)} class="mt-5 text-3xl font-semibold tracking-tight">
+            {format_widget_value(@widget_values[widget.id], widget)}
+          </div>
+          <pre :if={!Map.has_key?(@widget_values, widget.id)} class="mt-5 overflow-auto rounded-xl bg-black/30 p-3 text-xs text-zinc-400"><%= inspect(widget.opts, pretty: true) %></pre>
         </article>
       </div>
     </section>
@@ -160,6 +201,8 @@ defmodule Incant.Live.AdminLive do
   end
 
   attr(:resource, Incant.Resource.Metadata, required: true)
+  attr(:rows, :list, default: [])
+  attr(:table_state, :map, default: %{})
 
   def resource_view(assigns) do
     ~H"""
@@ -169,14 +212,24 @@ defmodule Incant.Live.AdminLive do
         <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
         <p class="mt-2 font-mono text-sm text-zinc-500">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
 
-        <div class="mt-5 flex flex-wrap gap-2">
-          <span :for={filter <- @resource.table.filters} class="rounded-full bg-zinc-900 px-3 py-1 text-xs text-zinc-300 ring-1 ring-white/10">
-            filter {filter.name}: {filter.type}
-          </span>
-          <span :if={@resource.table.search} class="rounded-full bg-zinc-900 px-3 py-1 text-xs text-zinc-300 ring-1 ring-white/10">
-            search {inspect(@resource.table.search)}
-          </span>
-        </div>
+        <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="mt-5 grid gap-3 md:grid-cols-3">
+          <input
+            :if={@resource.table.search}
+            type="search"
+            name="table[search]"
+            value={@table_state.search}
+            placeholder="Search"
+            class="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-400"
+          />
+          <input
+            :for={filter <- @resource.table.filters}
+            type="text"
+            name={"table[filters][#{filter.name}]"}
+            value={Map.get(@table_state.filters, to_string(filter.name), "")}
+            placeholder={"#{filter.name} (#{filter.type})"}
+            class="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-400"
+          />
+        </.form>
       </div>
 
       <div class="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
@@ -184,14 +237,22 @@ defmodule Incant.Live.AdminLive do
           <thead class="bg-white/[0.04] text-left text-xs uppercase tracking-wider text-zinc-400">
             <tr>
               <th :for={column <- @resource.table.columns} class="px-4 py-3 font-medium">
-                {column.name}
+                <button type="button" phx-click="sort" phx-value-column={column.name} class="inline-flex items-center gap-1 hover:text-zinc-100">
+                  {column.name}
+                  <span :if={sort_column(@table_state.sort) == to_string(column.name)}>{sort_direction(@table_state.sort)}</span>
+                </button>
               </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/10">
-            <tr>
+            <tr :if={@rows == []}>
               <td colspan={length(@resource.table.columns)} class="px-4 py-10 text-center text-zinc-500">
-                Data execution comes next. This table is rendered from resource metadata.
+                No rows. Add a resource data callback or loosen the current filters.
+              </td>
+            </tr>
+            <tr :for={row <- @rows} class="hover:bg-white/[0.02]">
+              <td :for={column <- @resource.table.columns} class={cell_class(column)}>
+                {render_cell(row, column)}
               </td>
             </tr>
           </tbody>
@@ -200,6 +261,182 @@ defmodule Incant.Live.AdminLive do
     </section>
     """
   end
+
+  defp resource_rows(nil, _table_state), do: []
+
+  defp resource_rows(resource, table_state) do
+    data = resource.data
+
+    data
+    |> callback(%{table: table_state}, [])
+    |> Incant.Tabular.to_rows(only: Enum.map(resource.table.columns, & &1.name))
+    |> search_rows(resource.table.search, table_state.search)
+    |> filter_rows(table_state.filters)
+    |> sort_rows(table_state.sort)
+  rescue
+    _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> []
+  end
+
+  defp widget_values(nil), do: %{}
+
+  defp widget_values(dashboard) do
+    dashboard.widgets
+    |> Enum.filter(&(&1.opts[:query] != nil))
+    |> Map.new(fn widget -> {widget.id, callback(widget.opts[:query], %{}, nil)} end)
+  end
+
+  defp callback(nil, _params, default), do: default
+
+  defp callback(function, params, _context) when is_function(function, 1), do: function.(params)
+
+  defp callback(function, params, context) when is_function(function, 2),
+    do: function.(params, context)
+
+  defp callback({module, function}, params, context),
+    do: apply(module, function, [params, context])
+
+  defp callback({module, function, args}, params, context),
+    do: apply(module, function, [params, context | args])
+
+  defp search_rows(rows, nil, _search), do: rows
+  defp search_rows(rows, _searchable, nil), do: rows
+  defp search_rows(rows, _searchable, ""), do: rows
+
+  defp search_rows(rows, searchable, search) do
+    fields = List.wrap(searchable)
+    needle = String.downcase(search)
+
+    Enum.filter(rows, fn row ->
+      Enum.any?(fields, fn field ->
+        row
+        |> Map.get(field)
+        |> to_string()
+        |> String.downcase()
+        |> String.contains?(needle)
+      end)
+    end)
+  end
+
+  defp filter_rows(rows, filters) when map_size(filters) == 0, do: rows
+
+  defp filter_rows(rows, filters) do
+    Enum.filter(rows, fn row ->
+      Enum.all?(filters, fn {field, value} -> filter_match?(row, field, value) end)
+    end)
+  end
+
+  defp filter_match?(_row, _field, value) when value in [nil, ""], do: true
+
+  defp filter_match?(row, field, value) do
+    row
+    |> Map.get(String.to_existing_atom(field), "")
+    |> to_string()
+    |> String.contains?(value)
+  rescue
+    ArgumentError -> true
+  end
+
+  defp sort_rows(rows, nil), do: rows
+  defp sort_rows(rows, ""), do: rows
+
+  defp sort_rows(rows, sort) do
+    {direction, field} = sort_parts(sort)
+
+    rows
+    |> Enum.sort_by(&Map.get(&1, String.to_existing_atom(field)), sort_direction_fun(direction))
+  rescue
+    ArgumentError -> rows
+  end
+
+  defp sort_parts("-" <> field), do: {:desc, field}
+  defp sort_parts(field), do: {:asc, field}
+
+  defp sort_direction_fun(:desc), do: :desc
+  defp sort_direction_fun(:asc), do: :asc
+
+  defp table_state(params) do
+    %{
+      search: Map.get(params, "search", ""),
+      filters: Map.get(params, "filter", %{}),
+      sort: Map.get(params, "sort", "")
+    }
+  end
+
+  defp flatten_table_params(table_params) do
+    filters = Map.get(table_params, "filters", %{}) |> reject_empty_values()
+
+    %{}
+    |> Map.put("search", Map.get(table_params, "search"))
+    |> Map.put("filter", filters)
+  end
+
+  defp reject_empty_values(map) do
+    Map.reject(map, fn {_key, value} -> value in [nil, "", %{}] end)
+  end
+
+  defp params_for_resource(params, nil), do: params
+
+  defp params_for_resource(params, resource) do
+    params
+    |> Map.put_new("section", "resource")
+    |> Map.put_new("resource", module_id(resource.module))
+  end
+
+  defp next_sort(current_sort, column) do
+    case current_sort do
+      ^column -> "-#{column}"
+      "-" <> ^column -> ""
+      _other -> column
+    end
+  end
+
+  defp sort_column("-" <> column), do: column
+  defp sort_column(column), do: column
+
+  defp sort_direction("-" <> _column), do: "↓"
+  defp sort_direction(_column), do: "↑"
+
+  defp cell_class(column) do
+    align = column.opts[:align]
+
+    [
+      "px-4 py-3 text-zinc-300",
+      align == :right && "text-right tabular-nums"
+    ]
+  end
+
+  defp render_cell(row, column) do
+    value = Map.get(row, column.name)
+
+    cond do
+      render = column.opts[:render] -> callback(render, value, row)
+      column.opts[:as] == :badge -> badge(value)
+      true -> format_value(value, column.opts[:format])
+    end
+  end
+
+  defp badge(value) do
+    escaped = value |> to_string() |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+
+    Phoenix.HTML.raw(
+      ~s(<span class="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-100">#{escaped}</span>)
+    )
+  end
+
+  defp format_widget_value(value, widget), do: format_value(value, widget.opts[:format])
+
+  defp format_value(value, :money), do: format_currency(value)
+  defp format_value(value, :currency), do: format_currency(value)
+  defp format_value(value, :percent) when is_number(value), do: "#{Float.round(value * 100, 2)}%"
+  defp format_value(value, :relative), do: to_string(value)
+  defp format_value(value, _format), do: to_string(value)
+
+  defp format_currency(value) when is_integer(value), do: "$#{value}"
+
+  defp format_currency(value) when is_float(value),
+    do: "$#{:erlang.float_to_binary(value, decimals: 2)}"
+
+  defp format_currency(value), do: to_string(value)
 
   defp theme_metadata(admin) do
     case admin.opts[:theme] do

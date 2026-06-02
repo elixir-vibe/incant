@@ -15,7 +15,7 @@ defmodule Playground.Admin.Dashboards.LLM do
 
   grid columns: 12, row_height: 8 do
     stat(:total_requests, span: 3, query: &Metrics.total_requests/2)
-    stat(:total_cost, span: 3, query: &Metrics.total_cost/2)
+    stat(:total_cost, span: 3, query: &Metrics.total_cost/2, format: :currency)
     stat(:avg_latency, span: 3, query: &Metrics.avg_latency/2)
     stat(:error_rate, span: 3, query: &Metrics.error_rate/2)
     timeseries(:requests_over_time, span: 8)

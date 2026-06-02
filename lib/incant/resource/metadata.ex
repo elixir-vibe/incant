@@ -10,9 +10,10 @@ defmodule Incant.Resource.Metadata do
           schema: module | nil,
           repo: module | nil,
           query: term,
+          data: term,
           table: Table.t(),
           opts: keyword
         }
 
-  defstruct [:module, :schema, :repo, query: nil, table: %Table{}, opts: []]
+  defstruct [:module, :schema, :repo, query: nil, data: nil, table: %Table{}, opts: []]
 end

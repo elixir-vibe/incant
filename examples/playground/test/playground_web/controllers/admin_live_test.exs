@@ -3,13 +3,21 @@ defmodule Playground.AdminLiveTest do
 
   import Phoenix.LiveViewTest
 
-  test "renders Incant admin shell", %{conn: conn} do
+  test "renders Incant resource table", %{conn: conn} do
     {:ok, _view, html} =
       live(conn, ~p"/admin?section=resource&resource=Playground.Admin.Resources.Product")
 
     assert html =~ "Incant"
     assert html =~ "Product"
     assert html =~ "status"
-    assert html =~ "Data execution comes next"
+    assert html =~ "Incant Pro"
+  end
+
+  test "renders dashboard stat values", %{conn: conn} do
+    {:ok, _view, html} = live(conn, ~p"/admin")
+
+    assert html =~ "LLM Proxy"
+    assert html =~ "12840"
+    assert html =~ "$184.62"
   end
 end

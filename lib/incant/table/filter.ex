@@ -6,8 +6,9 @@ defmodule Incant.Table.Filter do
   @type t :: %__MODULE__{
           name: atom,
           type: atom,
-          opts: keyword
+          opts: keyword,
+          query: term
         }
 
-  defstruct [:name, :type, opts: []]
+  defstruct [:name, :type, opts: [], query: nil]
 end

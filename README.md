@@ -25,6 +25,7 @@ defmodule MyApp.Admin.Resources.Order do
     repo: MyApp.Repo
 
   query &MyApp.Admin.Queries.orders_index/2
+  data &MyApp.Admin.Data.orders/1
 
   table density: :compact do
     column :number, link: true
@@ -34,6 +35,11 @@ defmodule MyApp.Admin.Resources.Order do
 
     filter :status, :select
     filter :inserted_at, :date_range
+
+    transformer :sales_performance do
+      query_transformer &MyApp.Admin.Filters.sales_performance/3
+    end
+
     search &MyApp.Admin.Filters.order_search/3
   end
 end
