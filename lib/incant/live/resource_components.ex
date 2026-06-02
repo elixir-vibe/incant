@@ -9,6 +9,7 @@ defmodule Incant.Live.ResourceComponents do
   attr(:resource, Incant.Resource.Metadata, required: true)
   attr(:rows, :list, default: [])
   attr(:selected_row, :any, default: nil)
+  attr(:detail_id, :string, default: nil)
   attr(:base_path, :string, required: true)
   attr(:table_state, :map, default: %{})
 
@@ -52,6 +53,16 @@ defmodule Incant.Live.ResourceComponents do
             <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">{value}</dd>
           </div>
         </dl>
+      </.card>
+
+      <.card :if={@detail_id && !@selected_row} class="p-8 text-center">
+        <p class="text-sm text-[var(--incant-text-muted)]">Record not found</p>
+        <h3 class="mt-2 text-xl font-semibold tracking-tight">No resource row matches {@detail_id}</h3>
+        <div class="mt-4">
+          <.back_link patch={resource_path(@base_path, @resource)}>
+            Back to list
+          </.back_link>
+        </div>
       </.card>
 
       <.card class="overflow-hidden">

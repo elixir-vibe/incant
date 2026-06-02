@@ -46,6 +46,7 @@ defmodule Incant.Live.AdminLive do
      |> assign(:section, section)
      |> assign(:selected_resource, selected_resource)
      |> assign(:selected_dashboard, selected_dashboard)
+     |> assign(:detail_id, params["id"])
      |> assign(:selected_row, Incant.Live.Rows.one(selected_resource, params["id"]))
      |> assign(:table_state, table_state)
      |> assign(:resource_rows, resource_rows)
@@ -139,6 +140,7 @@ defmodule Incant.Live.AdminLive do
             resource={@selected_resource}
             rows={@resource_rows}
             selected_row={@selected_row}
+            detail_id={@detail_id}
             base_path={@base_path}
             table_state={@table_state}
           />
