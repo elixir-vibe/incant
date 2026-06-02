@@ -21,7 +21,7 @@ defmodule Playground.Admin.Resources.Product do
     filter(:inserted_at, :date_range)
 
     action(:edit)
-    action(:archive, confirm: true)
+    action(:archive, confirm: true, tone: :danger)
 
     transformer :inventory_health, label: "Inventory Health" do
       query_transformer(&__MODULE__.inventory_health/3)

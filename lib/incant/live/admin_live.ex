@@ -76,7 +76,10 @@ defmodule Incant.Live.AdminLive do
   end
 
   def handle_event("row_action", %{"action" => action, "id" => id}, socket) do
-    {:noreply, put_flash(socket, :info, "#{action} action for #{id} is not implemented yet")}
+    case Incant.Live.Actions.run(socket.assigns.selected_resource, action, id, socket.assigns) do
+      {:ok, message} -> {:noreply, put_flash(socket, :info, message)}
+      {:error, message} -> {:noreply, put_flash(socket, :error, message)}
+    end
   end
 
   @impl Phoenix.LiveView

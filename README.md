@@ -137,6 +137,24 @@ end
 Incant.Filter.apply_filters(resource.table.filters, queryable, params["filter"], context)
 ```
 
+## Row actions
+
+Resource tables can declare row actions. Actions render in the table and detail view; provide a callback to execute behaviour from the LiveView.
+
+```elixir
+table do
+  column :name, link: true
+
+  action :archive,
+    label: "Archive",
+    tone: :danger,
+    confirm: true,
+    callback: &MyApp.Admin.Actions.archive_product/2
+end
+```
+
+Callbacks receive `%{action:, id:, row:, resource:}` and the LiveView assigns. Return `:ok`, a message string, `{:ok, message}`, or `{:error, message}`.
+
 ## Example theme
 
 ```elixir
