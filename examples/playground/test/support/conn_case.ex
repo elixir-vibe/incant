@@ -1,4 +1,4 @@
-defmodule IncantPlaygroundWeb.ConnCase do
+defmodule Playground.ConnCase do
   @moduledoc false
 
   use ExUnit.CaseTemplate
@@ -6,14 +6,14 @@ defmodule IncantPlaygroundWeb.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint IncantPlaygroundWeb.Endpoint
+      @endpoint Playground.Endpoint
 
-      use IncantPlaygroundWeb, :verified_routes
+      use Playground, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
-      import IncantPlaygroundWeb.ConnCase
+      import Playground.ConnCase
     end
   end
 

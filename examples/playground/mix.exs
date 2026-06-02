@@ -1,9 +1,9 @@
-defmodule IncantPlayground.MixProject do
+defmodule Playground.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :incant_playground,
+      app: :playground,
       version: "0.1.0",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -20,7 +20,7 @@ defmodule IncantPlayground.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {IncantPlayground.Application, []},
+      mod: {Playground.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -80,10 +80,10 @@ defmodule IncantPlayground.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind incant_playground", "esbuild incant_playground"],
+      "assets.build": ["compile", "tailwind playground", "esbuild playground"],
       "assets.deploy": [
-        "tailwind incant_playground --minify",
-        "esbuild incant_playground --minify",
+        "tailwind playground --minify",
+        "esbuild playground --minify",
         "phx.digest"
       ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],

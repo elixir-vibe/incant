@@ -6,7 +6,7 @@ import Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :incant_playground, IncantPlaygroundWeb.Endpoint,
+config :playground, Playground.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}],
@@ -15,8 +15,8 @@ config :incant_playground, IncantPlaygroundWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "3YsLUnrxoh63/ygLtTosfW6hT6JULwNk/9kq1TeLpLwmobmnR5AduC31aMBNR8CT",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:incant_playground, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:incant_playground, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:playground, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:playground, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -43,7 +43,7 @@ config :incant_playground, IncantPlaygroundWeb.Endpoint,
 # different ports.
 
 # Reload browser tabs when matching files change.
-config :incant_playground, IncantPlaygroundWeb.Endpoint,
+config :playground, Playground.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
@@ -52,13 +52,13 @@ config :incant_playground, IncantPlaygroundWeb.Endpoint,
       # Gettext translations
       ~r"priv/gettext/.*\.po$"E,
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/incant_playground_web/router\.ex$"E,
-      ~r"lib/incant_playground_web/(controllers|live|components)/.*\.(ex|heex)$"E
+      ~r"lib/playground_web/router\.ex$"E,
+      ~r"lib/playground_web/(controllers|live|components)/.*\.(ex|heex)$"E
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :incant_playground, dev_routes: true
+config :playground, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"

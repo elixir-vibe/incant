@@ -7,24 +7,24 @@
 # General application configuration
 import Config
 
-config :incant_playground,
+config :playground,
   generators: [timestamp_type: :utc_datetime]
 
 # Configure the endpoint
-config :incant_playground, IncantPlaygroundWeb.Endpoint,
+config :playground, Playground.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: IncantPlaygroundWeb.ErrorHTML, json: IncantPlaygroundWeb.ErrorJSON],
+    formats: [html: Playground.ErrorHTML, json: Playground.ErrorJSON],
     layout: false
   ],
-  pubsub_server: IncantPlayground.PubSub,
+  pubsub_server: Playground.PubSub,
   live_view: [signing_salt: "AXa04QN1"]
 
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
-  incant_playground: [
+  playground: [
     args:
       ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
@@ -34,7 +34,7 @@ config :esbuild,
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "4.1.12",
-  incant_playground: [
+  playground: [
     args: ~w(
       --input=assets/css/app.css
       --output=priv/static/assets/css/app.css
