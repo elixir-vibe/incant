@@ -7,11 +7,22 @@ defmodule Incant.Live.RowsTest do
   alias Incant.Table.Filter
 
   defmodule Repo do
+    def all(%Ecto.Query{} = query),
+      do: [%{id: 1, limit: query.limit.expr, offset: query.offset.expr}]
+
     def all({:filtered, schema, status}), do: [%{id: 1, schema: schema, status: status}]
     def all(schema), do: [%{id: 1, schema: schema}]
   end
 
   defmodule Product do
+  end
+
+  defmodule QueryProduct do
+    use Ecto.Schema
+
+    schema "products" do
+      field(:name, :string)
+    end
   end
 
   test "loads rows from data callbacks" do
@@ -28,6 +39,16 @@ defmodule Incant.Live.RowsTest do
     assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}) == [
              %{id: 1, schema: Product}
            ]
+  end
+
+  test "applies query-level pagination when loading Ecto queries" do
+    resource = %Metadata{repo: Repo, schema: QueryProduct, table: %Table{}}
+
+    assert [%{limit: limit, offset: offset}] =
+             Rows.list(resource, %{search: "", filters: %{}, sort: "", page: "2", page_size: "10"})
+
+    assert limit != nil
+    assert offset != nil
   end
 
   test "applies query callbacks and filter query callbacks before repo loading" do
