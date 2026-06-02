@@ -65,7 +65,7 @@ defmodule Incant.Live.Components do
   end
 
   attr(:class, :any, default: nil)
-  attr(:rest, :global, include: ~w(type name value placeholder))
+  attr(:rest, :global, include: ~w(type name value placeholder readonly step))
 
   def input(assigns) do
     ~H"""
@@ -83,7 +83,7 @@ defmodule Incant.Live.Components do
   attr(:options, :list, default: [])
   attr(:value, :any, default: nil)
   attr(:prompt, :string, default: nil)
-  attr(:rest, :global, include: ~w(name multiple))
+  attr(:rest, :global, include: ~w(name multiple disabled))
 
   def select(assigns) do
     assigns = assign(assigns, :values, selected_values(assigns.value))

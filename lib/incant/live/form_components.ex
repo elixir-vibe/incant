@@ -46,7 +46,27 @@ defmodule Incant.Live.FormComponents do
     ~H"""
     <label class="grid gap-1 text-sm">
       <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
-      <.select name={"resource[#{@field.name}]"} value={@value} options={@field.opts[:options] || []} />
+      <.select name={"resource[#{@field.name}]"} value={@value} options={@field.opts[:options] || []} disabled={@field.opts[:readonly]} />
+    </label>
+    """
+  end
+
+  def form_field(%{field: %{type: :hidden}} = assigns) do
+    ~H"""
+    <input type="hidden" name={"resource[#{@field.name}]"} value={@value} />
+    """
+  end
+
+  def form_field(%{field: %{type: :textarea}} = assigns) do
+    ~H"""
+    <label class="grid gap-1 text-sm md:col-span-2">
+      <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
+      <textarea
+        name={"resource[#{@field.name}]"}
+        readonly={@field.opts[:readonly]}
+        rows={@field.opts[:rows] || 5}
+        class="rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]"
+      >{to_string(@value || "")}</textarea>
     </label>
     """
   end
@@ -55,7 +75,7 @@ defmodule Incant.Live.FormComponents do
     ~H"""
     <label class="grid gap-1 text-sm">
       <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
-      <.select name={"resource[#{@field.name}]"} value={@value} options={[{"Yes", "true"}, {"No", "false"}]} />
+      <.select name={"resource[#{@field.name}]"} value={@value} options={[{"Yes", "true"}, {"No", "false"}]} disabled={@field.opts[:readonly]} />
     </label>
     """
   end
@@ -64,7 +84,7 @@ defmodule Incant.Live.FormComponents do
     ~H"""
     <label class="grid gap-1 text-sm">
       <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
-      <.input type={input_type(@field)} name={"resource[#{@field.name}]"} value={@value} />
+      <.input type={input_type(@field)} name={"resource[#{@field.name}]"} value={@value} readonly={@field.opts[:readonly]} step={@field.opts[:step]} />
     </label>
     """
   end

@@ -137,9 +137,24 @@ defmodule Incant.Live.DashboardComponents do
         </div>
         <.pill>span {@widget.opts[:span] || "auto"}</.pill>
       </div>
-      <div class="border-t border-[var(--incant-border)] p-8 text-center text-sm text-[var(--incant-text-muted)]">
-        Table widget renderer coming soon
-      </div>
+      <%= if @loaded && is_list(@value) && @value != [] do %>
+        <table class="min-w-full border-t border-[var(--incant-border)] text-sm">
+          <thead class="bg-[var(--incant-bg-accented)] text-left text-xs uppercase tracking-wider text-[var(--incant-text-muted)]">
+            <tr>
+              <th :for={column <- table_columns(@value)} class="px-4 py-3 font-medium">{column}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--incant-border)]">
+            <tr :for={row <- @value}>
+              <td :for={column <- table_columns(@value)} class="px-4 py-3 text-[var(--incant-text-toned)]">{Map.get(row, column)}</td>
+            </tr>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="border-t border-[var(--incant-border)] p-8 text-center text-sm text-[var(--incant-text-muted)]">
+          Table widget renderer coming soon
+        </div>
+      <% end %>
     </.card>
     """
   end
@@ -158,6 +173,9 @@ defmodule Incant.Live.DashboardComponents do
     </.card>
     """
   end
+
+  defp table_columns([row | _]) when is_map(row), do: Map.keys(row)
+  defp table_columns(_rows), do: []
 
   defp widget_style(widget) do
     case widget.opts[:span] do
