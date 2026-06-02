@@ -155,6 +155,28 @@ end
 
 Callbacks receive `%{action:, id:, row:, resource:}` and the LiveView assigns. Return `:ok`, a message string, `{:ok, message}`, or `{:error, message}`.
 
+## Query-backed resources
+
+If a resource does not define `data/1`, Incant can load rows from `repo` and `schema`:
+
+```elixir
+defmodule MyApp.Admin.Resources.Product do
+  use Incant.Resource, schema: MyApp.Catalog.Product, repo: MyApp.Repo
+
+  query &__MODULE__.base_query/2
+
+  table do
+    column :name, link: true
+    filter :status, :select, query: &__MODULE__.status_filter/3
+  end
+
+  def base_query(schema, _context), do: schema
+  def status_filter(query, status, _context), do: query
+end
+```
+
+Custom filter query callbacks run before `repo.all/1`. Built-in filters keep the queryable unchanged unless a query callback is supplied.
+
 ## Example theme
 
 ```elixir
