@@ -6,11 +6,12 @@ defmodule Incant.Live.Components do
   use Phoenix.Component
 
   attr(:class, :any, default: nil)
+  attr(:rest, :global)
   slot(:inner_block, required: true)
 
   def card(assigns) do
     ~H"""
-    <div class={["rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]", @class]}>
+    <div {@rest} class={["rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]", @class]}>
       {render_slot(@inner_block)}
     </div>
     """
