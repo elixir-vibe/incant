@@ -7,6 +7,6 @@ defmodule Playground.PageControllerTest do
 
     assert response =~ "Incant Playground"
     assert response =~ "LLM Proxy"
-    assert response =~ "Playground.Admin.ProductResource"
+    assert response =~ "Playground.Admin.Resources.Product"
   end
 end

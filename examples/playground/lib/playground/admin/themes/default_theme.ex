@@ -1,4 +1,4 @@
-defmodule Playground.Admin.Theme do
+defmodule Playground.Admin.Themes.Default do
   @moduledoc false
 
   use Incant.Theme

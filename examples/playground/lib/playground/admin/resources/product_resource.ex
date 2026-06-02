@@ -1,4 +1,4 @@
-defmodule Playground.Admin.ProductResource do
+defmodule Playground.Admin.Resources.Product do
   @moduledoc false
 
   use Incant.Resource,

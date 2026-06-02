@@ -1,9 +1,9 @@
-defmodule Playground.Admin.LLMDashboard do
+defmodule Playground.Admin.Dashboards.LLM do
   @moduledoc false
 
   use Incant.Dashboard
 
-  alias Playground.Admin.Metrics
+  alias Playground.Admin.Metrics.LLM, as: Metrics
 
   title("LLM Proxy")
 

@@ -2,7 +2,17 @@
 
 Phoenix playground for Incant development.
 
-It uses the local `incant` path dependency and VibeKit conventions, then defines sample admin metadata for:
+It uses the local `incant` path dependency and VibeKit conventions, then follows Incant's concept-based admin structure:
+
+```text
+lib/playground/admin.ex
+lib/playground/admin/resources
+lib/playground/admin/dashboards
+lib/playground/admin/themes
+lib/playground/admin/metrics
+```
+
+The sample metadata covers:
 
 - product resource table
 - LLM request resource table

@@ -1,4 +1,4 @@
-defmodule Playground.Admin.LLMRequestResource do
+defmodule Playground.Admin.Resources.LLMRequest do
   @moduledoc false
 
   use Incant.Resource,

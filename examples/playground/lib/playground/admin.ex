@@ -3,10 +3,10 @@ defmodule Playground.Admin do
 
   use Incant.Admin,
     repo: Playground.Repo,
-    theme: Playground.Admin.Theme
+    theme: Playground.Admin.Themes.Default
 
-  resource(Playground.Admin.ProductResource)
-  resource(Playground.Admin.LLMRequestResource)
+  resource(Playground.Admin.Resources.Product)
+  resource(Playground.Admin.Resources.LLMRequest)
 
-  dashboard(Playground.Admin.LLMDashboard)
+  dashboard(Playground.Admin.Dashboards.LLM)
 end

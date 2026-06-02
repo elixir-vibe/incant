@@ -1,4 +1,4 @@
-defmodule Playground.Admin.Metrics do
+defmodule Playground.Admin.Metrics.LLM do
   @moduledoc false
 
   def total_requests(_params, _context), do: 12_840

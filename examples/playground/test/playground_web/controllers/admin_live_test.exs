@@ -5,10 +5,10 @@ defmodule Playground.AdminLiveTest do
 
   test "renders Incant admin shell", %{conn: conn} do
     {:ok, _view, html} =
-      live(conn, ~p"/admin?section=resource&resource=Playground.Admin.ProductResource")
+      live(conn, ~p"/admin?section=resource&resource=Playground.Admin.Resources.Product")
 
     assert html =~ "Incant"
-    assert html =~ "ProductResource"
+    assert html =~ "Product"
     assert html =~ "status"
     assert html =~ "Data execution comes next"
   end
