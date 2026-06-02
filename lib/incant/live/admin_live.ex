@@ -5,10 +5,10 @@ defmodule Incant.Live.AdminLive do
 
   use Phoenix.LiveView
 
-  import Incant.Live.Components
   import Incant.Live.DashboardComponents
   import Incant.Live.ResourceComponents
   import Incant.Live.Routes
+  import Incant.Live.ShellComponents
 
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
@@ -36,7 +36,7 @@ defmodule Incant.Live.AdminLive do
     selected_dashboard =
       select_by_module(dashboards, params["dashboard"]) || List.first(dashboards)
 
-    section = section(params, selected_dashboard, selected_resource)
+    section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
     table_state = table_state(params)
     resource_rows = Incant.Live.Rows.list(selected_resource, table_state)
 
@@ -78,94 +78,32 @@ defmodule Incant.Live.AdminLive do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-[var(--incant-bg)] text-[var(--incant-text)]">
-      <aside class="fixed inset-y-0 left-0 hidden w-72 border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5 lg:block">
-        <div>
-          <div class="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--incant-primary)]">Incant</div>
-          <div class="mt-2 text-xl font-semibold">{short_module(@admin.module)}</div>
-        </div>
-
-        <nav class="mt-8 space-y-8">
-          <div>
-            <div class="text-xs font-medium uppercase tracking-widest text-[var(--incant-text-muted)]">Dashboards</div>
-            <div class="mt-3 space-y-1">
-              <.nav_link
-                :for={dashboard <- @dashboards}
-                active={@section == "dashboard" and @selected_dashboard == dashboard}
-                patch={dashboard_path(@base_path, dashboard)}
-              >
-                {dashboard.title || short_module(dashboard.module)}
-              </.nav_link>
-            </div>
-          </div>
-
-          <div>
-            <div class="text-xs font-medium uppercase tracking-widest text-[var(--incant-text-muted)]">Resources</div>
-            <div class="mt-3 space-y-1">
-              <.nav_link
-                :for={resource <- @resources}
-                active={@section == "resource" and @selected_resource == resource}
-                patch={resource_path(@base_path, resource)}
-              >
-                {short_module(resource.module)}
-              </.nav_link>
-            </div>
-          </div>
-        </nav>
-      </aside>
-
-      <main class="lg:pl-72">
-        <div class="border-b border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-5 py-4 backdrop-blur lg:px-8">
-          <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p class="text-sm text-[var(--incant-text-muted)]">Admin surface</p>
-              <h1 class="text-2xl font-semibold tracking-tight">{page_title(assigns)}</h1>
-            </div>
-            <div class="flex flex-wrap gap-2 text-xs text-[var(--incant-text-muted)]">
-              <.pill>{length(@resources)} resources</.pill>
-              <.pill>{length(@dashboards)} dashboards</.pill>
-              <.pill :if={@theme}>{@theme.css_vars_prefix}</.pill>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-5 lg:p-8">
-          <.dashboard_view
-            :if={@section == "dashboard" and @selected_dashboard}
-            dashboard={@selected_dashboard}
-            widget_values={@widget_values}
-          />
-          <.resource_view
-            :if={@section == "resource" and @selected_resource}
-            resource={@selected_resource}
-            rows={@resource_rows}
-            selected_row={@selected_row}
-            detail_id={@detail_id}
-            base_path={@base_path}
-            table_state={@table_state}
-          />
-        </div>
-      </main>
-    </div>
-    """
-  end
-
-  attr(:active, :boolean, required: true)
-  attr(:patch, :string, required: true)
-  slot(:inner_block, required: true)
-
-  def nav_link(assigns) do
-    ~H"""
-    <.link
-      patch={@patch}
-      class={[
-        "block rounded-lg px-3 py-2 text-sm transition",
-        @active && "bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] text-[var(--incant-text-highlighted)] ring-1 ring-[color-mix(in_oklab,var(--incant-primary)_35%,transparent)]",
-        !@active && "text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
-      ]}
+    <.admin_shell
+      admin={@admin}
+      resources={@resources}
+      dashboards={@dashboards}
+      theme={@theme}
+      section={@section}
+      selected_resource={@selected_resource}
+      selected_dashboard={@selected_dashboard}
+      base_path={@base_path}
+      page_title={page_title(assigns)}
     >
-      {render_slot(@inner_block)}
-    </.link>
+      <.dashboard_view
+        :if={@section == "dashboard" and @selected_dashboard}
+        dashboard={@selected_dashboard}
+        widget_values={@widget_values}
+      />
+      <.resource_view
+        :if={@section == "resource" and @selected_resource}
+        resource={@selected_resource}
+        rows={@resource_rows}
+        selected_row={@selected_row}
+        detail_id={@detail_id}
+        base_path={@base_path}
+        table_state={@table_state}
+      />
+    </.admin_shell>
     """
   end
 
@@ -220,13 +158,12 @@ defmodule Incant.Live.AdminLive do
     Enum.find(collection, &(module_slug(&1.module) == module_id))
   end
 
-  defp section(%{"resource" => _resource_param}, _dashboard, _selected_resource), do: "resource"
+  defp section(action, _dashboard, _resource) when action in [:resource, :resource_detail],
+    do: "resource"
 
-  defp section(%{"dashboard" => _dashboard_param}, _dashboard_metadata, _resource),
-    do: "dashboard"
-
-  defp section(_params, nil, _resource), do: "resource"
-  defp section(_params, _dashboard, _resource), do: "dashboard"
+  defp section(:dashboard, _dashboard, _resource), do: "dashboard"
+  defp section(:index, nil, _resource), do: "resource"
+  defp section(:index, _dashboard, _resource), do: "dashboard"
 
   defp page_title(%{section: "resource", selected_resource: resource})
        when not is_nil(resource) do
