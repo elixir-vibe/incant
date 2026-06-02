@@ -1,4 +1,4 @@
-defmodule Incant.Live.UI do
+defmodule Incant.Live.Components do
   @moduledoc """
   Shared Incant LiveView components for admin surfaces.
   """
@@ -17,6 +17,18 @@ defmodule Incant.Live.UI do
   end
 
   attr(:class, :any, default: nil)
+  attr(:tone, :atom, default: :neutral)
+  slot(:inner_block, required: true)
+
+  def badge(assigns) do
+    ~H"""
+    <span class={[badge_class(@tone), @class]}>
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  attr(:class, :any, default: nil)
   slot(:inner_block, required: true)
 
   def pill(assigns) do
@@ -27,10 +39,34 @@ defmodule Incant.Live.UI do
     """
   end
 
+  attr(:patch, :string, required: true)
+  attr(:class, :any, default: nil)
+  slot(:inner_block, required: true)
+
+  def primary_link(assigns) do
+    ~H"""
+    <.link patch={@patch} class={["text-[var(--incant-primary)] hover:underline", @class]}>
+      {render_slot(@inner_block)}
+    </.link>
+    """
+  end
+
+  attr(:patch, :string, required: true)
+  attr(:class, :any, default: nil)
+  slot(:inner_block, required: true)
+
+  def back_link(assigns) do
+    ~H"""
+    <.primary_link patch={@patch} class={["text-sm", @class]}>
+      {render_slot(@inner_block)}
+    </.primary_link>
+    """
+  end
+
   attr(:class, :any, default: nil)
   attr(:rest, :global, include: ~w(type name value placeholder))
 
-  def text_input(assigns) do
+  def input(assigns) do
     ~H"""
     <input
       {@rest}
@@ -67,12 +103,12 @@ defmodule Incant.Live.UI do
     """
   end
 
-  def badge_html(value) do
-    escaped = value |> to_string() |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+  defp badge_class(:primary) do
+    "rounded-full bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2 py-1 text-xs text-[var(--incant-primary)]"
+  end
 
-    Phoenix.HTML.raw(
-      ~s|<span class="rounded-full bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2 py-1 text-xs text-[var(--incant-primary)]">#{escaped}</span>|
-    )
+  defp badge_class(_tone) do
+    "rounded-full border border-[var(--incant-border)] px-2 py-1 text-xs text-[var(--incant-text-muted)]"
   end
 
   defp selected_values(nil), do: []

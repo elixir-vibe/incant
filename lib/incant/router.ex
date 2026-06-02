@@ -26,6 +26,9 @@ defmodule Incant.Router do
       live_session unquote(session_name),
         session: %{"admin" => unquote(admin), "base_path" => unquote(base_path)} do
         live(unquote(path), Incant.Live.AdminLive, :index)
+        live(unquote(path <> "/dashboards/:dashboard"), Incant.Live.AdminLive, :dashboard)
+        live(unquote(path <> "/resources/:resource"), Incant.Live.AdminLive, :resource)
+        live(unquote(path <> "/resources/:resource/:id"), Incant.Live.AdminLive, :resource_detail)
       end
     end
   end

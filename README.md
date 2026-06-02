@@ -108,7 +108,7 @@ defmodule MyApp.Admin.Filters.ExpensiveProduct do
   @behaviour Incant.Filter
 
   use Phoenix.Component
-  import Incant.Live.UI
+  import Incant.Live.Components
 
   def control(filter, value, _assigns) do
     assigns = %{filter: filter, value: value}

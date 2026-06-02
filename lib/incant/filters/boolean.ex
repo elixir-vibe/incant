@@ -7,7 +7,7 @@ defmodule Incant.Filters.Boolean do
 
   use Phoenix.Component
 
-  import Incant.Live.UI
+  import Incant.Live.Components
 
   alias Incant.Filters.Shared
 

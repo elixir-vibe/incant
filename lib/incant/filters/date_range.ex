@@ -7,7 +7,7 @@ defmodule Incant.Filters.DateRange do
 
   use Phoenix.Component
 
-  import Incant.Live.UI
+  import Incant.Live.Components
 
   alias Incant.Filters.Shared
 
@@ -17,13 +17,13 @@ defmodule Incant.Filters.DateRange do
 
     ~H"""
     <div class="grid grid-cols-2 gap-2">
-      <.text_input
+      <.input
         type="date"
         name={"table[filters][#{@filter.name}][from]"}
         value={filter_value(@value, "from")}
         placeholder={"#{@filter.name} from"}
       />
-      <.text_input
+      <.input
         type="date"
         name={"table[filters][#{@filter.name}][to]"}
         value={filter_value(@value, "to")}

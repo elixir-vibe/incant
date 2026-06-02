@@ -5,7 +5,7 @@ defmodule Incant.Live.AdminLive do
 
   use Phoenix.LiveView
 
-  import Incant.Live.UI
+  import Incant.Live.Components
 
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
@@ -33,8 +33,9 @@ defmodule Incant.Live.AdminLive do
     selected_dashboard =
       select_by_module(dashboards, params["dashboard"]) || List.first(dashboards)
 
-    section = params["section"] || default_section(selected_dashboard, selected_resource)
+    section = section(params, selected_dashboard, selected_resource)
     table_state = table_state(params)
+    resource_rows = resource_rows(selected_resource, table_state)
 
     {:noreply,
      socket
@@ -42,8 +43,9 @@ defmodule Incant.Live.AdminLive do
      |> assign(:section, section)
      |> assign(:selected_resource, selected_resource)
      |> assign(:selected_dashboard, selected_dashboard)
+     |> assign(:selected_row, resource_row(selected_resource, params["id"]))
      |> assign(:table_state, table_state)
-     |> assign(:resource_rows, resource_rows(selected_resource, table_state))
+     |> assign(:resource_rows, resource_rows)
      |> assign(:widget_values, widget_values(selected_dashboard))}
   end
 
@@ -53,12 +55,11 @@ defmodule Incant.Live.AdminLive do
 
     params =
       socket.assigns.params
-      |> Map.take(["section", "resource", "dashboard"])
+      |> table_query_params()
       |> Map.merge(flatten_table_params(table_params))
       |> reject_empty_values()
 
-    {:noreply,
-     push_patch(socket, to: path(socket.assigns.base_path, params_for_resource(params, resource)))}
+    {:noreply, push_patch(socket, to: resource_path(socket.assigns.base_path, resource, params))}
   end
 
   def handle_event("sort", %{"column" => column}, socket) do
@@ -67,7 +68,7 @@ defmodule Incant.Live.AdminLive do
       |> Map.put("sort", next_sort(socket.assigns.params["sort"], column))
       |> reject_empty_values()
 
-    {:noreply, push_patch(socket, to: path(socket.assigns.base_path, params))}
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
   end
 
   @impl Phoenix.LiveView
@@ -134,6 +135,8 @@ defmodule Incant.Live.AdminLive do
             :if={@section == "resource" and @selected_resource}
             resource={@selected_resource}
             rows={@resource_rows}
+            selected_row={@selected_row}
+            base_path={@base_path}
             table_state={@table_state}
           />
         </div>
@@ -204,6 +207,8 @@ defmodule Incant.Live.AdminLive do
 
   attr(:resource, Incant.Resource.Metadata, required: true)
   attr(:rows, :list, default: [])
+  attr(:selected_row, :any, default: nil)
+  attr(:base_path, :string, required: true)
   attr(:table_state, :map, default: %{})
 
   def resource_view(assigns) do
@@ -215,7 +220,7 @@ defmodule Incant.Live.AdminLive do
         <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
 
         <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="mt-5 grid gap-3 md:grid-cols-3">
-          <.text_input
+          <.input
             :if={@resource.table.search}
             type="search"
             name="table[search]"
@@ -228,6 +233,24 @@ defmodule Incant.Live.AdminLive do
             value={Map.get(@table_state.filters, to_string(filter.name), "")}
           />
         </.form>
+      </.card>
+
+      <.card :if={@selected_row} class="p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm text-[var(--incant-text-muted)]">Detail</p>
+            <h3 class="mt-1 text-xl font-semibold tracking-tight">{row_title(@selected_row, @resource)}</h3>
+          </div>
+          <.back_link patch={resource_path(@base_path, @resource)}>
+            Back to list
+          </.back_link>
+        </div>
+        <dl class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div :for={{key, value} <- row_fields(@selected_row)} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
+            <dt class="text-xs uppercase tracking-wide text-[var(--incant-text-muted)]">{key}</dt>
+            <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">{value}</dd>
+          </div>
+        </dl>
       </.card>
 
       <.card class="overflow-hidden">
@@ -250,7 +273,7 @@ defmodule Incant.Live.AdminLive do
             </tr>
             <tr :for={row <- @rows} class="hover:bg-[var(--incant-bg-accented)]">
               <td :for={column <- @resource.table.columns} class={cell_class(column)}>
-                {render_cell(row, column)}
+                <.resource_cell row={row} column={column} resource={@resource} base_path={@base_path} />
               </td>
             </tr>
           </tbody>
@@ -272,17 +295,68 @@ defmodule Incant.Live.AdminLive do
   defp resource_rows(nil, _table_state), do: []
 
   defp resource_rows(resource, table_state) do
-    data = resource.data
-
-    data
-    |> callback(%{table: table_state}, [])
-    |> Incant.Tabular.to_rows(only: Enum.map(resource.table.columns, & &1.name))
+    resource
+    |> raw_resource_rows()
+    |> Incant.Tabular.to_rows(only: table_row_fields(resource))
     |> search_rows(resource.table.search, table_state.search)
     |> filter_rows(resource.table.filters, table_state.filters)
     |> sort_rows(table_state.sort)
   rescue
     _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> []
   end
+
+  defp resource_row(_resource, nil), do: nil
+
+  defp resource_row(resource, id) do
+    resource
+    |> raw_resource_rows()
+    |> Enum.find(&(row_id(&1) == id))
+  rescue
+    _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> nil
+  end
+
+  defp table_row_fields(resource), do: [:id | Enum.map(resource.table.columns, & &1.name)]
+
+  defp raw_resource_rows(nil), do: []
+
+  defp raw_resource_rows(resource) do
+    callback(resource.data, %{table: %{}}, [])
+  end
+
+  defp row_id(row), do: row |> row_field(:id) |> id_string()
+
+  defp id_string(nil), do: nil
+  defp id_string(""), do: nil
+  defp id_string(value), do: to_string(value)
+
+  defp row_title(row, resource) do
+    link_column =
+      Enum.find(resource.table.columns, & &1.opts[:link]) || List.first(resource.table.columns)
+
+    case link_column do
+      nil -> "Record #{row_id(row)}"
+      column -> row |> row_field(column.name) |> to_string()
+    end
+  end
+
+  defp row_fields(%_struct{} = row) do
+    row
+    |> Map.from_struct()
+    |> Enum.map(fn {key, value} -> {key, format_detail_value(value)} end)
+  end
+
+  defp row_fields(row) when is_map(row) do
+    Enum.map(row, fn {key, value} -> {key, format_detail_value(value)} end)
+  end
+
+  defp row_fields(_row), do: []
+
+  defp row_field(row, field) do
+    Map.get(row, field, Map.get(row, to_string(field)))
+  end
+
+  defp format_detail_value(value) when is_binary(value), do: value
+  defp format_detail_value(value), do: inspect(value)
 
   defp widget_values(nil), do: %{}
 
@@ -377,13 +451,7 @@ defmodule Incant.Live.AdminLive do
     Map.reject(map, fn {_key, value} -> value in [nil, "", %{}] end)
   end
 
-  defp params_for_resource(params, nil), do: params
-
-  defp params_for_resource(params, resource) do
-    params
-    |> Map.put_new("section", "resource")
-    |> Map.put_new("resource", module_id(resource.module))
-  end
+  defp table_query_params(params), do: Map.take(params, ["search", "filter", "sort"])
 
   defp next_sort(current_sort, column) do
     case current_sort do
@@ -408,13 +476,43 @@ defmodule Incant.Live.AdminLive do
     ]
   end
 
-  defp render_cell(row, column) do
-    value = Map.get(row, column.name)
+  attr(:row, :any, required: true)
+  attr(:column, Incant.Table.Column, required: true)
+  attr(:resource, Incant.Resource.Metadata, required: true)
+  attr(:base_path, :string, required: true)
 
-    cond do
-      render = column.opts[:render] -> callback(render, value, row)
-      column.opts[:as] == :badge -> Incant.Live.UI.badge_html(value)
-      true -> format_value(value, column.opts[:format])
+  def resource_cell(assigns) do
+    assigns =
+      assigns
+      |> assign(:value, row_field(assigns.row, assigns.column.name))
+      |> assign(:row_id, row_id(assigns.row))
+
+    ~H"""
+    <.primary_link :if={@column.opts[:link] && @row_id} patch={resource_detail_path(@base_path, @resource, @row_id)}>
+      <.cell_value row={@row} column={@column} value={@value} />
+    </.primary_link>
+    <.cell_value :if={!@column.opts[:link] || !@row_id} row={@row} column={@column} value={@value} />
+    """
+  end
+
+  attr(:row, :any, required: true)
+  attr(:column, Incant.Table.Column, required: true)
+  attr(:value, :any, required: true)
+
+  def cell_value(assigns) do
+    assigns =
+      assign(assigns, :rendered, render_cell_value(assigns.row, assigns.column, assigns.value))
+
+    ~H"""
+    <.badge :if={@column.opts[:as] == :badge} tone={:primary}>{@value}</.badge>
+    <span :if={@column.opts[:as] != :badge}>{@rendered}</span>
+    """
+  end
+
+  defp render_cell_value(row, column, value) do
+    case column.opts[:render] do
+      nil -> format_value(value, column.opts[:format])
+      render -> callback(render, value, row)
     end
   end
 
@@ -446,20 +544,61 @@ defmodule Incant.Live.AdminLive do
     Enum.find(collection, &(module_id(&1.module) == module_id))
   end
 
-  defp default_section(nil, nil), do: "dashboard"
-  defp default_section(nil, _resource), do: "resource"
-  defp default_section(_dashboard, _resource), do: "dashboard"
+  defp section(%{"resource" => _resource_param}, _dashboard, _selected_resource), do: "resource"
 
-  defp dashboard_path(base_path, dashboard) do
-    path(base_path, section: "dashboard", dashboard: module_id(dashboard.module))
+  defp section(%{"dashboard" => _dashboard_param}, _dashboard_metadata, _resource),
+    do: "dashboard"
+
+  defp section(_params, nil, _resource), do: "resource"
+  defp section(_params, _dashboard, _resource), do: "dashboard"
+
+  defp current_path(
+         %{
+           section: "resource",
+           selected_resource: resource,
+           params: params,
+           base_path: base_path
+         },
+         query_params
+       ) do
+    case params["id"] do
+      nil -> resource_path(base_path, resource, query_params)
+      id -> resource_detail_path(base_path, resource, id, query_params)
+    end
   end
 
-  defp resource_path(base_path, resource) do
-    path(base_path, section: "resource", resource: module_id(resource.module))
+  defp current_path(
+         %{section: "dashboard", selected_dashboard: dashboard, base_path: base_path},
+         query_params
+       ) do
+    dashboard_path(base_path, dashboard, query_params)
   end
 
-  defp path(base_path, params) do
-    base_path <> "?" <> URI.encode_query(params)
+  defp dashboard_path(base_path, dashboard, query_params \\ %{}) do
+    path([base_path, "dashboards", module_id(dashboard.module)], query_params)
+  end
+
+  defp resource_path(base_path, resource, query_params \\ %{}) do
+    path([base_path, "resources", module_id(resource.module)], query_params)
+  end
+
+  defp resource_detail_path(base_path, resource, id, query_params \\ %{}) do
+    path([base_path, "resources", module_id(resource.module), id], query_params)
+  end
+
+  defp path([base_path | segments], query_params) do
+    suffix =
+      segments
+      |> Enum.map(fn segment -> URI.encode(to_string(segment), &URI.char_unreserved?/1) end)
+      |> Enum.join("/")
+
+    path = base_path <> "/" <> suffix
+    query_params = reject_empty_values(query_params)
+
+    case URI.encode_query(query_params) do
+      "" -> path
+      query -> path <> "?" <> query
+    end
   end
 
   defp page_title(%{section: "resource", selected_resource: resource})

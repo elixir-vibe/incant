@@ -7,7 +7,7 @@ defmodule Incant.Filters.Text do
 
   use Phoenix.Component
 
-  import Incant.Live.UI
+  import Incant.Live.Components
 
   alias Incant.Filters.Shared
 
@@ -16,7 +16,7 @@ defmodule Incant.Filters.Text do
     assigns = %{filter: filter, value: value}
 
     ~H"""
-    <.text_input
+    <.input
       type="text"
       name={"table[filters][#{@filter.name}]"}
       value={@value}
