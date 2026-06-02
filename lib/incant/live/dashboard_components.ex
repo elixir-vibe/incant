@@ -5,10 +5,17 @@ defmodule Incant.Live.DashboardComponents do
 
   import Incant.Live.Components
 
-  attr(:dashboard, Incant.Dashboard.Metadata, required: true)
-  attr(:widget_values, :map, default: %{})
+  attr(:context, Incant.Live.Context, required: true)
 
   def dashboard_view(assigns) do
+    context = assigns.context
+
+    assigns =
+      assigns
+      |> assign(:dashboard, context.dashboard)
+      |> assign(:widget_values, context.widget_values)
+      |> assign(:variables, context.dashboard_variables)
+
     ~H"""
     <section class="space-y-6">
       <.card class="flex flex-col gap-4 p-5">
@@ -20,11 +27,9 @@ defmodule Incant.Live.DashboardComponents do
           <div class="font-mono text-xs text-[var(--incant-text-muted)]">{inspect(@dashboard.grid)}</div>
         </div>
 
-        <div class="flex flex-wrap gap-2">
-          <.pill :for={variable <- @dashboard.variables} class="bg-[var(--incant-bg-accented)] text-[var(--incant-text-toned)]">
-            {variable.name}: {variable.type}
-          </.pill>
-        </div>
+        <.form :let={_form} :if={@dashboard.variables != []} for={%{}} as={:var} phx-change="dashboard_variables" class="grid gap-3 md:grid-cols-3">
+          <.variable_control :for={variable <- @dashboard.variables} variable={variable} value={Map.get(@variables, to_string(variable.name), variable.opts[:default])} />
+        </.form>
       </.card>
 
       <div class="grid grid-cols-1 gap-4 xl:grid-cols-12">
@@ -36,6 +41,48 @@ defmodule Incant.Live.DashboardComponents do
         />
       </div>
     </section>
+    """
+  end
+
+  attr(:variable, Incant.Dashboard.Variable, required: true)
+  attr(:value, :any, default: nil)
+
+  def variable_control(%{variable: %{type: :select}} = assigns) do
+    ~H"""
+    <label class="grid gap-1 text-sm">
+      <span class="text-[var(--incant-text-muted)]">{widget_label(@variable)}</span>
+      <.select name={"var[#{@variable.name}]"} value={@value} options={@variable.opts[:options] || []} />
+    </label>
+    """
+  end
+
+  def variable_control(%{variable: %{type: :multi_select}} = assigns) do
+    ~H"""
+    <label class="grid gap-1 text-sm">
+      <span class="text-[var(--incant-text-muted)]">{widget_label(@variable)}</span>
+      <.select name={"var[#{@variable.name}][]"} value={@value} options={@variable.opts[:options] || []} multiple class="min-h-24" />
+    </label>
+    """
+  end
+
+  def variable_control(%{variable: %{type: :date_range}} = assigns) do
+    ~H"""
+    <label class="grid gap-1 text-sm md:col-span-2">
+      <span class="text-[var(--incant-text-muted)]">{widget_label(@variable)}</span>
+      <div class="grid grid-cols-2 gap-2">
+        <.input type="date" name={"var[#{@variable.name}][from]"} value={map_value(@value, "from")} />
+        <.input type="date" name={"var[#{@variable.name}][to]"} value={map_value(@value, "to")} />
+      </div>
+    </label>
+    """
+  end
+
+  def variable_control(assigns) do
+    ~H"""
+    <label class="grid gap-1 text-sm">
+      <span class="text-[var(--incant-text-muted)]">{widget_label(@variable)}</span>
+      <.input type="text" name={"var[#{@variable.name}]"} value={@value} />
+    </label>
     """
   end
 
@@ -119,7 +166,11 @@ defmodule Incant.Live.DashboardComponents do
     end
   end
 
-  defp widget_label(widget), do: widget.opts[:label] || humanize(widget.id)
+  defp widget_label(%{id: id, opts: opts}), do: opts[:label] || humanize(id)
+  defp widget_label(%{name: name, opts: opts}), do: opts[:label] || humanize(name)
+
+  defp map_value(value, key) when is_map(value), do: Map.get(value, key, "")
+  defp map_value(_value, _key), do: ""
 
   defp humanize(value) do
     value

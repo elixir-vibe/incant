@@ -120,8 +120,32 @@ defmodule Incant.Live.ResourceComponents do
             </tr>
           </tbody>
         </table>
+        <.pagination context={@context} />
       </.card>
     </section>
+    """
+  end
+
+  attr(:context, Incant.Live.Context, required: true)
+
+  def pagination(%{context: %{pagination: %{total: total}}} = assigns) when total > 0 do
+    assigns = assign(assigns, :pagination, assigns.context.pagination)
+
+    ~H"""
+    <div class="flex items-center justify-between gap-3 border-t border-[var(--incant-border)] px-4 py-3 text-sm text-[var(--incant-text-muted)]">
+      <div>
+        Page {@pagination.page} of {@pagination.total_pages} · {@pagination.total} rows
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" phx-click="page" phx-value-page={@pagination.page - 1} disabled={@pagination.page <= 1} class="rounded-lg px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Previous</button>
+        <button type="button" phx-click="page" phx-value-page={@pagination.page + 1} disabled={@pagination.page >= @pagination.total_pages} class="rounded-lg px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Next</button>
+      </div>
+    </div>
+    """
+  end
+
+  def pagination(assigns) do
+    ~H"""
     """
   end
 

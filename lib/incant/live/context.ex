@@ -13,6 +13,8 @@ defmodule Incant.Live.Context do
     table_state: %{},
     rows: [],
     selected_row: nil,
+    pagination: %{},
+    dashboard_variables: %{},
     widget_values: %{}
   ]
 end

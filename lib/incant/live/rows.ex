@@ -5,6 +5,31 @@ defmodule Incant.Live.Rows do
 
   def list(resource, table_state) do
     resource
+    |> all(table_state)
+    |> paginate(table_state)
+  end
+
+  def page(nil, table_state), do: page([], table_state)
+
+  def page(resource, table_state) do
+    rows = all(resource, table_state)
+    page = positive_integer(Map.get(table_state, :page), 1)
+    page_size = positive_integer(Map.get(table_state, :page_size), 25)
+    total = length(rows)
+    total_pages = max(ceil(total / page_size), 1)
+    page = min(page, total_pages)
+
+    %{
+      rows: paginate(rows, %{page: page, page_size: page_size}),
+      page: page,
+      page_size: page_size,
+      total: total,
+      total_pages: total_pages
+    }
+  end
+
+  defp all(resource, table_state) do
+    resource
     |> raw(table_state)
     |> search(resource.table.search, table_state.search)
     |> filter(resource.table.filters, table_state.filters)
@@ -146,6 +171,26 @@ defmodule Incant.Live.Rows do
   rescue
     ArgumentError -> rows
   end
+
+  defp paginate(rows, table_state) do
+    page = positive_integer(Map.get(table_state, :page), 1)
+    page_size = positive_integer(Map.get(table_state, :page_size), 25)
+
+    rows
+    |> Enum.drop((page - 1) * page_size)
+    |> Enum.take(page_size)
+  end
+
+  defp positive_integer(value, _default) when is_integer(value) and value > 0, do: value
+
+  defp positive_integer(value, default) when is_binary(value) do
+    case Integer.parse(value) do
+      {integer, ""} when integer > 0 -> integer
+      _other -> default
+    end
+  end
+
+  defp positive_integer(_value, default), do: default
 
   defp sort_parts("-" <> field), do: {:desc, field}
   defp sort_parts(field), do: {:asc, field}

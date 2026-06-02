@@ -38,13 +38,15 @@ defmodule Incant.Live.AdminLive do
 
     section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
     table_state = table_state(params)
-    resource_rows = Incant.Live.Rows.list(selected_resource, table_state)
+    resource_page = Incant.Live.Rows.page(selected_resource, table_state)
+    resource_rows = resource_page.rows
+    dashboard_variables = Map.get(params, "var", %{})
     form_mode = form_mode(socket.assigns.live_action)
     form_record = form_record(selected_resource, params["id"], form_mode)
     form_changeset = form_changeset(selected_resource, form_record, form_mode)
 
     selected_row = Incant.Live.Rows.one(selected_resource, params["id"])
-    widget_values = widget_values(selected_dashboard)
+    widget_values = widget_values(selected_dashboard, dashboard_variables)
 
     context = %Incant.Live.Context{
       base_path: socket.assigns.base_path,
@@ -58,6 +60,8 @@ defmodule Incant.Live.AdminLive do
       form_changeset: form_changeset,
       table_state: table_state,
       rows: resource_rows,
+      pagination: Map.drop(resource_page, [:rows]),
+      dashboard_variables: dashboard_variables,
       widget_values: widget_values
     }
 
@@ -86,6 +90,7 @@ defmodule Incant.Live.AdminLive do
       socket.assigns.params
       |> table_query_params()
       |> Map.merge(flatten_table_params(table_params))
+      |> Map.put("page", "1")
       |> reject_empty_values()
 
     {:noreply, push_patch(socket, to: resource_path(socket.assigns.base_path, resource, params))}
@@ -95,6 +100,25 @@ defmodule Incant.Live.AdminLive do
     params =
       socket.assigns.params
       |> Map.put("sort", next_sort(socket.assigns.params["sort"], column))
+      |> Map.put("page", "1")
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
+  end
+
+  def handle_event("page", %{"page" => page}, socket) do
+    params =
+      socket.assigns.params
+      |> Map.put("page", page)
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
+  end
+
+  def handle_event("dashboard_variables", %{"var" => variables}, socket) do
+    params =
+      socket.assigns.params
+      |> Map.put("var", variables)
       |> reject_empty_values()
 
     {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
@@ -155,29 +179,29 @@ defmodule Incant.Live.AdminLive do
       base_path={@base_path}
       page_title={page_title(assigns)}
     >
-      <.dashboard_view
-        :if={@section == "dashboard" and @selected_dashboard}
-        dashboard={@selected_dashboard}
-        widget_values={@widget_values}
-      />
+      <.dashboard_view :if={@section == "dashboard" and @selected_dashboard} context={@context} />
       <.resource_view :if={@section == "resource" and @selected_resource} context={@context} />
     </.admin_shell>
     """
   end
 
-  defp widget_values(nil), do: %{}
+  defp widget_values(nil, _variables), do: %{}
 
-  defp widget_values(dashboard) do
+  defp widget_values(dashboard, variables) do
     dashboard.widgets
     |> Enum.filter(&(&1.opts[:query] != nil))
-    |> Map.new(fn widget -> {widget.id, Incant.Callback.call(widget.opts[:query], %{}, nil)} end)
+    |> Map.new(fn widget ->
+      {widget.id, Incant.Callback.call(widget.opts[:query], variables, nil)}
+    end)
   end
 
   defp table_state(params) do
     %{
       search: Map.get(params, "search", ""),
       filters: Map.get(params, "filter", %{}),
-      sort: Map.get(params, "sort", "")
+      sort: Map.get(params, "sort", ""),
+      page: Map.get(params, "page", "1"),
+      page_size: Map.get(params, "page_size", "25")
     }
   end
 
@@ -193,7 +217,8 @@ defmodule Incant.Live.AdminLive do
     Map.reject(map, fn {_key, value} -> value in [nil, "", %{}] end)
   end
 
-  defp table_query_params(params), do: Map.take(params, ["search", "filter", "sort"])
+  defp table_query_params(params),
+    do: Map.take(params, ["search", "filter", "sort", "page", "page_size"])
 
   defp next_sort(current_sort, column) do
     case current_sort do
