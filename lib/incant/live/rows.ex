@@ -25,7 +25,7 @@ defmodule Incant.Live.Rows do
   end
 
   def raw(nil), do: []
-  def raw(resource), do: callback(resource.data, %{table: %{}}, [])
+  def raw(resource), do: Incant.Callback.call(resource.data, %{table: %{}}, [])
 
   def id(row), do: row |> field(:id) |> id_string()
 
@@ -118,16 +118,4 @@ defmodule Incant.Live.Rows do
 
   defp format_detail_value(value) when is_binary(value), do: value
   defp format_detail_value(value), do: inspect(value)
-
-  defp callback(nil, _params, default), do: default
-  defp callback(function, params, _context) when is_function(function, 1), do: function.(params)
-
-  defp callback(function, params, context) when is_function(function, 2),
-    do: function.(params, context)
-
-  defp callback({module, function}, params, context),
-    do: apply(module, function, [params, context])
-
-  defp callback({module, function, args}, params, context),
-    do: apply(module, function, [params, context | args])
 end

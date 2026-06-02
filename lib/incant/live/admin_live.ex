@@ -172,21 +172,8 @@ defmodule Incant.Live.AdminLive do
   defp widget_values(dashboard) do
     dashboard.widgets
     |> Enum.filter(&(&1.opts[:query] != nil))
-    |> Map.new(fn widget -> {widget.id, callback(widget.opts[:query], %{}, nil)} end)
+    |> Map.new(fn widget -> {widget.id, Incant.Callback.call(widget.opts[:query], %{}, nil)} end)
   end
-
-  defp callback(nil, _params, default), do: default
-
-  defp callback(function, params, _context) when is_function(function, 1), do: function.(params)
-
-  defp callback(function, params, context) when is_function(function, 2),
-    do: function.(params, context)
-
-  defp callback({module, function}, params, context),
-    do: apply(module, function, [params, context])
-
-  defp callback({module, function, args}, params, context),
-    do: apply(module, function, [params, context | args])
 
   defp table_state(params) do
     %{

@@ -129,7 +129,7 @@ defmodule Incant.Live.ResourceComponents do
   defp render_cell_value(row, column, value) do
     case column.opts[:render] do
       nil -> format_value(value, column.opts[:format])
-      render -> callback(render, value, row)
+      render -> Incant.Callback.call(render, value, row)
     end
   end
 
@@ -160,18 +160,6 @@ defmodule Incant.Live.ResourceComponents do
     do: "$#{:erlang.float_to_binary(value, decimals: 2)}"
 
   defp format_currency(value), do: to_string(value)
-
-  defp callback(nil, _params, default), do: default
-  defp callback(function, params, _context) when is_function(function, 1), do: function.(params)
-
-  defp callback(function, params, context) when is_function(function, 2),
-    do: function.(params, context)
-
-  defp callback({module, function}, params, context),
-    do: apply(module, function, [params, context])
-
-  defp callback({module, function, args}, params, context),
-    do: apply(module, function, [params, context | args])
 
   defp short_module(module) do
     module
