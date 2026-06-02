@@ -88,6 +88,51 @@ Incant renderers use semantic CSS variables instead of fixed Tailwind palette cl
 
 See `Incant.Design.css_variables/0` and the playground's `assets/css/app.css` for the complete token set.
 
+## Filters
+
+Resource filters are rendered and applied through `Incant.Filter`, a behaviour-backed registry. Built-ins include `:text`, `:select`, `:multi_select`, `:date_range`, and `:boolean`.
+
+```elixir
+filter :status, :select, options: [:draft, :published]
+filter :inserted_at, :date_range
+```
+
+Override an individual filter with a module that implements `Incant.Filter`:
+
+```elixir
+filter :expensive, :boolean, filter: MyApp.Admin.Filters.ExpensiveProduct
+```
+
+```elixir
+defmodule MyApp.Admin.Filters.ExpensiveProduct do
+  @behaviour Incant.Filter
+
+  use Phoenix.Component
+  import Incant.Live.UI
+
+  def control(filter, value, _assigns) do
+    assigns = %{filter: filter, value: value}
+
+    ~H"""
+    <.select
+      name={"table[filters][#{@filter.name}]"}
+      value={@value}
+      prompt="Price"
+      options={[{"Expensive", "true"}, {"Cheap", "false"}]}
+    />
+    """
+  end
+
+  def match?(_filter, _row, value) when value in [nil, ""], do: true
+  def match?(_filter, row, "true"), do: row.price_cents >= 10_000
+  def match?(_filter, row, "false"), do: row.price_cents < 10_000
+
+  def apply_query(_filter, queryable, _value, _context), do: queryable
+end
+```
+
+`match?/3` is used for in-memory rows. `apply_query/4` is reserved for query-backed resources and custom data sources.
+
 ## Example theme
 
 ```elixir

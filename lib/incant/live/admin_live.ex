@@ -222,9 +222,11 @@ defmodule Incant.Live.AdminLive do
             value={@table_state.search}
             placeholder="Search"
           />
-          <%= for filter <- @resource.table.filters do %>
-            {Incant.Filter.control(filter, Map.get(@table_state.filters, to_string(filter.name), ""), assigns)}
-          <% end %>
+          <.filter_control
+            :for={filter <- @resource.table.filters}
+            filter={filter}
+            value={Map.get(@table_state.filters, to_string(filter.name), "")}
+          />
         </.form>
       </.card>
 
@@ -255,6 +257,15 @@ defmodule Incant.Live.AdminLive do
         </table>
       </.card>
     </section>
+    """
+  end
+
+  attr(:filter, Incant.Table.Filter, required: true)
+  attr(:value, :any, default: nil)
+
+  def filter_control(assigns) do
+    ~H"""
+    {Incant.Filter.control(@filter, @value, assigns)}
     """
   end
 

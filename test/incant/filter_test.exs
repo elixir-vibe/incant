@@ -33,6 +33,14 @@ defmodule Incant.FilterTest do
     assert Incant.Filter.apply_query(filter, :query, "yes", nil) == {:custom, :query, "yes"}
   end
 
+  test "built-in filters delegate query application to filter callbacks" do
+    query = fn queryable, value, context -> {:filtered, queryable, value, context} end
+    filter = %Filter{name: :status, type: :select, query: query}
+
+    assert Incant.Filter.apply_query(filter, :query, "published", :context) ==
+             {:filtered, :query, "published", :context}
+  end
+
   test "matches text and select filters against in-memory rows" do
     text = %Filter{name: :title, type: :text}
     select = %Filter{name: :status, type: :select}
