@@ -35,6 +35,30 @@ end
 
 Keep it boring. If it starts accumulating queries, formatting, metrics, or policy code, move that code into the matching concept directory.
 
+## Names mirror Phoenix context style
+
+Avoid repeating the folder concept in the filename or module name. The folder and `use Incant.*` already describe the role.
+
+Prefer:
+
+```text
+admin/resources/order.ex          # MyApp.Admin.Resources.Order
+admin/dashboards/marketing.ex     # MyApp.Admin.Dashboards.Marketing
+admin/themes/default.ex           # MyApp.Admin.Themes.Default
+admin/metrics/llm.ex              # MyApp.Admin.Metrics.LLM
+```
+
+Avoid:
+
+```text
+admin/resources/order_resource.ex
+admin/dashboards/marketing_dashboard.ex
+admin/themes/default_theme.ex
+admin/metrics/llm_metrics.ex
+```
+
+Phoenix does use suffixes for web artifacts like `UserController`, `UserLive`, and `PageHTML`, because those modules sit in web-facing namespaces where the type is part of the public role. Incant admin modules should be closer to Phoenix context/schema naming: concise names under meaningful namespaces.
+
 ## Resources
 
 Resource modules live in `admin/resources` and should be named after what they expose, not after Incant internals:
@@ -46,8 +70,6 @@ defmodule MyApp.Admin.Resources.Order do
     repo: MyApp.Repo
 end
 ```
-
-Prefer `MyApp.Admin.Resources.Order` over `MyApp.Admin.OrderResource`. The folder already says it is a resource.
 
 ## Dashboards
 

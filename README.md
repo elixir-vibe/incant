@@ -19,7 +19,7 @@ mix phx.server
 ## Example resource
 
 ```elixir
-defmodule MyApp.Admin.OrderResource do
+defmodule MyApp.Admin.Resources.Order do
   use Incant.Resource,
     schema: MyApp.Orders.Order,
     repo: MyApp.Repo
@@ -42,7 +42,7 @@ end
 ## Example dashboard
 
 ```elixir
-defmodule MyApp.Admin.LLMStatsDashboard do
+defmodule MyApp.Admin.Dashboards.LLMStats do
   use Incant.Dashboard
 
   title "LLM Proxy"
@@ -53,8 +53,8 @@ defmodule MyApp.Admin.LLMStatsDashboard do
   end
 
   grid columns: 12, row_height: 8 do
-    stat :total_requests, span: 3, query: &MyApp.Admin.Metrics.total_requests/2
-    stat :total_cost, span: 3, query: &MyApp.Admin.Metrics.total_cost/2
+    stat :total_requests, span: 3, query: &MyApp.Admin.Metrics.LLM.total_requests/2
+    stat :total_cost, span: 3, query: &MyApp.Admin.Metrics.LLM.total_cost/2
     timeseries :requests_over_time, span: 8
     table :slow_requests, span: 4
   end
@@ -64,7 +64,7 @@ end
 ## Example theme
 
 ```elixir
-defmodule MyApp.Admin.Theme do
+defmodule MyApp.Admin.Themes.Default do
   use Incant.Theme
 
   css_vars_prefix "--incant"
