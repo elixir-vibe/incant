@@ -48,7 +48,13 @@ defmodule Incant.Live.ResourceComponents do
           </.back_link>
         </div>
         <dl class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <div :for={{key, value} <- Incant.Live.Rows.fields(@selected_row)} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
+          <div :for={column <- @resource.table.columns} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
+            <dt class="text-xs uppercase tracking-wide text-[var(--incant-text-muted)]">{column_label(column)}</dt>
+            <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">
+              <.cell_value row={@selected_row} column={column} value={Incant.Live.Rows.field(@selected_row, column.name)} />
+            </dd>
+          </div>
+          <div :for={{key, value} <- extra_fields(@selected_row, @resource)} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
             <dt class="text-xs uppercase tracking-wide text-[var(--incant-text-muted)]">{key}</dt>
             <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">{value}</dd>
           </div>
@@ -142,6 +148,25 @@ defmodule Incant.Live.ResourceComponents do
       nil -> format_value(value, column.opts[:format])
       render -> Incant.Callback.call(render, value, row)
     end
+  end
+
+  defp extra_fields(row, resource) do
+    column_names = MapSet.new(Enum.map(resource.table.columns, & &1.name))
+
+    row
+    |> Incant.Live.Rows.fields()
+    |> Enum.reject(fn {key, _value} -> key in column_names or key == :id end)
+  end
+
+  defp column_label(column) do
+    column.opts[:label] || humanize(column.name)
+  end
+
+  defp humanize(value) do
+    value
+    |> to_string()
+    |> String.replace(["_", "-"], " ")
+    |> String.capitalize()
   end
 
   defp sort_column("-" <> column), do: column
