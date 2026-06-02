@@ -2,7 +2,11 @@ defmodule Incant.Live.Context do
   @moduledoc false
 
   defstruct [
+    :admin,
     :base_path,
+    :resources,
+    :dashboards,
+    :theme,
     :resource,
     :dashboard,
     :section,

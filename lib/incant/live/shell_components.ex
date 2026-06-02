@@ -6,18 +6,24 @@ defmodule Incant.Live.ShellComponents do
   import Incant.Live.Components
   import Incant.Live.Routes
 
-  attr(:admin, Incant.Admin.Metadata, required: true)
-  attr(:resources, :list, required: true)
-  attr(:dashboards, :list, required: true)
-  attr(:theme, :any, default: nil)
-  attr(:section, :string, required: true)
-  attr(:selected_resource, :any, default: nil)
-  attr(:selected_dashboard, :any, default: nil)
-  attr(:base_path, :string, required: true)
+  attr(:context, Incant.Live.Context, required: true)
   attr(:page_title, :string, required: true)
   slot(:inner_block, required: true)
 
   def admin_shell(assigns) do
+    context = assigns.context
+
+    assigns =
+      assigns
+      |> assign(:admin, context.admin)
+      |> assign(:resources, context.resources)
+      |> assign(:dashboards, context.dashboards)
+      |> assign(:theme, context.theme)
+      |> assign(:section, context.section)
+      |> assign(:selected_resource, context.resource)
+      |> assign(:selected_dashboard, context.dashboard)
+      |> assign(:base_path, context.base_path)
+
     ~H"""
     <div class="min-h-screen bg-[var(--incant-bg)] text-[var(--incant-text)]">
       <aside class="fixed inset-y-0 left-0 hidden w-72 border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5 lg:block">

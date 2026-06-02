@@ -49,7 +49,11 @@ defmodule Incant.Live.AdminLive do
     widget_values = widget_values(selected_dashboard, dashboard_variables)
 
     context = %Incant.Live.Context{
+      admin: socket.assigns.admin,
       base_path: socket.assigns.base_path,
+      resources: resources,
+      dashboards: dashboards,
+      theme: socket.assigns.theme,
       resource: selected_resource,
       dashboard: selected_dashboard,
       section: section,
@@ -169,19 +173,9 @@ defmodule Incant.Live.AdminLive do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <.admin_shell
-      admin={@admin}
-      resources={@resources}
-      dashboards={@dashboards}
-      theme={@theme}
-      section={@section}
-      selected_resource={@selected_resource}
-      selected_dashboard={@selected_dashboard}
-      base_path={@base_path}
-      page_title={page_title(assigns)}
-    >
-      <.dashboard_view :if={@section == "dashboard" and @selected_dashboard} context={@context} />
-      <.resource_view :if={@section == "resource" and @selected_resource} context={@context} />
+    <.admin_shell context={@context} page_title={page_title(assigns)}>
+      <.dashboard_view :if={@context.section == "dashboard" and @context.dashboard} context={@context} />
+      <.resource_view :if={@context.section == "resource" and @context.resource} context={@context} />
     </.admin_shell>
     """
   end
