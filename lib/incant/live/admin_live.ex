@@ -71,16 +71,16 @@ defmodule Incant.Live.AdminLive do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-zinc-950 text-zinc-100">
-      <aside class="fixed inset-y-0 left-0 hidden w-72 border-r border-white/10 bg-zinc-950/95 p-5 lg:block">
+    <div class="min-h-screen bg-[var(--incant-bg)] text-[var(--incant-text)]">
+      <aside class="fixed inset-y-0 left-0 hidden w-72 border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5 lg:block">
         <div>
-          <div class="text-xs font-semibold uppercase tracking-[0.35em] text-violet-300">Incant</div>
+          <div class="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--incant-primary)]">Incant</div>
           <div class="mt-2 text-xl font-semibold">{short_module(@admin.module)}</div>
         </div>
 
         <nav class="mt-8 space-y-8">
           <div>
-            <div class="text-xs font-medium uppercase tracking-widest text-zinc-500">Dashboards</div>
+            <div class="text-xs font-medium uppercase tracking-widest text-[var(--incant-text-muted)]">Dashboards</div>
             <div class="mt-3 space-y-1">
               <.nav_link
                 :for={dashboard <- @dashboards}
@@ -93,7 +93,7 @@ defmodule Incant.Live.AdminLive do
           </div>
 
           <div>
-            <div class="text-xs font-medium uppercase tracking-widest text-zinc-500">Resources</div>
+            <div class="text-xs font-medium uppercase tracking-widest text-[var(--incant-text-muted)]">Resources</div>
             <div class="mt-3 space-y-1">
               <.nav_link
                 :for={resource <- @resources}
@@ -108,16 +108,16 @@ defmodule Incant.Live.AdminLive do
       </aside>
 
       <main class="lg:pl-72">
-        <div class="border-b border-white/10 bg-zinc-950/70 px-5 py-4 backdrop-blur lg:px-8">
+        <div class="border-b border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-5 py-4 backdrop-blur lg:px-8">
           <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p class="text-sm text-zinc-400">Admin surface</p>
+              <p class="text-sm text-[var(--incant-text-muted)]">Admin surface</p>
               <h1 class="text-2xl font-semibold tracking-tight">{page_title(assigns)}</h1>
             </div>
-            <div class="flex flex-wrap gap-2 text-xs text-zinc-400">
-              <span class="rounded-full border border-white/10 px-3 py-1">{length(@resources)} resources</span>
-              <span class="rounded-full border border-white/10 px-3 py-1">{length(@dashboards)} dashboards</span>
-              <span :if={@theme} class="rounded-full border border-white/10 px-3 py-1">{@theme.css_vars_prefix}</span>
+            <div class="flex flex-wrap gap-2 text-xs text-[var(--incant-text-muted)]">
+              <span class="rounded-full border border-[var(--incant-border)] px-3 py-1">{length(@resources)} resources</span>
+              <span class="rounded-full border border-[var(--incant-border)] px-3 py-1">{length(@dashboards)} dashboards</span>
+              <span :if={@theme} class="rounded-full border border-[var(--incant-border)] px-3 py-1">{@theme.css_vars_prefix}</span>
             </div>
           </div>
         </div>
@@ -150,8 +150,8 @@ defmodule Incant.Live.AdminLive do
       patch={@patch}
       class={[
         "block rounded-lg px-3 py-2 text-sm transition",
-        @active && "bg-violet-500/20 text-violet-100 ring-1 ring-violet-400/30",
-        !@active && "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+        @active && "bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] text-[var(--incant-text-highlighted)] ring-1 ring-[color-mix(in_oklab,var(--incant-primary)_35%,transparent)]",
+        !@active && "text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
       ]}
     >
       {render_slot(@inner_block)}
@@ -165,35 +165,35 @@ defmodule Incant.Live.AdminLive do
   def dashboard_view(assigns) do
     ~H"""
     <section class="space-y-6">
-      <div class="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <div class="flex flex-col gap-4 rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5">
         <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <p class="text-sm text-zinc-400">Dashboard</p>
+            <p class="text-sm text-[var(--incant-text-muted)]">Dashboard</p>
             <h2 class="text-3xl font-semibold tracking-tight">{@dashboard.title}</h2>
           </div>
-          <div class="font-mono text-xs text-zinc-500">{inspect(@dashboard.grid)}</div>
+          <div class="font-mono text-xs text-[var(--incant-text-muted)]">{inspect(@dashboard.grid)}</div>
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <span :for={variable <- @dashboard.variables} class="rounded-full bg-zinc-900 px-3 py-1 text-xs text-zinc-300 ring-1 ring-white/10">
+          <span :for={variable <- @dashboard.variables} class="rounded-full bg-[var(--incant-bg-accented)] px-3 py-1 text-xs text-[var(--incant-text-toned)] ring-1 ring-[var(--incant-border)]">
             {variable.name}: {variable.type}
           </span>
         </div>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article :for={widget <- @dashboard.widgets} class="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-2xl shadow-black/20">
+        <article :for={widget <- @dashboard.widgets} class="rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5 shadow-2xl shadow-[color-mix(in_oklab,var(--incant-bg-inverted)_8%,transparent)]">
           <div class="flex items-center justify-between gap-3">
             <div>
-              <p class="text-sm capitalize text-zinc-400">{widget.type}</p>
+              <p class="text-sm capitalize text-[var(--incant-text-muted)]">{widget.type}</p>
               <h3 class="mt-1 font-mono text-lg font-semibold">{widget.id}</h3>
             </div>
-            <span class="rounded-full bg-violet-500/15 px-2.5 py-1 text-xs text-violet-200">span {widget.opts[:span] || "auto"}</span>
+            <span class="rounded-full bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2.5 py-1 text-xs text-[var(--incant-primary)]">span {widget.opts[:span] || "auto"}</span>
           </div>
           <div :if={Map.has_key?(@widget_values, widget.id)} class="mt-5 text-3xl font-semibold tracking-tight">
             {format_widget_value(@widget_values[widget.id], widget)}
           </div>
-          <pre :if={!Map.has_key?(@widget_values, widget.id)} class="mt-5 overflow-auto rounded-xl bg-black/30 p-3 text-xs text-zinc-400"><%= inspect(widget.opts, pretty: true) %></pre>
+          <pre :if={!Map.has_key?(@widget_values, widget.id)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(widget.opts, pretty: true) %></pre>
         </article>
       </div>
     </section>
@@ -207,10 +207,10 @@ defmodule Incant.Live.AdminLive do
   def resource_view(assigns) do
     ~H"""
     <section class="space-y-6">
-      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-        <p class="text-sm text-zinc-400">Resource</p>
+      <div class="rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5">
+        <p class="text-sm text-[var(--incant-text-muted)]">Resource</p>
         <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
-        <p class="mt-2 font-mono text-sm text-zinc-500">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
+        <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
 
         <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="mt-5 grid gap-3 md:grid-cols-3">
           <input
@@ -219,7 +219,7 @@ defmodule Incant.Live.AdminLive do
             name="table[search]"
             value={@table_state.search}
             placeholder="Search"
-            class="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-400"
+            class="rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]"
           />
           <input
             :for={filter <- @resource.table.filters}
@@ -227,30 +227,30 @@ defmodule Incant.Live.AdminLive do
             name={"table[filters][#{filter.name}]"}
             value={Map.get(@table_state.filters, to_string(filter.name), "")}
             placeholder={"#{filter.name} (#{filter.type})"}
-            class="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-400"
+            class="rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]"
           />
         </.form>
       </div>
 
-      <div class="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-        <table class="min-w-full divide-y divide-white/10 text-sm">
-          <thead class="bg-white/[0.04] text-left text-xs uppercase tracking-wider text-zinc-400">
+      <div class="overflow-hidden rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]">
+        <table class="min-w-full divide-y divide-[var(--incant-border)] text-sm">
+          <thead class="bg-[var(--incant-bg-accented)] text-left text-xs uppercase tracking-wider text-[var(--incant-text-muted)]">
             <tr>
               <th :for={column <- @resource.table.columns} class="px-4 py-3 font-medium">
-                <button type="button" phx-click="sort" phx-value-column={column.name} class="inline-flex items-center gap-1 hover:text-zinc-100">
+                <button type="button" phx-click="sort" phx-value-column={column.name} class="inline-flex items-center gap-1 hover:text-[var(--incant-text-highlighted)]">
                   {column.name}
                   <span :if={sort_column(@table_state.sort) == to_string(column.name)}>{sort_direction(@table_state.sort)}</span>
                 </button>
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/10">
+          <tbody class="divide-y divide-[var(--incant-border)]">
             <tr :if={@rows == []}>
-              <td colspan={length(@resource.table.columns)} class="px-4 py-10 text-center text-zinc-500">
+              <td colspan={length(@resource.table.columns)} class="px-4 py-10 text-center text-[var(--incant-text-muted)]">
                 No rows. Add a resource data callback or loosen the current filters.
               </td>
             </tr>
-            <tr :for={row <- @rows} class="hover:bg-white/[0.02]">
+            <tr :for={row <- @rows} class="hover:bg-[var(--incant-bg-accented)]">
               <td :for={column <- @resource.table.columns} class={cell_class(column)}>
                 {render_cell(row, column)}
               </td>
@@ -400,7 +400,7 @@ defmodule Incant.Live.AdminLive do
     align = column.opts[:align]
 
     [
-      "px-4 py-3 text-zinc-300",
+      "px-4 py-3 text-[var(--incant-text-toned)]",
       align == :right && "text-right tabular-nums"
     ]
   end
@@ -419,7 +419,7 @@ defmodule Incant.Live.AdminLive do
     escaped = value |> to_string() |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
 
     Phoenix.HTML.raw(
-      ~s(<span class="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-100">#{escaped}</span>)
+      ~s|<span class="rounded-full bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2 py-1 text-xs text-[var(--incant-primary)]">#{escaped}</span>|
     )
   end
 
