@@ -5,6 +5,8 @@ defmodule Incant.Live.AdminLive do
 
   use Phoenix.LiveView
 
+  import Incant.Live.UI
+
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
     admin_module = Map.fetch!(session, "admin")
@@ -115,9 +117,9 @@ defmodule Incant.Live.AdminLive do
               <h1 class="text-2xl font-semibold tracking-tight">{page_title(assigns)}</h1>
             </div>
             <div class="flex flex-wrap gap-2 text-xs text-[var(--incant-text-muted)]">
-              <span class="rounded-full border border-[var(--incant-border)] px-3 py-1">{length(@resources)} resources</span>
-              <span class="rounded-full border border-[var(--incant-border)] px-3 py-1">{length(@dashboards)} dashboards</span>
-              <span :if={@theme} class="rounded-full border border-[var(--incant-border)] px-3 py-1">{@theme.css_vars_prefix}</span>
+              <.pill>{length(@resources)} resources</.pill>
+              <.pill>{length(@dashboards)} dashboards</.pill>
+              <.pill :if={@theme}>{@theme.css_vars_prefix}</.pill>
             </div>
           </div>
         </div>
@@ -165,7 +167,7 @@ defmodule Incant.Live.AdminLive do
   def dashboard_view(assigns) do
     ~H"""
     <section class="space-y-6">
-      <div class="flex flex-col gap-4 rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5">
+      <.card class="flex flex-col gap-4 p-5">
         <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <p class="text-sm text-[var(--incant-text-muted)]">Dashboard</p>
@@ -175,26 +177,26 @@ defmodule Incant.Live.AdminLive do
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <span :for={variable <- @dashboard.variables} class="rounded-full bg-[var(--incant-bg-accented)] px-3 py-1 text-xs text-[var(--incant-text-toned)] ring-1 ring-[var(--incant-border)]">
+          <.pill :for={variable <- @dashboard.variables} class="bg-[var(--incant-bg-accented)] text-[var(--incant-text-toned)]">
             {variable.name}: {variable.type}
-          </span>
+          </.pill>
         </div>
-      </div>
+      </.card>
 
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article :for={widget <- @dashboard.widgets} class="rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5 shadow-2xl shadow-[color-mix(in_oklab,var(--incant-bg-inverted)_8%,transparent)]">
+        <.card :for={widget <- @dashboard.widgets} class="p-5 shadow-2xl shadow-[color-mix(in_oklab,var(--incant-bg-inverted)_8%,transparent)]">
           <div class="flex items-center justify-between gap-3">
             <div>
               <p class="text-sm capitalize text-[var(--incant-text-muted)]">{widget.type}</p>
               <h3 class="mt-1 font-mono text-lg font-semibold">{widget.id}</h3>
             </div>
-            <span class="rounded-full bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2.5 py-1 text-xs text-[var(--incant-primary)]">span {widget.opts[:span] || "auto"}</span>
+            <.pill class="border-0 bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2.5 text-[var(--incant-primary)]">span {widget.opts[:span] || "auto"}</.pill>
           </div>
           <div :if={Map.has_key?(@widget_values, widget.id)} class="mt-5 text-3xl font-semibold tracking-tight">
             {format_widget_value(@widget_values[widget.id], widget)}
           </div>
           <pre :if={!Map.has_key?(@widget_values, widget.id)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(widget.opts, pretty: true) %></pre>
-        </article>
+        </.card>
       </div>
     </section>
     """
@@ -207,32 +209,30 @@ defmodule Incant.Live.AdminLive do
   def resource_view(assigns) do
     ~H"""
     <section class="space-y-6">
-      <div class="rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5">
+      <.card class="p-5">
         <p class="text-sm text-[var(--incant-text-muted)]">Resource</p>
         <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
         <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
 
         <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="mt-5 grid gap-3 md:grid-cols-3">
-          <input
+          <.text_input
             :if={@resource.table.search}
             type="search"
             name="table[search]"
             value={@table_state.search}
             placeholder="Search"
-            class="rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]"
           />
-          <input
+          <.text_input
             :for={filter <- @resource.table.filters}
             type="text"
             name={"table[filters][#{filter.name}]"}
             value={Map.get(@table_state.filters, to_string(filter.name), "")}
             placeholder={"#{filter.name} (#{filter.type})"}
-            class="rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]"
           />
         </.form>
-      </div>
+      </.card>
 
-      <div class="overflow-hidden rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]">
+      <.card class="overflow-hidden">
         <table class="min-w-full divide-y divide-[var(--incant-border)] text-sm">
           <thead class="bg-[var(--incant-bg-accented)] text-left text-xs uppercase tracking-wider text-[var(--incant-text-muted)]">
             <tr>
@@ -257,7 +257,7 @@ defmodule Incant.Live.AdminLive do
             </tr>
           </tbody>
         </table>
-      </div>
+      </.card>
     </section>
     """
   end
@@ -410,17 +410,9 @@ defmodule Incant.Live.AdminLive do
 
     cond do
       render = column.opts[:render] -> callback(render, value, row)
-      column.opts[:as] == :badge -> badge(value)
+      column.opts[:as] == :badge -> Incant.Live.UI.badge_html(value)
       true -> format_value(value, column.opts[:format])
     end
-  end
-
-  defp badge(value) do
-    escaped = value |> to_string() |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
-
-    Phoenix.HTML.raw(
-      ~s|<span class="rounded-full bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2 py-1 text-xs text-[var(--incant-primary)]">#{escaped}</span>|
-    )
   end
 
   defp format_widget_value(value, widget), do: format_value(value, widget.opts[:format])
