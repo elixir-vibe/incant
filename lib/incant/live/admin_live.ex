@@ -613,7 +613,12 @@ defmodule Incant.Live.AdminLive do
 
   defp page_title(_assigns), do: "Incant"
 
-  defp module_id(module), do: module |> inspect() |> String.replace_prefix("Elixir.", "")
+  defp module_id(module) do
+    module
+    |> Module.split()
+    |> List.last()
+    |> Macro.underscore()
+  end
 
   defp short_module(module) do
     module
