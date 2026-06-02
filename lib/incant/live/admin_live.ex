@@ -36,7 +36,7 @@ defmodule Incant.Live.AdminLive do
 
     section = section(params, selected_dashboard, selected_resource)
     table_state = table_state(params)
-    resource_rows = resource_rows(selected_resource, table_state)
+    resource_rows = Incant.Live.Rows.list(selected_resource, table_state)
 
     {:noreply,
      socket
@@ -44,7 +44,7 @@ defmodule Incant.Live.AdminLive do
      |> assign(:section, section)
      |> assign(:selected_resource, selected_resource)
      |> assign(:selected_dashboard, selected_dashboard)
-     |> assign(:selected_row, resource_row(selected_resource, params["id"]))
+     |> assign(:selected_row, Incant.Live.Rows.one(selected_resource, params["id"]))
      |> assign(:table_state, table_state)
      |> assign(:resource_rows, resource_rows)
      |> assign(:widget_values, widget_values(selected_dashboard))}
@@ -240,14 +240,14 @@ defmodule Incant.Live.AdminLive do
         <div class="flex items-start justify-between gap-4">
           <div>
             <p class="text-sm text-[var(--incant-text-muted)]">Detail</p>
-            <h3 class="mt-1 text-xl font-semibold tracking-tight">{row_title(@selected_row, @resource)}</h3>
+            <h3 class="mt-1 text-xl font-semibold tracking-tight">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
           </div>
           <.back_link patch={resource_path(@base_path, @resource)}>
             Back to list
           </.back_link>
         </div>
         <dl class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <div :for={{key, value} <- row_fields(@selected_row)} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
+          <div :for={{key, value} <- Incant.Live.Rows.fields(@selected_row)} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
             <dt class="text-xs uppercase tracking-wide text-[var(--incant-text-muted)]">{key}</dt>
             <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">{value}</dd>
           </div>
@@ -293,72 +293,6 @@ defmodule Incant.Live.AdminLive do
     """
   end
 
-  defp resource_rows(nil, _table_state), do: []
-
-  defp resource_rows(resource, table_state) do
-    resource
-    |> raw_resource_rows()
-    |> Incant.Tabular.to_rows(only: table_row_fields(resource))
-    |> search_rows(resource.table.search, table_state.search)
-    |> filter_rows(resource.table.filters, table_state.filters)
-    |> sort_rows(table_state.sort)
-  rescue
-    _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> []
-  end
-
-  defp resource_row(_resource, nil), do: nil
-
-  defp resource_row(resource, id) do
-    resource
-    |> raw_resource_rows()
-    |> Enum.find(&(row_id(&1) == id))
-  rescue
-    _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> nil
-  end
-
-  defp table_row_fields(resource), do: [:id | Enum.map(resource.table.columns, & &1.name)]
-
-  defp raw_resource_rows(nil), do: []
-
-  defp raw_resource_rows(resource) do
-    callback(resource.data, %{table: %{}}, [])
-  end
-
-  defp row_id(row), do: row |> row_field(:id) |> id_string()
-
-  defp id_string(nil), do: nil
-  defp id_string(""), do: nil
-  defp id_string(value), do: to_string(value)
-
-  defp row_title(row, resource) do
-    link_column =
-      Enum.find(resource.table.columns, & &1.opts[:link]) || List.first(resource.table.columns)
-
-    case link_column do
-      nil -> "Record #{row_id(row)}"
-      column -> row |> row_field(column.name) |> to_string()
-    end
-  end
-
-  defp row_fields(%_struct{} = row) do
-    row
-    |> Map.from_struct()
-    |> Enum.map(fn {key, value} -> {key, format_detail_value(value)} end)
-  end
-
-  defp row_fields(row) when is_map(row) do
-    Enum.map(row, fn {key, value} -> {key, format_detail_value(value)} end)
-  end
-
-  defp row_fields(_row), do: []
-
-  defp row_field(row, field) do
-    Map.get(row, field, Map.get(row, to_string(field)))
-  end
-
-  defp format_detail_value(value) when is_binary(value), do: value
-  defp format_detail_value(value), do: inspect(value)
-
   defp widget_values(nil), do: %{}
 
   defp widget_values(dashboard) do
@@ -379,58 +313,6 @@ defmodule Incant.Live.AdminLive do
 
   defp callback({module, function, args}, params, context),
     do: apply(module, function, [params, context | args])
-
-  defp search_rows(rows, nil, _search), do: rows
-  defp search_rows(rows, _searchable, nil), do: rows
-  defp search_rows(rows, _searchable, ""), do: rows
-
-  defp search_rows(rows, searchable, search) do
-    fields = List.wrap(searchable)
-    needle = String.downcase(search)
-
-    Enum.filter(rows, fn row ->
-      Enum.any?(fields, fn field ->
-        row
-        |> Map.get(field)
-        |> to_string()
-        |> String.downcase()
-        |> String.contains?(needle)
-      end)
-    end)
-  end
-
-  defp filter_rows(rows, _definitions, filters) when map_size(filters) == 0, do: rows
-
-  defp filter_rows(rows, definitions, filters) do
-    filters_by_name = Map.new(definitions, &{to_string(&1.name), &1})
-
-    Enum.filter(rows, fn row ->
-      Enum.all?(filters, fn {field, value} ->
-        case Map.fetch(filters_by_name, field) do
-          {:ok, filter} -> Incant.Filter.match?(filter, row, value)
-          :error -> true
-        end
-      end)
-    end)
-  end
-
-  defp sort_rows(rows, nil), do: rows
-  defp sort_rows(rows, ""), do: rows
-
-  defp sort_rows(rows, sort) do
-    {direction, field} = sort_parts(sort)
-
-    rows
-    |> Enum.sort_by(&Map.get(&1, String.to_existing_atom(field)), sort_direction_fun(direction))
-  rescue
-    ArgumentError -> rows
-  end
-
-  defp sort_parts("-" <> field), do: {:desc, field}
-  defp sort_parts(field), do: {:asc, field}
-
-  defp sort_direction_fun(:desc), do: :desc
-  defp sort_direction_fun(:asc), do: :asc
 
   defp table_state(params) do
     %{
@@ -485,8 +367,8 @@ defmodule Incant.Live.AdminLive do
   def resource_cell(assigns) do
     assigns =
       assigns
-      |> assign(:value, row_field(assigns.row, assigns.column.name))
-      |> assign(:row_id, row_id(assigns.row))
+      |> assign(:value, Incant.Live.Rows.field(assigns.row, assigns.column.name))
+      |> assign(:row_id, Incant.Live.Rows.id(assigns.row))
 
     ~H"""
     <.primary_link :if={@column.opts[:link] && @row_id} patch={resource_detail_path(@base_path, @resource, @row_id)}>
