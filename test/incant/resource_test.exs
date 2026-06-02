@@ -12,6 +12,12 @@ defmodule Incant.ResourceTest do
 
     query(&__MODULE__.index_query/2)
     data(&__MODULE__.rows/1)
+    changeset(&__MODULE__.changeset/2)
+
+    form do
+      field(:title)
+      field(:status, :select, options: [:draft, :published])
+    end
 
     table density: :compact do
       column(:title, link: true)
@@ -30,6 +36,7 @@ defmodule Incant.ResourceTest do
 
     def index_query(query, _context), do: query
     def rows(_params), do: []
+    def changeset(record, attrs), do: {record, attrs}
     def sales_performance(query, _params, _context), do: query
   end
 
@@ -41,6 +48,11 @@ defmodule Incant.ResourceTest do
     assert metadata.repo == Repo
     assert metadata.query == (&PostResource.index_query/2)
     assert metadata.data == (&PostResource.rows/1)
+    assert metadata.changeset == (&PostResource.changeset/2)
+    assert metadata.form.opts == []
+    assert Enum.map(metadata.form.fields, & &1.name) == [:title, :status]
+    assert List.last(metadata.form.fields).type == :select
+    assert List.last(metadata.form.fields).opts == [options: [:draft, :published]]
     assert metadata.table.opts == [density: :compact]
     assert metadata.table.search == [:title, :body]
 

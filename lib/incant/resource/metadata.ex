@@ -3,7 +3,7 @@ defmodule Incant.Resource.Metadata do
   Compiled metadata for an Incant resource.
   """
 
-  alias Incant.Table
+  alias Incant.{Form, Table}
 
   @type t :: %__MODULE__{
           module: module,
@@ -11,9 +11,21 @@ defmodule Incant.Resource.Metadata do
           repo: module | nil,
           query: term,
           data: term,
+          changeset: term,
+          form: Form.t(),
           table: Table.t(),
           opts: keyword
         }
 
-  defstruct [:module, :schema, :repo, query: nil, data: nil, table: %Table{}, opts: []]
+  defstruct [
+    :module,
+    :schema,
+    :repo,
+    query: nil,
+    data: nil,
+    changeset: nil,
+    form: %Form{},
+    table: %Table{},
+    opts: []
+  ]
 end

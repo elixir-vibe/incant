@@ -3,6 +3,8 @@ defmodule Incant.Resource do
   Defines a code-first admin resource.
   """
 
+  alias Incant.Form
+  alias Incant.Form.Field
   alias Incant.Resource.Metadata
   alias Incant.Table
   alias Incant.Table.{Action, Column, Filter}
@@ -19,6 +21,14 @@ defmodule Incant.Resource do
       Module.register_attribute(__MODULE__, :incant_search, persist: false)
       Module.register_attribute(__MODULE__, :incant_query, persist: false)
       Module.register_attribute(__MODULE__, :incant_data, persist: false)
+      Module.register_attribute(__MODULE__, :incant_changeset, persist: false)
+      Module.register_attribute(__MODULE__, :incant_form_opts, persist: false)
+
+      Module.register_attribute(__MODULE__, :incant_form_fields,
+        accumulate: true,
+        persist: false
+      )
+
       Module.register_attribute(__MODULE__, :incant_transformer_query, persist: false)
 
       @incant_resource_opts opts
@@ -31,6 +41,15 @@ defmodule Incant.Resource do
     columns = env.module |> Module.get_attribute(:incant_columns) |> Enum.reverse()
     filters = env.module |> Module.get_attribute(:incant_filters) |> Enum.reverse()
     actions = env.module |> Module.get_attribute(:incant_actions) |> Enum.reverse()
+    form_fields = env.module |> Module.get_attribute(:incant_form_fields) |> Enum.reverse()
+
+    form = %Form{
+      fields:
+        Enum.map(form_fields, fn {name, type, field_opts} ->
+          %Field{name: name, type: type, opts: field_opts}
+        end),
+      opts: Module.get_attribute(env.module, :incant_form_opts) || []
+    }
 
     table = %Table{
       columns:
@@ -51,6 +70,8 @@ defmodule Incant.Resource do
       repo: Keyword.get(opts, :repo),
       query: Module.get_attribute(env.module, :incant_query),
       data: Module.get_attribute(env.module, :incant_data),
+      changeset: Module.get_attribute(env.module, :incant_changeset),
+      form: form,
       table: table,
       opts: opts
     }
@@ -85,6 +106,25 @@ defmodule Incant.Resource do
   defmacro action(name, opts \\ []) do
     quote bind_quoted: [name: name, opts: opts] do
       @incant_actions {name, opts}
+    end
+  end
+
+  defmacro changeset(callback) do
+    quote bind_quoted: [callback: callback] do
+      @incant_changeset callback
+    end
+  end
+
+  defmacro form(opts \\ [], do: block) do
+    quote do
+      @incant_form_opts unquote(opts)
+      unquote(block)
+    end
+  end
+
+  defmacro field(name, type \\ :auto, opts \\ []) do
+    quote bind_quoted: [name: name, type: type, opts: opts] do
+      @incant_form_fields {name, type, opts}
     end
   end
 

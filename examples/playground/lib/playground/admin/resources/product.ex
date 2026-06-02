@@ -10,6 +10,13 @@ defmodule Playground.Admin.Resources.Product do
   query(&__MODULE__.index_query/2)
   data(&Data.products/1)
 
+  form do
+    field(:name)
+    field(:status, :select, options: [:draft, :active, :archived])
+    field(:price, :number)
+    field(:inventory, :number)
+  end
+
   table density: :compact, saved_views: true do
     column(:name, link: true)
     column(:status, as: :badge)

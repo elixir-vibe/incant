@@ -137,6 +137,26 @@ end
 Incant.Filter.apply_filters(resource.table.filters, queryable, params["filter"], context)
 ```
 
+## Resource forms
+
+Incant form metadata is changeset-first for Ecto resources. The form DSL describes admin presentation and ordering; schemas and changesets remain the source of truth for data and validation.
+
+```elixir
+defmodule MyApp.Admin.Resources.Product do
+  use Incant.Resource, schema: MyApp.Catalog.Product, repo: MyApp.Repo
+
+  changeset &MyApp.Catalog.Product.changeset/2
+
+  form do
+    field :name
+    field :status, :select, options: [:draft, :active, :archived]
+    field :price, :number
+  end
+end
+```
+
+When no form fields are declared, `Incant.Forms.fields/1` can infer fields from Ecto-style `schema.__schema__/1`, excluding `:id`, `:inserted_at`, and `:updated_at`.
+
 ## Row actions
 
 Resource tables can declare row actions. Actions render in the table and detail view; provide a callback to execute behaviour from the LiveView.
