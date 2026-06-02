@@ -51,4 +51,13 @@ defmodule Incant.Filter do
   def apply_query(%Filter{} = filter, queryable, value, context) do
     filter |> module() |> apply(:apply_query, [filter, queryable, value, context])
   end
+
+  @doc """
+  Applies a list of filters to a queryable using submitted filter values.
+  """
+  def apply_filters(filters, queryable, values, context \\ nil) do
+    Enum.reduce(filters, queryable, fn filter, queryable ->
+      apply_query(filter, queryable, Map.get(values, to_string(filter.name)), context)
+    end)
+  end
 end

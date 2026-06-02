@@ -131,7 +131,11 @@ defmodule MyApp.Admin.Filters.ExpensiveProduct do
 end
 ```
 
-`match?/3` is used for in-memory rows. `apply_query/4` is reserved for query-backed resources and custom data sources.
+`match?/3` is used for in-memory rows. `apply_query/4` is reserved for query-backed resources and custom data sources. To apply all submitted filter values to a queryable, use:
+
+```elixir
+Incant.Filter.apply_filters(resource.table.filters, queryable, params["filter"], context)
+```
 
 ## Example theme
 

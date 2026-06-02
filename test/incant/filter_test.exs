@@ -41,6 +41,21 @@ defmodule Incant.FilterTest do
              {:filtered, :query, "published", :context}
   end
 
+  test "applies multiple filters to queryables" do
+    status_query = fn queryable, value, _context -> [{:status, value} | queryable] end
+    provider_query = fn queryable, value, _context -> [{:provider, value} | queryable] end
+
+    filters = [
+      %Filter{name: :status, type: :select, query: status_query},
+      %Filter{name: :provider, type: :select, query: provider_query}
+    ]
+
+    assert Incant.Filter.apply_filters(filters, [], %{
+             "status" => "ok",
+             "provider" => "openai"
+           }) == [provider: "openai", status: "ok"]
+  end
+
   test "matches text and select filters against in-memory rows" do
     text = %Filter{name: :title, type: :text}
     select = %Filter{name: :status, type: :select}
