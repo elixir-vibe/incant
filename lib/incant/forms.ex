@@ -26,6 +26,15 @@ defmodule Incant.Forms do
   def fields(_resource), do: []
 
   @doc """
+  Builds an empty record for a resource form.
+  """
+  def new_record(%{schema: schema}) when is_atom(schema) and not is_nil(schema) do
+    if function_exported?(schema, :__struct__, 0), do: struct(schema), else: %{}
+  end
+
+  def new_record(_resource), do: %{}
+
+  @doc """
   Builds a changeset for a resource when a changeset callback is configured.
   """
   def changeset(%{changeset: nil}, _record, _attrs), do: nil

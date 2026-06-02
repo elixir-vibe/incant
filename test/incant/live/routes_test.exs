@@ -22,9 +22,13 @@ defmodule Incant.Live.RoutesTest do
     resource = %{module: LLMRequest}
 
     assert Routes.resource_path("/admin", resource) == "/admin/resources/llm_request"
+    assert Routes.resource_new_path("/admin", resource) == "/admin/resources/llm_request/new"
 
     assert Routes.resource_detail_path("/admin", resource, 123) ==
              "/admin/resources/llm_request/123"
+
+    assert Routes.resource_edit_path("/admin", resource, 123) ==
+             "/admin/resources/llm_request/123/edit"
   end
 
   test "preserves table query params on resource paths" do

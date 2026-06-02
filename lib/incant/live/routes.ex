@@ -9,8 +9,16 @@ defmodule Incant.Live.Routes do
     path([base_path, "resources", module_slug(resource.module)], query_params)
   end
 
+  def resource_new_path(base_path, resource, query_params \\ %{}) do
+    path([base_path, "resources", module_slug(resource.module), "new"], query_params)
+  end
+
   def resource_detail_path(base_path, resource, id, query_params \\ %{}) do
     path([base_path, "resources", module_slug(resource.module), id], query_params)
+  end
+
+  def resource_edit_path(base_path, resource, id, query_params \\ %{}) do
+    path([base_path, "resources", module_slug(resource.module), id, "edit"], query_params)
   end
 
   def current_path(
@@ -22,9 +30,15 @@ defmodule Incant.Live.Routes do
         },
         query_params
       ) do
-    case params["id"] do
-      nil -> resource_path(base_path, resource, query_params)
-      id -> resource_detail_path(base_path, resource, id, query_params)
+    cond do
+      params["id"] && params["form"] == "edit" ->
+        resource_edit_path(base_path, resource, params["id"], query_params)
+
+      params["id"] ->
+        resource_detail_path(base_path, resource, params["id"], query_params)
+
+      true ->
+        resource_path(base_path, resource, query_params)
     end
   end
 

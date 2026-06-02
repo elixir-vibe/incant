@@ -28,7 +28,14 @@ defmodule Incant.Router do
         live(unquote(path), Incant.Live.AdminLive, :index)
         live(unquote(path <> "/dashboards/:dashboard"), Incant.Live.AdminLive, :dashboard)
         live(unquote(path <> "/resources/:resource"), Incant.Live.AdminLive, :resource)
+        live(unquote(path <> "/resources/:resource/new"), Incant.Live.AdminLive, :resource_new)
         live(unquote(path <> "/resources/:resource/:id"), Incant.Live.AdminLive, :resource_detail)
+
+        live(
+          unquote(path <> "/resources/:resource/:id/edit"),
+          Incant.Live.AdminLive,
+          :resource_edit
+        )
       end
     end
   end

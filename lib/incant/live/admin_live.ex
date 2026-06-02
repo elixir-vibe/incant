@@ -39,6 +39,8 @@ defmodule Incant.Live.AdminLive do
     section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
     table_state = table_state(params)
     resource_rows = Incant.Live.Rows.list(selected_resource, table_state)
+    form_mode = form_mode(socket.assigns.live_action)
+    form_record = form_record(selected_resource, params["id"], form_mode)
 
     {:noreply,
      socket
@@ -48,6 +50,8 @@ defmodule Incant.Live.AdminLive do
      |> assign(:selected_dashboard, selected_dashboard)
      |> assign(:detail_id, params["id"])
      |> assign(:selected_row, Incant.Live.Rows.one(selected_resource, params["id"]))
+     |> assign(:form_mode, form_mode)
+     |> assign(:form_record, form_record)
      |> assign(:table_state, table_state)
      |> assign(:resource_rows, resource_rows)
      |> assign(:widget_values, widget_values(selected_dashboard))}
@@ -82,6 +86,12 @@ defmodule Incant.Live.AdminLive do
     end
   end
 
+  def handle_event("validate_form", _params, socket), do: {:noreply, socket}
+
+  def handle_event("save_form", _params, socket) do
+    {:noreply, put_flash(socket, :info, "Form saving is not implemented yet")}
+  end
+
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
@@ -108,6 +118,8 @@ defmodule Incant.Live.AdminLive do
         selected_row={@selected_row}
         detail_id={@detail_id}
         base_path={@base_path}
+        form_mode={@form_mode}
+        form_record={@form_record}
         table_state={@table_state}
       />
     </.admin_shell>
@@ -165,12 +177,21 @@ defmodule Incant.Live.AdminLive do
     Enum.find(collection, &(module_slug(&1.module) == module_id))
   end
 
-  defp section(action, _dashboard, _resource) when action in [:resource, :resource_detail],
-    do: "resource"
+  defp section(action, _dashboard, _resource)
+       when action in [:resource, :resource_detail, :resource_new, :resource_edit],
+       do: "resource"
 
   defp section(:dashboard, _dashboard, _resource), do: "dashboard"
   defp section(:index, nil, _resource), do: "resource"
   defp section(:index, _dashboard, _resource), do: "dashboard"
+
+  defp form_mode(:resource_new), do: :new
+  defp form_mode(:resource_edit), do: :edit
+  defp form_mode(_action), do: nil
+
+  defp form_record(_resource, _id, nil), do: nil
+  defp form_record(resource, _id, :new), do: Incant.Forms.new_record(resource)
+  defp form_record(resource, id, :edit), do: Incant.Live.Rows.one(resource, id) || %{}
 
   defp page_title(%{section: "resource", selected_resource: resource})
        when not is_nil(resource) do

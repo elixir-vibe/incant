@@ -4,6 +4,7 @@ defmodule Incant.Live.ResourceComponents do
   use Phoenix.Component
 
   import Incant.Live.Components
+  import Incant.Live.FormComponents
   import Incant.Live.Routes
 
   attr(:resource, Incant.Resource.Metadata, required: true)
@@ -11,6 +12,8 @@ defmodule Incant.Live.ResourceComponents do
   attr(:selected_row, :any, default: nil)
   attr(:detail_id, :string, default: nil)
   attr(:base_path, :string, required: true)
+  attr(:form_mode, :atom, default: nil)
+  attr(:form_record, :any, default: nil)
   attr(:table_state, :map, default: %{})
 
   def resource_view(assigns) do
@@ -19,7 +22,12 @@ defmodule Incant.Live.ResourceComponents do
       <.card class="p-5">
         <p class="text-sm text-[var(--incant-text-muted)]">Resource</p>
         <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
-        <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
+        <div class="flex items-start justify-between gap-4">
+          <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
+          <.primary_link patch={resource_new_path(@base_path, @resource)} class="text-sm">
+            New
+          </.primary_link>
+        </div>
 
         <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="mt-5 grid gap-3 md:grid-cols-3">
           <.input
@@ -37,14 +45,16 @@ defmodule Incant.Live.ResourceComponents do
         </.form>
       </.card>
 
-      <.card :if={@selected_row} class="p-5">
+      <.resource_form :if={@form_mode} resource={@resource} record={@form_record} mode={@form_mode} base_path={@base_path} />
+
+      <.card :if={!@form_mode && @selected_row} class="p-5">
         <div class="flex items-start justify-between gap-4">
           <div>
             <p class="text-sm text-[var(--incant-text-muted)]">Detail</p>
             <h3 class="mt-1 text-xl font-semibold tracking-tight">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
           </div>
           <div class="flex items-center gap-2">
-            <.row_actions resource={@resource} row={@selected_row} />
+            <.row_actions resource={@resource} row={@selected_row} base_path={@base_path} />
             <.back_link patch={resource_path(@base_path, @resource)}>
               Back to list
             </.back_link>
@@ -64,7 +74,7 @@ defmodule Incant.Live.ResourceComponents do
         </dl>
       </.card>
 
-      <.card :if={@detail_id && !@selected_row} class="p-8 text-center">
+      <.card :if={!@form_mode && @detail_id && !@selected_row} class="p-8 text-center">
         <p class="text-sm text-[var(--incant-text-muted)]">Record not found</p>
         <h3 class="mt-2 text-xl font-semibold tracking-tight">No resource row matches {@detail_id}</h3>
         <div class="mt-4">
@@ -98,7 +108,7 @@ defmodule Incant.Live.ResourceComponents do
                 <.resource_cell row={row} column={column} resource={@resource} base_path={@base_path} />
               </td>
               <td :if={@resource.table.actions != []} class="px-4 py-3 text-right">
-                <.row_actions resource={@resource} row={row} />
+                <.row_actions resource={@resource} row={row} base_path={@base_path} />
               </td>
             </tr>
           </tbody>
@@ -119,23 +129,29 @@ defmodule Incant.Live.ResourceComponents do
 
   attr(:resource, Incant.Resource.Metadata, required: true)
   attr(:row, :any, required: true)
+  attr(:base_path, :string, required: true)
 
   def row_actions(assigns) do
     assigns = assign(assigns, :row_id, Incant.Live.Rows.id(assigns.row))
 
     ~H"""
     <div class="inline-flex items-center gap-1">
-      <button
-        :for={action <- @resource.table.actions}
-        type="button"
-        class={action_class(action)}
-        phx-click="row_action"
-        phx-value-action={action.name}
-        phx-value-id={@row_id}
-        data-confirm={action.opts[:confirm] && "Are you sure?"}
-      >
-        {action_label(action)}
-      </button>
+      <%= for action <- @resource.table.actions do %>
+        <.primary_link :if={action.name == :edit && @row_id} patch={resource_edit_path(@base_path, @resource, @row_id)} class={action_class(action)}>
+          {action_label(action)}
+        </.primary_link>
+        <button
+          :if={action.name != :edit}
+          type="button"
+          class={action_class(action)}
+          phx-click="row_action"
+          phx-value-action={action.name}
+          phx-value-id={@row_id}
+          data-confirm={action.opts[:confirm] && "Are you sure?"}
+        >
+          {action_label(action)}
+        </button>
+      <% end %>
     </div>
     """
   end

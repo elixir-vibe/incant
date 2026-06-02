@@ -7,6 +7,8 @@ defmodule Incant.FormsTest do
   alias Incant.Resource.Metadata
 
   defmodule Product do
+    defstruct [:name, :price, :published]
+
     def __schema__(:fields), do: [:id, :name, :price, :published, :inserted_at, :updated_at]
     def __schema__(:type, :name), do: :string
     def __schema__(:type, :price), do: :decimal
@@ -27,6 +29,12 @@ defmodule Incant.FormsTest do
              %Field{name: :price, type: :number},
              %Field{name: :published, type: :boolean}
            ]
+  end
+
+  test "builds new records from schema structs" do
+    resource = %Metadata{schema: Product}
+
+    assert Forms.new_record(resource) == %Product{}
   end
 
   test "builds changesets from configured callbacks" do
