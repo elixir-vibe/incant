@@ -96,12 +96,16 @@ end
 Needed table capabilities:
 
 - saved views and shareable URLs
+- URL-persistent table state for filters, search, sorting, pagination, and selected views
+- row-based and column-based data ingestion through a tabular protocol inspired by Dashbit's `Table.Reader`
 - date ranges and global variables
 - grouping, pivoting, dimensions, metrics
 - computed columns and heatmaps
 - expandable rows and detail panels
 - drilldowns from charts to tables to records
-- export to CSV/JSON
+- multiple view modes: table, cards, kanban, and custom LiveComponent layouts
+- multi-column sorting with explicit DSL support
+- export to CSV/JSON/XLSX, with background jobs for large exports
 - background query jobs for expensive reports
 - data-source capability negotiation
 
@@ -191,6 +195,33 @@ CMS features:
 - Git-backed editing through branches and PRs
 - database-to-Git sync for portable content
 
+### Filters and transformers
+
+Simple filters should be pleasant, but complex filters must receive full query control. LiveTable's transformer idea is the right model: a filter can transform the whole query and maintain URL-persistent state, instead of only adding a single field condition.
+
+```elixir
+table do
+  filter :status, :select, options: [:draft, :published]
+  filter :price, :range
+  filter :active, :boolean
+
+  transformer :sales_performance do
+    query &MyApp.Admin.Filters.sales_performance/3
+  end
+
+  transformer :attribution_window do
+    query fn query, params, ctx ->
+      query
+      |> join(:left, ...)
+      |> group_by(...)
+      |> having(...)
+    end
+  end
+end
+```
+
+Transformers are critical for marketing analytics, Yandex Direct/Metrica/Plausible joins, rank filters, attribution windows, cohort logic, access-controlled query modification, and any query that needs joins, CTEs, fragments, subqueries, aggregations, or custom ordering.
+
 ### Fields
 
 Fields are behaviours with display, input, filtering, validation, import/export, and authorization hooks.
@@ -216,6 +247,29 @@ Core fields:
 - embedded schemas
 - arrays/repeaters
 - content blocks
+
+### Tabular data protocol
+
+Incant needs a normalized table-data boundary before rendering, exporting, charting, or transforming results. Dashbit's `table` package is a strong reference: it separates row-based and column-based traversal, exposes metadata such as columns and optional count, and uses a protocol so different data structures can be treated as tabular.
+
+Incant should either depend on `table` or provide a compatible internal protocol:
+
+```elixir
+Incant.Tabular.init(data)
+Incant.Tabular.to_rows(data, only: [:model, :requests, :cost])
+Incant.Tabular.to_columns(data)
+Incant.Tabular.metadata(data)
+```
+
+Supported shapes should include:
+
+```elixir
+[%{model: "gpt-4.1", requests: 1200}, %{model: "claude", requests: 800}]
+%{model: ["gpt-4.1", "claude"], requests: [1200, 800]}
+[{"model", ["gpt-4.1", "claude"]}, {"requests", [1200, 800]}]
+```
+
+This boundary lets resource tables, dashboard table widgets, CSV/XLSX export, analytics datasets, and external API adapters share one representation without forcing everything through Ecto.
 
 ### Data sources
 
@@ -384,16 +438,22 @@ Principle: Kino for exploration. LiveView for production. Shared DSL for both.
 - resource index page
 - table rendering
 - simple filters
+- URL-persistent resource and dashboard state
 - date range variable
 - widget grid
 - Tailwind 4/CSS variable contract
 
-### Milestone 3: Ecto integration
+### Milestone 3: Tabular data and Ecto integration
 
+- tabular protocol inspired by `Table.Reader`
+- row-based and column-based traversal
+- metadata with columns and optional count
+- resource `data` callback for non-Ecto playground data
 - query callback
 - pagination
-- sorting
+- sorting and multi-column sorting metadata
 - filters as Ecto callbacks
+- transformer filters with full query control
 - search callback
 - custom select/preload support
 - batch virtual fields

@@ -4,7 +4,7 @@ Incant is an Elixir/Phoenix-native control plane for serious admin, content, ana
 
 It is currently in its first implementation pass. The initial package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources. LiveView rendering, Ecto execution, Igniter generators, and CMS features will build on this metadata layer.
 
-See [PLAN.md](PLAN.md) for the full product thesis and roadmap. See [CONVENTIONS.md](CONVENTIONS.md) for the recommended application structure.
+See [PLAN.md](PLAN.md) for the full product thesis and roadmap, [CONVENTIONS.md](CONVENTIONS.md) for the recommended application structure, and [REFERENCES.md](REFERENCES.md) for external packages and products informing the design.
 
 ## Playground
 
