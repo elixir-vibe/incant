@@ -222,11 +222,9 @@ defmodule Incant.Live.AdminLive do
             value={@table_state.search}
             placeholder="Search"
           />
-          <.filter_control
-            :for={filter <- @resource.table.filters}
-            filter={filter}
-            value={Map.get(@table_state.filters, to_string(filter.name), "")}
-          />
+          <%= for filter <- @resource.table.filters do %>
+            {Incant.Filter.control(filter, Map.get(@table_state.filters, to_string(filter.name), ""), assigns)}
+          <% end %>
         </.form>
       </.card>
 
@@ -259,65 +257,6 @@ defmodule Incant.Live.AdminLive do
     </section>
     """
   end
-
-  attr(:filter, Incant.Table.Filter, required: true)
-  attr(:value, :any, default: nil)
-
-  def filter_control(%{filter: %{type: :select}} = assigns) do
-    ~H"""
-    <.select
-      name={"table[filters][#{@filter.name}]"}
-      value={@value}
-      prompt={"#{@filter.name}"}
-      options={@filter.opts[:options] || []}
-    />
-    """
-  end
-
-  def filter_control(%{filter: %{type: :multi_select}} = assigns) do
-    ~H"""
-    <.select
-      name={"table[filters][#{@filter.name}][]"}
-      value={@value}
-      options={@filter.opts[:options] || []}
-      multiple
-      class="min-h-24"
-    />
-    """
-  end
-
-  def filter_control(%{filter: %{type: :date_range}} = assigns) do
-    ~H"""
-    <div class="grid grid-cols-2 gap-2">
-      <.text_input
-        type="date"
-        name={"table[filters][#{@filter.name}][from]"}
-        value={filter_value(@value, "from")}
-        placeholder={"#{@filter.name} from"}
-      />
-      <.text_input
-        type="date"
-        name={"table[filters][#{@filter.name}][to]"}
-        value={filter_value(@value, "to")}
-        placeholder={"#{@filter.name} to"}
-      />
-    </div>
-    """
-  end
-
-  def filter_control(assigns) do
-    ~H"""
-    <.text_input
-      type="text"
-      name={"table[filters][#{@filter.name}]"}
-      value={@value}
-      placeholder={"#{@filter.name} (#{@filter.type})"}
-    />
-    """
-  end
-
-  defp filter_value(value, key) when is_map(value), do: Map.get(value, key, "")
-  defp filter_value(_value, _key), do: ""
 
   defp resource_rows(nil, _table_state), do: []
 
@@ -377,57 +316,16 @@ defmodule Incant.Live.AdminLive do
   defp filter_rows(rows, _definitions, filters) when map_size(filters) == 0, do: rows
 
   defp filter_rows(rows, definitions, filters) do
-    by_name = Map.new(definitions, &{to_string(&1.name), &1})
+    filters_by_name = Map.new(definitions, &{to_string(&1.name), &1})
 
     Enum.filter(rows, fn row ->
       Enum.all?(filters, fn {field, value} ->
-        filter_match?(row, Map.get(by_name, field), field, value)
+        case Map.fetch(filters_by_name, field) do
+          {:ok, filter} -> Incant.Filter.match?(filter, row, value)
+          :error -> true
+        end
       end)
     end)
-  end
-
-  defp filter_match?(_row, _definition, _field, value) when value in [nil, "", []], do: true
-
-  defp filter_match?(_row, %{type: :date_range}, _field, range) when range in [%{}, nil], do: true
-
-  defp filter_match?(row, %{type: :date_range}, field, range) when is_map(range) do
-    row_date = row |> row_value(field) |> date_value()
-    from_date = range |> Map.get("from") |> date_value()
-    to_date = range |> Map.get("to") |> date_value()
-
-    (is_nil(from_date) or Date.compare(row_date, from_date) != :lt) and
-      (is_nil(to_date) or Date.compare(row_date, to_date) != :gt)
-  rescue
-    _error in [ArgumentError, FunctionClauseError] -> true
-  end
-
-  defp filter_match?(row, %{type: type}, field, values) when type in [:select, :multi_select] do
-    values = values |> List.wrap() |> Enum.reject(&(&1 in [nil, ""])) |> Enum.map(&to_string/1)
-    values == [] or (row |> row_value(field) |> to_string()) in values
-  end
-
-  defp filter_match?(row, _definition, field, value) do
-    row
-    |> row_value(field)
-    |> to_string()
-    |> String.contains?(to_string(value))
-  rescue
-    ArgumentError -> true
-  end
-
-  defp row_value(row, field), do: Map.get(row, String.to_existing_atom(field), "")
-
-  defp date_value(nil), do: nil
-  defp date_value(""), do: nil
-  defp date_value(%Date{} = date), do: date
-  defp date_value(%DateTime{} = date_time), do: DateTime.to_date(date_time)
-  defp date_value(%NaiveDateTime{} = date_time), do: NaiveDateTime.to_date(date_time)
-
-  defp date_value(value) do
-    value
-    |> to_string()
-    |> String.slice(0, 10)
-    |> Date.from_iso8601!()
   end
 
   defp sort_rows(rows, nil), do: rows
