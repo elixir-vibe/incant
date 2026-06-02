@@ -14,6 +14,7 @@ defmodule Incant.Live.ResourceComponents do
   attr(:base_path, :string, required: true)
   attr(:form_mode, :atom, default: nil)
   attr(:form_record, :any, default: nil)
+  attr(:form_changeset, :any, default: nil)
   attr(:table_state, :map, default: %{})
 
   def resource_view(assigns) do
@@ -45,7 +46,7 @@ defmodule Incant.Live.ResourceComponents do
         </.form>
       </.card>
 
-      <.resource_form :if={@form_mode} resource={@resource} record={@form_record} mode={@form_mode} base_path={@base_path} />
+      <.resource_form :if={@form_mode} resource={@resource} record={@form_record} changeset={@form_changeset} mode={@form_mode} base_path={@base_path} />
 
       <.card :if={!@form_mode && @selected_row} class="p-5">
         <div class="flex items-start justify-between gap-4">

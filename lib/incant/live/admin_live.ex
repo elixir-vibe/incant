@@ -41,6 +41,7 @@ defmodule Incant.Live.AdminLive do
     resource_rows = Incant.Live.Rows.list(selected_resource, table_state)
     form_mode = form_mode(socket.assigns.live_action)
     form_record = form_record(selected_resource, params["id"], form_mode)
+    form_changeset = form_changeset(selected_resource, form_record, form_mode)
 
     {:noreply,
      socket
@@ -52,6 +53,7 @@ defmodule Incant.Live.AdminLive do
      |> assign(:selected_row, Incant.Live.Rows.one(selected_resource, params["id"]))
      |> assign(:form_mode, form_mode)
      |> assign(:form_record, form_record)
+     |> assign(:form_changeset, form_changeset)
      |> assign(:table_state, table_state)
      |> assign(:resource_rows, resource_rows)
      |> assign(:widget_values, widget_values(selected_dashboard))}
@@ -86,10 +88,38 @@ defmodule Incant.Live.AdminLive do
     end
   end
 
-  def handle_event("validate_form", _params, socket), do: {:noreply, socket}
+  def handle_event("validate_form", %{"resource" => attrs}, socket) do
+    changeset =
+      Incant.Live.FormState.changeset(
+        socket.assigns.selected_resource,
+        socket.assigns.form_record,
+        attrs
+      )
 
-  def handle_event("save_form", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Form saving is not implemented yet")}
+    {:noreply, assign(socket, :form_changeset, changeset)}
+  end
+
+  def handle_event("save_form", %{"resource" => attrs}, socket) do
+    case Incant.Live.FormState.save(
+           socket.assigns.form_mode,
+           socket.assigns.selected_resource,
+           socket.assigns.form_record,
+           attrs
+         ) do
+      {:ok, message, _record} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, message)
+         |> push_patch(
+           to: resource_path(socket.assigns.base_path, socket.assigns.selected_resource)
+         )}
+
+      {:error, changeset} when is_map(changeset) ->
+        {:noreply, assign(socket, :form_changeset, changeset)}
+
+      {:error, message} ->
+        {:noreply, put_flash(socket, :error, message)}
+    end
   end
 
   @impl Phoenix.LiveView
@@ -120,6 +150,7 @@ defmodule Incant.Live.AdminLive do
         base_path={@base_path}
         form_mode={@form_mode}
         form_record={@form_record}
+        form_changeset={@form_changeset}
         table_state={@table_state}
       />
     </.admin_shell>
@@ -192,6 +223,11 @@ defmodule Incant.Live.AdminLive do
   defp form_record(_resource, _id, nil), do: nil
   defp form_record(resource, _id, :new), do: Incant.Forms.new_record(resource)
   defp form_record(resource, id, :edit), do: Incant.Live.Rows.one(resource, id) || %{}
+
+  defp form_changeset(_resource, _record, nil), do: nil
+
+  defp form_changeset(resource, record, _mode),
+    do: Incant.Live.FormState.changeset(resource, record)
 
   defp page_title(%{section: "resource", selected_resource: resource})
        when not is_nil(resource) do

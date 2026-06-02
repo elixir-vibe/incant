@@ -8,6 +8,7 @@ defmodule Incant.Live.FormComponents do
 
   attr(:resource, Incant.Resource.Metadata, required: true)
   attr(:record, :any, required: true)
+  attr(:changeset, :any, default: nil)
   attr(:mode, :atom, required: true)
   attr(:base_path, :string, required: true)
 
@@ -23,6 +24,8 @@ defmodule Incant.Live.FormComponents do
           Cancel
         </.back_link>
       </div>
+
+      <pre :if={@changeset && !form_like?(@changeset)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(@changeset, pretty: true) %></pre>
 
       <.form :let={_form} for={%{}} as={:resource} phx-change="validate_form" phx-submit="save_form" class="mt-5 grid gap-4 md:grid-cols-2">
         <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={Incant.Live.Rows.field(@record, field.name)} />
@@ -65,6 +68,9 @@ defmodule Incant.Live.FormComponents do
     </label>
     """
   end
+
+  defp form_like?(%{__struct__: Phoenix.HTML.Form}), do: true
+  defp form_like?(_value), do: false
 
   defp form_eyebrow(:new), do: "New record"
   defp form_eyebrow(:edit), do: "Edit record"
