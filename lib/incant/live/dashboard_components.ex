@@ -120,9 +120,15 @@ defmodule Incant.Live.DashboardComponents do
         </div>
         <.pill>span {@widget.opts[:span] || "auto"}</.pill>
       </div>
-      <div class="mt-5 flex h-48 items-center justify-center rounded-xl bg-[var(--incant-bg-muted)] text-sm text-[var(--incant-text-muted)]">
-        Chart renderer coming soon
-      </div>
+      <%= if @loaded && is_list(@value) && @value != [] do %>
+        <div class="mt-5 flex h-48 items-end gap-2 rounded-xl bg-[var(--incant-bg-muted)] p-4">
+          <div :for={point <- @value} class="min-w-2 flex-1 rounded-t bg-[var(--incant-primary)]" style={"height: #{bar_height(point, @value)}%;"}></div>
+        </div>
+      <% else %>
+        <div class="mt-5 flex h-48 items-center justify-center rounded-xl bg-[var(--incant-bg-muted)] text-sm text-[var(--incant-text-muted)]">
+          Chart renderer coming soon
+        </div>
+      <% end %>
     </.card>
     """
   end
@@ -173,6 +179,20 @@ defmodule Incant.Live.DashboardComponents do
     </.card>
     """
   end
+
+  defp bar_height(point, points) do
+    value = numeric_value(point)
+    max_value = points |> Enum.map(&numeric_value/1) |> Enum.max(fn -> 1 end)
+
+    if max_value > 0, do: max(round(value / max_value * 100), 4), else: 4
+  end
+
+  defp numeric_value(%{value: value}) when is_number(value), do: value
+  defp numeric_value(%{"value" => value}) when is_number(value), do: value
+  defp numeric_value(%{y: value}) when is_number(value), do: value
+  defp numeric_value(%{"y" => value}) when is_number(value), do: value
+  defp numeric_value(value) when is_number(value), do: value
+  defp numeric_value(_value), do: 0
 
   defp table_columns([row | _]) when is_map(row), do: Map.keys(row)
   defp table_columns(_rows), do: []
