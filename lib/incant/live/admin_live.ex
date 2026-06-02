@@ -6,6 +6,8 @@ defmodule Incant.Live.AdminLive do
   use Phoenix.LiveView
 
   import Incant.Live.Components
+  import Incant.Live.DashboardComponents
+  import Incant.Live.ResourceComponents
   import Incant.Live.Routes
 
   @impl Phoenix.LiveView
@@ -165,134 +167,6 @@ defmodule Incant.Live.AdminLive do
     """
   end
 
-  attr(:dashboard, Incant.Dashboard.Metadata, required: true)
-  attr(:widget_values, :map, default: %{})
-
-  def dashboard_view(assigns) do
-    ~H"""
-    <section class="space-y-6">
-      <.card class="flex flex-col gap-4 p-5">
-        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p class="text-sm text-[var(--incant-text-muted)]">Dashboard</p>
-            <h2 class="text-3xl font-semibold tracking-tight">{@dashboard.title}</h2>
-          </div>
-          <div class="font-mono text-xs text-[var(--incant-text-muted)]">{inspect(@dashboard.grid)}</div>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <.pill :for={variable <- @dashboard.variables} class="bg-[var(--incant-bg-accented)] text-[var(--incant-text-toned)]">
-            {variable.name}: {variable.type}
-          </.pill>
-        </div>
-      </.card>
-
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <.card :for={widget <- @dashboard.widgets} class="p-5 shadow-2xl shadow-[color-mix(in_oklab,var(--incant-bg-inverted)_8%,transparent)]">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <p class="text-sm capitalize text-[var(--incant-text-muted)]">{widget.type}</p>
-              <h3 class="mt-1 font-mono text-lg font-semibold">{widget.id}</h3>
-            </div>
-            <.pill class="border-0 bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2.5 text-[var(--incant-primary)]">span {widget.opts[:span] || "auto"}</.pill>
-          </div>
-          <div :if={Map.has_key?(@widget_values, widget.id)} class="mt-5 text-3xl font-semibold tracking-tight">
-            {format_widget_value(@widget_values[widget.id], widget)}
-          </div>
-          <pre :if={!Map.has_key?(@widget_values, widget.id)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(widget.opts, pretty: true) %></pre>
-        </.card>
-      </div>
-    </section>
-    """
-  end
-
-  attr(:resource, Incant.Resource.Metadata, required: true)
-  attr(:rows, :list, default: [])
-  attr(:selected_row, :any, default: nil)
-  attr(:base_path, :string, required: true)
-  attr(:table_state, :map, default: %{})
-
-  def resource_view(assigns) do
-    ~H"""
-    <section class="space-y-6">
-      <.card class="p-5">
-        <p class="text-sm text-[var(--incant-text-muted)]">Resource</p>
-        <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
-        <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
-
-        <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="mt-5 grid gap-3 md:grid-cols-3">
-          <.input
-            :if={@resource.table.search}
-            type="search"
-            name="table[search]"
-            value={@table_state.search}
-            placeholder="Search"
-          />
-          <.filter_control
-            :for={filter <- @resource.table.filters}
-            filter={filter}
-            value={Map.get(@table_state.filters, to_string(filter.name), "")}
-          />
-        </.form>
-      </.card>
-
-      <.card :if={@selected_row} class="p-5">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <p class="text-sm text-[var(--incant-text-muted)]">Detail</p>
-            <h3 class="mt-1 text-xl font-semibold tracking-tight">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
-          </div>
-          <.back_link patch={resource_path(@base_path, @resource)}>
-            Back to list
-          </.back_link>
-        </div>
-        <dl class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <div :for={{key, value} <- Incant.Live.Rows.fields(@selected_row)} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
-            <dt class="text-xs uppercase tracking-wide text-[var(--incant-text-muted)]">{key}</dt>
-            <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">{value}</dd>
-          </div>
-        </dl>
-      </.card>
-
-      <.card class="overflow-hidden">
-        <table class="min-w-full divide-y divide-[var(--incant-border)] text-sm">
-          <thead class="bg-[var(--incant-bg-accented)] text-left text-xs uppercase tracking-wider text-[var(--incant-text-muted)]">
-            <tr>
-              <th :for={column <- @resource.table.columns} class="px-4 py-3 font-medium">
-                <button type="button" phx-click="sort" phx-value-column={column.name} class="inline-flex items-center gap-1 hover:text-[var(--incant-text-highlighted)]">
-                  {column.name}
-                  <span :if={sort_column(@table_state.sort) == to_string(column.name)}>{sort_direction(@table_state.sort)}</span>
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[var(--incant-border)]">
-            <tr :if={@rows == []}>
-              <td colspan={length(@resource.table.columns)} class="px-4 py-10 text-center text-[var(--incant-text-muted)]">
-                No rows. Add a resource data callback or loosen the current filters.
-              </td>
-            </tr>
-            <tr :for={row <- @rows} class="hover:bg-[var(--incant-bg-accented)]">
-              <td :for={column <- @resource.table.columns} class={cell_class(column)}>
-                <.resource_cell row={row} column={column} resource={@resource} base_path={@base_path} />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </.card>
-    </section>
-    """
-  end
-
-  attr(:filter, Incant.Table.Filter, required: true)
-  attr(:value, :any, default: nil)
-
-  def filter_control(assigns) do
-    ~H"""
-    {Incant.Filter.control(@filter, @value, assigns)}
-    """
-  end
-
   defp widget_values(nil), do: %{}
 
   defp widget_values(dashboard) do
@@ -343,76 +217,6 @@ defmodule Incant.Live.AdminLive do
       _other -> column
     end
   end
-
-  defp sort_column("-" <> column), do: column
-  defp sort_column(column), do: column
-
-  defp sort_direction("-" <> _column), do: "↓"
-  defp sort_direction(_column), do: "↑"
-
-  defp cell_class(column) do
-    align = column.opts[:align]
-
-    [
-      "px-4 py-3 text-[var(--incant-text-toned)]",
-      align == :right && "text-right tabular-nums"
-    ]
-  end
-
-  attr(:row, :any, required: true)
-  attr(:column, Incant.Table.Column, required: true)
-  attr(:resource, Incant.Resource.Metadata, required: true)
-  attr(:base_path, :string, required: true)
-
-  def resource_cell(assigns) do
-    assigns =
-      assigns
-      |> assign(:value, Incant.Live.Rows.field(assigns.row, assigns.column.name))
-      |> assign(:row_id, Incant.Live.Rows.id(assigns.row))
-
-    ~H"""
-    <.primary_link :if={@column.opts[:link] && @row_id} patch={resource_detail_path(@base_path, @resource, @row_id)}>
-      <.cell_value row={@row} column={@column} value={@value} />
-    </.primary_link>
-    <.cell_value :if={!@column.opts[:link] || !@row_id} row={@row} column={@column} value={@value} />
-    """
-  end
-
-  attr(:row, :any, required: true)
-  attr(:column, Incant.Table.Column, required: true)
-  attr(:value, :any, required: true)
-
-  def cell_value(assigns) do
-    assigns =
-      assign(assigns, :rendered, render_cell_value(assigns.row, assigns.column, assigns.value))
-
-    ~H"""
-    <.badge :if={@column.opts[:as] == :badge} tone={:primary}>{@value}</.badge>
-    <span :if={@column.opts[:as] != :badge}>{@rendered}</span>
-    """
-  end
-
-  defp render_cell_value(row, column, value) do
-    case column.opts[:render] do
-      nil -> format_value(value, column.opts[:format])
-      render -> callback(render, value, row)
-    end
-  end
-
-  defp format_widget_value(value, widget), do: format_value(value, widget.opts[:format])
-
-  defp format_value(value, :money), do: format_currency(value)
-  defp format_value(value, :currency), do: format_currency(value)
-  defp format_value(value, :percent) when is_number(value), do: "#{Float.round(value * 100, 2)}%"
-  defp format_value(value, :relative), do: to_string(value)
-  defp format_value(value, _format), do: to_string(value)
-
-  defp format_currency(value) when is_integer(value), do: "$#{value}"
-
-  defp format_currency(value) when is_float(value),
-    do: "$#{:erlang.float_to_binary(value, decimals: 2)}"
-
-  defp format_currency(value), do: to_string(value)
 
   defp theme_metadata(admin) do
     case admin.opts[:theme] do
