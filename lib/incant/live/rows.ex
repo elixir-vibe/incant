@@ -3,6 +3,8 @@ defmodule Incant.Live.Rows do
 
   import Ecto.Query
 
+  alias Incant.Live.Authorization
+
   def list(resource, table_state, context \\ %{})
   def list(nil, _table_state, _context), do: []
   def list(resource, table_state, context), do: page(resource, table_state, context).rows
@@ -144,8 +146,8 @@ defmodule Incant.Live.Rows do
     })
   end
 
-  defp scope_query(queryable, resource, %{admin: %{opts: opts}, actor: actor} = context) do
-    case opts[:policy] do
+  defp scope_query(queryable, resource, %{admin: admin, actor: actor} = context) do
+    case Authorization.policy(admin, :view_resource, Map.put(context, :resource, resource)) do
       nil ->
         queryable
 
@@ -160,8 +162,8 @@ defmodule Incant.Live.Rows do
 
   defp scope_query(queryable, _resource, _context), do: queryable
 
-  defp scope_rows(rows, resource, %{admin: %{opts: opts}, actor: actor} = context) do
-    case opts[:policy] do
+  defp scope_rows(rows, resource, %{admin: admin, actor: actor} = context) do
+    case Authorization.policy(admin, :view_resource, Map.put(context, :resource, resource)) do
       nil ->
         rows
 

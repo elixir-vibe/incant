@@ -197,6 +197,14 @@ defmodule MyApp.Admin do
 end
 ```
 
+For custom extraction, use `actor:` with a one-argument function or `{Module, :function}` callback that receives LiveView assigns:
+
+```elixir
+use Incant.Admin,
+  policy: MyApp.Admin.Policy,
+  actor: {MyApp.Admin.Actor, :from_assigns}
+```
+
 Policies use a Bodyguard-compatible callback shape:
 
 ```elixir
@@ -236,6 +244,19 @@ end
 ```
 
 Phoenix 1.8 `phx.gen.auth` apps should usually set `actor_assign: :current_scope` and write policies against the generated scope struct.
+
+Resources and dashboards can override the admin policy locally:
+
+```elixir
+defmodule MyApp.Admin.Resources.Product do
+  use Incant.Resource,
+    schema: MyApp.Catalog.Product,
+    repo: MyApp.Repo,
+    policy: MyApp.Admin.Policies.Product
+end
+```
+
+A local policy handles resource/dashboard actions and scoping for that surface; the admin policy remains the fallback.
 
 ## Row actions
 

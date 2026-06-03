@@ -34,6 +34,12 @@ defmodule Incant.Live.RowsTest do
     def scope_query(actor, _resource, queryable, _context), do: {:scoped, queryable, actor.id}
   end
 
+  defmodule ResourcePolicy do
+    def scope_rows(_actor, _resource, rows, _context) do
+      Enum.filter(rows, &(&1.owner_id == 2))
+    end
+  end
+
   defmodule QueryProduct do
     use Ecto.Schema
 
@@ -91,6 +97,20 @@ defmodule Incant.Live.RowsTest do
 
     assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}, context) == [
              %{id: 1, schema: Product, actor: 7}
+           ]
+  end
+
+  test "resource policy overrides admin policy for row scoping" do
+    resource = %Metadata{
+      data: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
+      table: %Table{},
+      opts: [policy: ResourcePolicy]
+    }
+
+    context = %{admin: %{opts: [policy: Policy]}, actor: %{id: 1}}
+
+    assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}, context) == [
+             %{id: 2, owner_id: 2}
            ]
   end
 
