@@ -214,6 +214,28 @@ end
 
 Return `true`/`:ok` to allow or `false`/`:error`/`{:error, reason}` to deny. Without a configured policy, Incant allows all actions.
 
+Policies may also scope data:
+
+```elixir
+def scope_query(actor, resource, queryable, context) do
+  MyApp.Admin.Authorization.scope_query(actor, resource, queryable, context)
+end
+
+def scope_rows(actor, resource, rows, context) do
+  Enum.filter(rows, &can_view_row?(actor, resource, &1))
+end
+```
+
+To bridge Bodyguard, delegate from the Incant policy:
+
+```elixir
+def authorize(action, actor, context) do
+  Bodyguard.permit(MyApp.Admin.Authz, action, actor, context)
+end
+```
+
+Phoenix 1.8 `phx.gen.auth` apps should usually set `actor_assign: :current_scope` and write policies against the generated scope struct.
+
 ## Row actions
 
 Resource tables can declare row actions. Actions render in the table and detail view; provide a callback to execute behaviour from the LiveView.
