@@ -48,12 +48,18 @@ defmodule Incant.Live.AdminLive do
     form_record = form_record(selected_resource, params["id"], form_mode, actor_context)
     form_changeset = form_changeset(selected_resource, form_record, form_mode)
 
+    visible_resources =
+      filter_authorized(resources, socket.assigns.admin, socket.assigns.actor, :view_resource)
+
+    visible_dashboards =
+      filter_authorized(dashboards, socket.assigns.admin, socket.assigns.actor, :view_dashboard)
+
     context =
       %Incant.Live.Context{
         admin: socket.assigns.admin,
         base_path: socket.assigns.base_path,
-        resources: resources,
-        dashboards: dashboards,
+        resources: visible_resources,
+        dashboards: visible_dashboards,
         theme: socket.assigns.theme,
         actor: socket.assigns.actor,
         resource: selected_resource,
@@ -203,6 +209,16 @@ defmodule Incant.Live.AdminLive do
     </section>
     """
   end
+
+  defp filter_authorized(items, admin, actor, action) do
+    Enum.filter(items, fn item ->
+      context = authorization_item_context(action, item)
+      Authorization.allowed?(admin, action, actor, context)
+    end)
+  end
+
+  defp authorization_item_context(:view_resource, resource), do: %{resource: resource}
+  defp authorization_item_context(:view_dashboard, dashboard), do: %{dashboard: dashboard}
 
   defp assign_context(socket, key, value) do
     assign(socket, :context, Map.put(socket.assigns.context, key, value))

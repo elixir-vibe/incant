@@ -32,6 +32,8 @@ defmodule Playground.AdminLiveTest do
 
     assert html =~ "Product"
     assert html =~ "Edit"
+    refute html =~ "LLM Proxy"
+    refute html =~ "LLMRequest"
     refute html =~ "phx-value-action=\"archive\""
   end
 end
