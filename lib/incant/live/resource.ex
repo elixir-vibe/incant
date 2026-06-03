@@ -1,15 +1,16 @@
-defmodule Incant.Live.ResourceComponents do
+defmodule Incant.Live.Resource do
   @moduledoc false
 
   use Phoenix.Component
 
   import Incant.Live.Components
-  import Incant.Live.FormComponents
   import Incant.Live.Routes
+
+  alias Incant.Live.Resource.Form
 
   attr(:context, Incant.Live.Context, required: true)
 
-  def resource_view(assigns) do
+  def view(assigns) do
     context = assigns.context
 
     assigns =
@@ -44,7 +45,7 @@ defmodule Incant.Live.ResourceComponents do
             value={@table_state.search}
             placeholder="Search"
           />
-          <.filter_control
+          <.filter
             :for={filter <- @resource.table.filters}
             filter={filter}
             value={Map.get(@table_state.filters, to_string(filter.name), "")}
@@ -52,7 +53,7 @@ defmodule Incant.Live.ResourceComponents do
         </.form>
       </.card>
 
-      <.resource_form :if={@form_mode} resource={@resource} record={@form_record} changeset={@form_changeset} mode={@form_mode} base_path={@base_path} />
+      <Form.view :if={@form_mode} resource={@resource} record={@form_record} changeset={@form_changeset} mode={@form_mode} base_path={@base_path} />
 
       <.card :if={!@form_mode && @selected_row} class="p-5">
         <div class="flex items-start justify-between gap-4">
@@ -61,7 +62,7 @@ defmodule Incant.Live.ResourceComponents do
             <h3 class="mt-1 text-xl font-semibold tracking-tight">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
           </div>
           <div class="flex items-center gap-2">
-            <.row_actions context={@context} row={@selected_row} />
+            <.actions context={@context} row={@selected_row} />
             <.back_link patch={resource_path(@base_path, @resource)}>
               Back to list
             </.back_link>
@@ -112,10 +113,10 @@ defmodule Incant.Live.ResourceComponents do
             </tr>
             <tr :for={row <- @rows} class="hover:bg-[var(--incant-bg-accented)]">
               <td :for={column <- @resource.table.columns} class={cell_class(column)}>
-                <.resource_cell context={@context} row={row} column={column} />
+                <.cell context={@context} row={row} column={column} />
               </td>
               <td :if={@resource.table.actions != []} class="px-4 py-3 text-right">
-                <.row_actions context={@context} row={row} />
+                <.actions context={@context} row={row} />
               </td>
             </tr>
           </tbody>
@@ -152,7 +153,7 @@ defmodule Incant.Live.ResourceComponents do
   attr(:filter, Incant.Table.Filter, required: true)
   attr(:value, :any, default: nil)
 
-  def filter_control(assigns) do
+  def filter(assigns) do
     ~H"""
     {Incant.Filter.control(@filter, @value, assigns)}
     """
@@ -161,7 +162,7 @@ defmodule Incant.Live.ResourceComponents do
   attr(:context, Incant.Live.Context, required: true)
   attr(:row, :any, required: true)
 
-  def row_actions(assigns) do
+  def actions(assigns) do
     assigns =
       assigns
       |> assign(:resource, assigns.context.resource)
@@ -194,7 +195,7 @@ defmodule Incant.Live.ResourceComponents do
   attr(:row, :any, required: true)
   attr(:column, Incant.Table.Column, required: true)
 
-  def resource_cell(assigns) do
+  def cell(assigns) do
     assigns =
       assigns
       |> assign(:resource, assigns.context.resource)

@@ -5,10 +5,9 @@ defmodule Incant.Live.AdminLive do
 
   use Phoenix.LiveView
 
-  import Incant.Live.DashboardComponents
-  import Incant.Live.ResourceComponents
   import Incant.Live.Routes
-  import Incant.Live.ShellComponents
+
+  alias Incant.Live.{Dashboard, Resource, Shell}
 
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
@@ -173,10 +172,10 @@ defmodule Incant.Live.AdminLive do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <.admin_shell context={@context} page_title={page_title(assigns)}>
-      <.dashboard_view :if={@context.section == "dashboard" and @context.dashboard} context={@context} />
-      <.resource_view :if={@context.section == "resource" and @context.resource} context={@context} />
-    </.admin_shell>
+    <Shell.view context={@context} page_title={page_title(assigns)}>
+      <Dashboard.view :if={@context.section == "dashboard" and @context.dashboard} context={@context} />
+      <Resource.view :if={@context.section == "resource" and @context.resource} context={@context} />
+    </Shell.view>
     """
   end
 

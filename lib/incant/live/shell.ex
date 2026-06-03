@@ -1,4 +1,4 @@
-defmodule Incant.Live.ShellComponents do
+defmodule Incant.Live.Shell do
   @moduledoc false
 
   use Phoenix.Component
@@ -10,7 +10,7 @@ defmodule Incant.Live.ShellComponents do
   attr(:page_title, :string, required: true)
   slot(:inner_block, required: true)
 
-  def admin_shell(assigns) do
+  def view(assigns) do
     context = assigns.context
 
     assigns =

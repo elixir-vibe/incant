@@ -1,4 +1,4 @@
-defmodule Incant.Live.DashboardComponents do
+defmodule Incant.Live.Dashboard do
   @moduledoc false
 
   use Phoenix.Component
@@ -7,7 +7,7 @@ defmodule Incant.Live.DashboardComponents do
 
   attr(:context, Incant.Live.Context, required: true)
 
-  def dashboard_view(assigns) do
+  def view(assigns) do
     context = assigns.context
 
     assigns =

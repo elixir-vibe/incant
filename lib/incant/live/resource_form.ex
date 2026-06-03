@@ -1,4 +1,4 @@
-defmodule Incant.Live.FormComponents do
+defmodule Incant.Live.Resource.Form do
   @moduledoc false
 
   use Phoenix.Component
@@ -12,7 +12,7 @@ defmodule Incant.Live.FormComponents do
   attr(:mode, :atom, required: true)
   attr(:base_path, :string, required: true)
 
-  def resource_form(assigns) do
+  def view(assigns) do
     ~H"""
     <.card class="p-5">
       <div class="flex items-start justify-between gap-4">
