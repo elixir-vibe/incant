@@ -216,6 +216,7 @@ defmodule Incant.Live.AdminLive do
                context.actor,
                Map.from_struct(context)
              ),
+           :ok <- authorize_row_navigation(admin, context),
            :ok <- authorize_form_navigation(admin, context) do
         :ok
       end
@@ -243,6 +244,14 @@ defmodule Incant.Live.AdminLive do
       context |> Map.from_struct() |> Map.merge(extra)
     )
   end
+
+  defp authorize_row_navigation(_admin, %{detail_id: nil}), do: :ok
+
+  defp authorize_row_navigation(admin, %{section: "resource"} = context) do
+    Authorization.authorize(admin, :view_row, context.actor, Map.from_struct(context))
+  end
+
+  defp authorize_row_navigation(_admin, _context), do: :ok
 
   defp authorize_form_navigation(_admin, %{form_mode: nil}), do: :ok
 

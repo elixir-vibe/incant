@@ -206,6 +206,7 @@ defmodule MyApp.Admin.Policy do
   def authorize(:view_admin, actor, context), do: allow_admin?(actor, context)
   def authorize(:view_resource, actor, %{resource: resource}), do: can_view?(actor, resource)
   def authorize(:view_dashboard, actor, %{dashboard: dashboard}), do: can_view?(actor, dashboard)
+  def authorize(:view_row, actor, %{resource: resource, selected_row: row}), do: can_view_row?(actor, resource, row)
   def authorize(:create, actor, %{resource: resource}), do: can_create?(actor, resource)
   def authorize(:edit, actor, %{resource: resource, row: row}), do: can_edit?(actor, resource, row)
   def authorize(:run_action, actor, %{action: action, row: row}), do: can_run?(actor, action, row)

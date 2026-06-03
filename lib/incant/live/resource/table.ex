@@ -122,10 +122,10 @@ defmodule Incant.Live.Resource.Table do
       |> assign(:row_id, Incant.Live.Rows.id(assigns.row))
 
     ~H"""
-    <.primary_link :if={@column.opts[:link] && @row_id} patch={resource_detail_path(@base_path, @resource, @row_id)}>
+    <.primary_link :if={detail_link?(@context, @column, @row, @row_id)} patch={resource_detail_path(@base_path, @resource, @row_id)}>
       <.cell_value row={@row} column={@column} value={@value} />
     </.primary_link>
-    <.cell_value :if={!@column.opts[:link] || !@row_id} row={@row} column={@column} value={@value} />
+    <.cell_value :if={!detail_link?(@context, @column, @row, @row_id)} row={@row} column={@column} value={@value} />
     """
   end
 
@@ -148,6 +148,16 @@ defmodule Incant.Live.Resource.Table do
       nil -> format_value(value, column.opts[:format])
       render -> Incant.Callback.call(render, value, row)
     end
+  end
+
+  defp detail_link?(context, column, row, row_id) do
+    column.opts[:link] && row_id &&
+      Authorization.allowed?(
+        context.admin,
+        :view_row,
+        context.actor,
+        authorization_context(context, row)
+      )
   end
 
   defp action_allowed?(context, %{name: :edit}, row) do
