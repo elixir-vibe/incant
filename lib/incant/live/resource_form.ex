@@ -186,6 +186,7 @@ defmodule Incant.Live.Resource.Form do
     do: value |> Time.truncate(:second) |> Time.to_iso8601()
 
   defp input_value(_field, nil), do: nil
+  defp input_value(_field, %Decimal{} = value), do: Decimal.to_string(value)
   defp input_value(_field, value), do: value
 
   defp humanize(value) do
