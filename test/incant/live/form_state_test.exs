@@ -6,7 +6,22 @@ defmodule Incant.Live.FormStateTest do
 
   defmodule Repo do
     def insert({:changeset, record, attrs}), do: {:ok, Map.merge(record, attrs)}
+    def insert(%Ecto.Changeset{} = changeset), do: {:error, changeset}
     def update({:changeset, record, attrs}), do: {:ok, Map.merge(record, attrs)}
+  end
+
+  defmodule Product do
+    use Ecto.Schema
+
+    embedded_schema do
+      field(:name, :string)
+    end
+
+    def changeset(record, attrs) do
+      record
+      |> Ecto.Changeset.cast(attrs, [:name])
+      |> Ecto.Changeset.validate_required([:name])
+    end
   end
 
   test "reports missing repo" do
@@ -20,6 +35,23 @@ defmodule Incant.Live.FormStateTest do
 
     assert FormState.save(:new, resource, %{}, %{}) ==
              {:error, "Resource changeset is not configured"}
+  end
+
+  test "marks validation changesets with the validate action" do
+    resource = %Metadata{changeset: &Product.changeset/2}
+
+    changeset = FormState.validate(resource, %Product{}, %{})
+
+    assert changeset.action == :validate
+    assert Keyword.has_key?(changeset.errors, :name)
+  end
+
+  test "marks failed inserts with the insert action" do
+    resource = %Metadata{repo: Repo, changeset: &Product.changeset/2}
+
+    assert {:error, changeset} = FormState.save(:new, resource, %Product{}, %{})
+    assert changeset.action == :insert
+    assert Keyword.has_key?(changeset.errors, :name)
   end
 
   test "inserts new records through the repo" do

@@ -5,6 +5,12 @@ defmodule Incant.Live.FormState do
     Incant.Forms.changeset(resource, record, attrs)
   end
 
+  def validate(resource, record, attrs) do
+    resource
+    |> changeset(record, attrs)
+    |> set_action(:validate)
+  end
+
   def save(_mode, %{repo: nil}, _record, _attrs), do: {:error, "Resource repo is not configured"}
 
   def save(_mode, %{changeset: nil}, _record, _attrs),
@@ -20,8 +26,19 @@ defmodule Incant.Live.FormState do
   end
 
   defp normalize_save_result({:ok, record}, mode), do: {:ok, success_message(mode), record}
-  defp normalize_save_result({:error, changeset}, _mode), do: {:error, changeset}
+  defp normalize_save_result({:error, changeset}, mode), do: {:error, set_action(changeset, mode)}
   defp normalize_save_result(record, mode), do: {:ok, success_message(mode), record}
+
+  defp set_action(%{__struct__: Ecto.Changeset, action: nil} = changeset, :new),
+    do: %{changeset | action: :insert}
+
+  defp set_action(%{__struct__: Ecto.Changeset, action: nil} = changeset, :edit),
+    do: %{changeset | action: :update}
+
+  defp set_action(%{__struct__: Ecto.Changeset, action: nil} = changeset, action),
+    do: %{changeset | action: action}
+
+  defp set_action(changeset, _action), do: changeset
 
   defp success_message(:new), do: "Record created"
   defp success_message(:edit), do: "Record updated"

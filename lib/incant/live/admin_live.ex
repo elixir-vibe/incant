@@ -126,13 +126,13 @@ defmodule Incant.Live.AdminLive do
 
   def handle_event("validate_form", %{"resource" => attrs}, socket) do
     changeset =
-      Incant.Live.FormState.changeset(
+      Incant.Live.FormState.validate(
         socket.assigns.context.resource,
         socket.assigns.context.form_record,
         attrs
       )
 
-    {:noreply, assign(socket, :form_changeset, changeset)}
+    {:noreply, assign_context(socket, :form_changeset, changeset)}
   end
 
   def handle_event("save_form", %{"resource" => attrs}, socket) do
@@ -156,7 +156,7 @@ defmodule Incant.Live.AdminLive do
          )}
 
       {:error, changeset} when is_map(changeset) ->
-        {:noreply, assign(socket, :form_changeset, changeset)}
+        {:noreply, assign_context(socket, :form_changeset, changeset)}
 
       {:error, message} ->
         {:noreply, put_flash(socket, :error, message)}
@@ -171,6 +171,10 @@ defmodule Incant.Live.AdminLive do
       <Resource.view :if={@context.section == "resource" and @context.resource} context={@context} />
     </Shell.view>
     """
+  end
+
+  defp assign_context(socket, key, value) do
+    assign(socket, :context, Map.put(socket.assigns.context, key, value))
   end
 
   defp widget_values(nil, _variables), do: %{}
