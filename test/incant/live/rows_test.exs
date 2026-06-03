@@ -17,6 +17,12 @@ defmodule Incant.Live.RowsTest do
     def aggregate({:scoped, _schema, _actor}, :count), do: 1
   end
 
+  defmodule GroupedRepo do
+    def all(%Ecto.Query{}), do: []
+    def aggregate(%Ecto.Query{}, :count), do: raise("grouped query")
+    def one(%Ecto.Query{}), do: 13
+  end
+
   defmodule Product do
   end
 
@@ -86,6 +92,15 @@ defmodule Incant.Live.RowsTest do
     assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}, context) == [
              %{id: 1, schema: Product, actor: 7}
            ]
+  end
+
+  test "falls back to subquery count when aggregate count fails" do
+    resource = %Metadata{repo: GroupedRepo, schema: QueryProduct, table: %Table{}}
+
+    page = Rows.page(resource, %{search: "", filters: %{}, sort: "", page: "1", page_size: "5"})
+
+    assert page.total == 13
+    assert page.total_pages == 3
   end
 
   test "applies query callbacks and filter query callbacks before repo loading" do

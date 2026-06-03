@@ -179,10 +179,29 @@ defmodule Incant.Live.Rows do
   defp query_count(%{repo: repo} = resource, table_state, context) do
     queryable = queryable(resource, table_state, false, context)
 
+    aggregate_count(repo, queryable) || subquery_count(repo, queryable) ||
+      length(raw(resource, table_state, [], context))
+  end
+
+  defp aggregate_count(repo, queryable) do
     apply(repo, :aggregate, [queryable, :count])
   rescue
-    _error -> length(raw(resource, table_state, [], context))
+    _error -> nil
   end
+
+  defp subquery_count(repo, %Ecto.Query{} = queryable) do
+    count_query =
+      queryable
+      |> exclude(:order_by)
+      |> subquery()
+      |> select([row], count(row))
+
+    apply(repo, :one, [count_query])
+  rescue
+    _error -> nil
+  end
+
+  defp subquery_count(_repo, _queryable), do: nil
 
   defp paginate_query(queryable, %{page: page, page_size: page_size}) do
     page = positive_integer(page, 1)
