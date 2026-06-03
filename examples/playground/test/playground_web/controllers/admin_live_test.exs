@@ -4,8 +4,7 @@ defmodule Playground.AdminLiveTest do
   import Phoenix.LiveViewTest
 
   test "renders Incant resource table", %{conn: conn} do
-    {:ok, _view, html} =
-      live(conn, ~p"/admin?section=resource&resource=Playground.Admin.Resources.Product")
+    {:ok, _view, html} = live(conn, ~p"/admin/resources/product")
 
     assert html =~ "Incant"
     assert html =~ "Product"
@@ -19,5 +18,20 @@ defmodule Playground.AdminLiveTest do
     assert html =~ "LLM Proxy"
     assert html =~ "12840"
     assert html =~ "$184.62"
+  end
+
+  test "renders access denied when policy rejects dashboard", %{conn: conn} do
+    {:ok, _view, html} = live(conn, ~p"/restricted-admin")
+
+    assert html =~ "Access denied"
+    refute html =~ "12840"
+  end
+
+  test "does not render denied row actions", %{conn: conn} do
+    {:ok, _view, html} = live(conn, ~p"/restricted-admin/resources/product")
+
+    assert html =~ "Product"
+    assert html =~ "Edit"
+    refute html =~ "phx-value-action=\"archive\""
   end
 end

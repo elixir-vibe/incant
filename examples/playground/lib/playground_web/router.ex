@@ -21,6 +21,7 @@ defmodule Playground.Router do
     get "/", Playground.PageController, :home
 
     incant_admin("/admin", Playground.Admin)
+    incant_admin("/restricted-admin", Playground.RestrictedAdmin, as: :restricted_incant)
   end
 
   # Other scopes may use custom stacks.
