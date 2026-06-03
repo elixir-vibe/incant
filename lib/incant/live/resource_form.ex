@@ -13,6 +13,13 @@ defmodule Incant.Live.Resource.Form do
   attr(:base_path, :string, required: true)
 
   def view(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :form,
+        Phoenix.Component.to_form(form_source(assigns.changeset), as: :resource)
+      )
+
     ~H"""
     <.card class="p-5">
       <div class="flex items-start justify-between gap-4">
@@ -27,7 +34,7 @@ defmodule Incant.Live.Resource.Form do
 
       <pre :if={@changeset && !form_like?(@changeset)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(@changeset, pretty: true) %></pre>
 
-      <.form :let={_form} for={form_source(@changeset)} as={:resource} phx-change="validate_form" phx-submit="save_form" class="mt-5 grid gap-4 md:grid-cols-2">
+      <.form for={@form} phx-change="validate_form" phx-submit="save_form" class="mt-5 grid gap-4 md:grid-cols-2">
         <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={form_value(@changeset, @record, field.name)} errors={field_errors(@changeset, field.name)} />
         <div class="md:col-span-2">
           <button type="submit" class="rounded-xl bg-[var(--incant-primary)] px-4 py-2 text-sm font-medium text-[var(--incant-text-inverted)]">
@@ -88,7 +95,7 @@ defmodule Incant.Live.Resource.Form do
     ~H"""
     <label class="grid gap-1 text-sm">
       <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
-      <.input type={input_type(@field)} name={"resource[#{@field.name}]"} value={@value} readonly={@field.opts[:readonly]} step={@field.opts[:step]} />
+      <.input type={input_type(@field)} name={"resource[#{@field.name}]"} value={input_value(@field, @value)} readonly={@field.opts[:readonly]} step={input_step(@field)} />
       <.field_errors errors={@errors} />
     </label>
     """
@@ -149,9 +156,37 @@ defmodule Incant.Live.Resource.Form do
 
   defp field_label(field), do: field.opts[:label] || humanize(field.name)
 
-  defp input_type(%{type: type}) when type in [:number, :date], do: to_string(type)
+  defp input_type(%{type: type}) when type in [:number, :date, :time], do: to_string(type)
   defp input_type(%{type: :datetime}), do: "datetime-local"
   defp input_type(_field), do: "text"
+
+  defp input_step(%{opts: opts, type: type}) do
+    Keyword.get_lazy(opts, :step, fn -> default_step(type) end)
+  end
+
+  defp default_step(:number), do: "any"
+  defp default_step(:time), do: "1"
+  defp default_step(:datetime), do: "1"
+  defp default_step(_type), do: nil
+
+  defp input_value(%{type: :datetime}, %DateTime{} = value) do
+    value
+    |> DateTime.to_naive()
+    |> NaiveDateTime.truncate(:second)
+    |> NaiveDateTime.to_iso8601()
+  end
+
+  defp input_value(%{type: :datetime}, %NaiveDateTime{} = value) do
+    value
+    |> NaiveDateTime.truncate(:second)
+    |> NaiveDateTime.to_iso8601()
+  end
+
+  defp input_value(%{type: :time}, %Time{} = value),
+    do: value |> Time.truncate(:second) |> Time.to_iso8601()
+
+  defp input_value(_field, nil), do: nil
+  defp input_value(_field, value), do: value
 
   defp humanize(value) do
     value

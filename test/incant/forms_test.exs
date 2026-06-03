@@ -13,6 +13,10 @@ defmodule Incant.FormsTest do
       field(:name, :string)
       field(:price, :decimal)
       field(:published, :boolean)
+      field(:published_at, :utc_datetime)
+      field(:published_on, :date)
+      field(:reviewed_at, :naive_datetime)
+      field(:status, Ecto.Enum, values: [:active, :draft])
     end
   end
 
@@ -26,9 +30,13 @@ defmodule Incant.FormsTest do
     resource = %Metadata{schema: Product}
 
     assert Forms.fields(resource) == [
-             %Field{name: :name, type: :string},
-             %Field{name: :price, type: :number},
-             %Field{name: :published, type: :boolean}
+             %Field{name: :name, type: :string, opts: []},
+             %Field{name: :price, type: :number, opts: []},
+             %Field{name: :published, type: :boolean, opts: []},
+             %Field{name: :published_at, type: :datetime, opts: []},
+             %Field{name: :published_on, type: :date, opts: []},
+             %Field{name: :reviewed_at, type: :datetime, opts: []},
+             %Field{name: :status, type: :select, opts: [options: [:active, :draft]]}
            ]
   end
 

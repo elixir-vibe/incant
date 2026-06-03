@@ -17,7 +17,7 @@ defmodule Incant.Forms do
       schema
       |> apply(:__schema__, [:fields])
       |> Enum.reject(&(&1 in @excluded_schema_fields))
-      |> Enum.map(fn field -> %Field{name: field, type: schema_type(schema, field), opts: []} end)
+      |> Enum.map(fn field -> schema_field(schema, field) end)
     else
       []
     end
@@ -43,17 +43,26 @@ defmodule Incant.Forms do
     Incant.Callback.call(resource.changeset, record, attrs)
   end
 
-  defp schema_type(schema, field) do
+  defp schema_field(schema, field) do
     case apply(schema, :__schema__, [:type, field]) do
-      :integer -> :number
-      :float -> :number
-      :decimal -> :number
-      :boolean -> :boolean
-      :date -> :date
-      :utc_datetime -> :datetime
-      :naive_datetime -> :datetime
-      type when is_atom(type) -> type
-      _type -> :auto
+      {:parameterized, {Ecto.Enum, %{mappings: mappings}}} ->
+        %Field{name: field, type: :select, opts: [options: Keyword.keys(mappings)]}
+
+      type ->
+        %Field{name: field, type: schema_type(type), opts: []}
     end
   end
+
+  defp schema_type(:integer), do: :number
+  defp schema_type(:float), do: :number
+  defp schema_type(:decimal), do: :number
+  defp schema_type(:boolean), do: :boolean
+  defp schema_type(:date), do: :date
+  defp schema_type(:time), do: :time
+  defp schema_type(:utc_datetime), do: :datetime
+  defp schema_type(:utc_datetime_usec), do: :datetime
+  defp schema_type(:naive_datetime), do: :datetime
+  defp schema_type(:naive_datetime_usec), do: :datetime
+  defp schema_type(type) when is_atom(type), do: type
+  defp schema_type(_type), do: :auto
 end
