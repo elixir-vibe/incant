@@ -40,8 +40,9 @@ defmodule Incant.Live.AdminLive do
     table_state = table_state(params)
     dashboard_variables = Map.get(params, "var", %{})
     form_mode = form_mode(socket.assigns.live_action)
-    selected_row = Incant.Live.Rows.one(selected_resource, params["id"])
-    form_record = form_record(selected_resource, params["id"], form_mode)
+    actor_context = %{admin: socket.assigns.admin, actor: socket.assigns.actor}
+    selected_row = Incant.Live.Rows.one(selected_resource, params["id"], actor_context)
+    form_record = form_record(selected_resource, params["id"], form_mode, actor_context)
     form_changeset = form_changeset(selected_resource, form_record, form_mode)
 
     context =
@@ -117,7 +118,7 @@ defmodule Incant.Live.AdminLive do
 
   def handle_event("row_action", %{"action" => action, "id" => id}, socket) do
     context = socket.assigns.context
-    row = Incant.Live.Rows.one(context.resource, id)
+    row = Incant.Live.Rows.one(context.resource, id, context)
 
     with :ok <- authorize(context, :run_action, %{action: action, row: row}) do
       case Incant.Live.Actions.run(context.resource, action, id, socket.assigns) do
@@ -223,7 +224,7 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp load_authorized_context(%{authorization: :ok, section: "resource"} = context) do
-    resource_page = Incant.Live.Rows.page(context.resource, context.table_state)
+    resource_page = Incant.Live.Rows.page(context.resource, context.table_state, context)
 
     %{context | rows: resource_page.rows, pagination: Map.drop(resource_page, [:rows])}
   end
@@ -335,9 +336,11 @@ defmodule Incant.Live.AdminLive do
     end
   end
 
-  defp form_record(_resource, _id, nil), do: nil
-  defp form_record(resource, _id, :new), do: Incant.Forms.new_record(resource)
-  defp form_record(resource, id, :edit), do: Incant.Live.Rows.one(resource, id) || %{}
+  defp form_record(_resource, _id, nil, _context), do: nil
+  defp form_record(resource, _id, :new, _context), do: Incant.Forms.new_record(resource)
+
+  defp form_record(resource, id, :edit, context),
+    do: Incant.Live.Rows.one(resource, id, context) || %{}
 
   defp form_changeset(_resource, _record, nil), do: nil
 

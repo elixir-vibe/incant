@@ -3,23 +3,24 @@ defmodule Incant.Live.Rows do
 
   import Ecto.Query
 
-  def list(nil, _table_state), do: []
+  def list(resource, table_state, context \\ %{})
+  def list(nil, _table_state, _context), do: []
+  def list(resource, table_state, context), do: page(resource, table_state, context).rows
 
-  def list(resource, table_state), do: page(resource, table_state).rows
+  def page(resource, table_state, context \\ %{})
+  def page(nil, table_state, context), do: page([], table_state, context)
 
-  def page(nil, table_state), do: page([], table_state)
-
-  def page(%{repo: repo, schema: schema} = resource, table_state)
+  def page(%{repo: repo, schema: schema} = resource, table_state, context)
       when not is_nil(repo) and not is_nil(schema) do
     page = positive_integer(Map.get(table_state, :page), 1)
     page_size = positive_integer(Map.get(table_state, :page_size), 25)
-    total = query_count(resource, table_state)
+    total = query_count(resource, table_state, context)
     total_pages = max(ceil(total / page_size), 1)
     page = min(page, total_pages)
     table_state = table_state |> Map.put(:page, page) |> Map.put(:page_size, page_size)
 
     %{
-      rows: raw(resource, table_state, paginate: true),
+      rows: raw(resource, table_state, [paginate: true], context),
       page: page,
       page_size: page_size,
       total: total,
@@ -27,8 +28,8 @@ defmodule Incant.Live.Rows do
     }
   end
 
-  def page(resource, table_state) do
-    rows = all(resource, table_state)
+  def page(resource, table_state, context) do
+    rows = all(resource, table_state, context)
     page = positive_integer(Map.get(table_state, :page), 1)
     page_size = positive_integer(Map.get(table_state, :page_size), 25)
     total = length(rows)
@@ -44,9 +45,9 @@ defmodule Incant.Live.Rows do
     }
   end
 
-  defp all(resource, table_state) do
+  defp all(resource, table_state, context) do
     resource
-    |> raw(table_state)
+    |> raw(table_state, [], context)
     |> search(resource.table.search, table_state.search)
     |> filter(resource.table.filters, table_state.filters)
     |> sort(table_state.sort)
@@ -54,35 +55,37 @@ defmodule Incant.Live.Rows do
     _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> []
   end
 
-  def one(_resource, nil), do: nil
+  def one(resource, id, context \\ %{})
+  def one(_resource, nil, _context), do: nil
 
-  def one(resource, id) do
+  def one(resource, id, context) do
     resource
-    |> raw(%{})
+    |> raw(%{}, [], context)
     |> Enum.find(&(id(&1) == id))
   rescue
     _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> nil
   end
 
-  def raw(resource, table_state \\ %{}, opts \\ [])
-  def raw(nil, _table_state, _opts), do: []
+  def raw(resource, table_state \\ %{}, opts \\ [], context \\ %{})
+  def raw(nil, _table_state, _opts, _context), do: []
 
-  def raw(%{data: data} = _resource, table_state, _opts) when not is_nil(data) do
+  def raw(%{data: data} = resource, table_state, _opts, context) when not is_nil(data) do
     data
     |> Incant.Callback.call(%{table: table_state}, [])
     |> Incant.Tabular.to_rows()
+    |> scope_rows(resource, context)
   end
 
-  def raw(%{repo: repo, schema: schema} = resource, table_state, opts)
+  def raw(%{repo: repo, schema: schema} = resource, table_state, opts, context)
       when not is_nil(repo) and not is_nil(schema) do
-    queryable = queryable(resource, table_state, Keyword.get(opts, :paginate, false))
+    queryable = queryable(resource, table_state, Keyword.get(opts, :paginate, false), context)
 
     repo
     |> apply(:all, [queryable])
     |> Incant.Tabular.to_rows()
   end
 
-  def raw(_resource, _table_state, _opts), do: []
+  def raw(_resource, _table_state, _opts, _context), do: []
 
   def id(row), do: row |> field(:id) |> id_string()
 
@@ -112,8 +115,8 @@ defmodule Incant.Live.Rows do
     Map.get(row, field, Map.get(row, to_string(field)))
   end
 
-  defp queryable(resource, table_state, paginate?) do
-    queryable = base_queryable(resource, table_state)
+  defp queryable(resource, table_state, paginate?, context) do
+    queryable = resource |> base_queryable(table_state, context) |> scope_query(resource, context)
 
     filtered =
       Incant.Filter.apply_filters(
@@ -122,27 +125,63 @@ defmodule Incant.Live.Rows do
         table_state_filters(table_state),
         %{
           resource: resource,
-          table: table_state
+          table: table_state,
+          actor: Map.get(context, :actor)
         }
       )
 
     if paginate?, do: paginate_query(filtered, table_state), else: filtered
   end
 
-  defp base_queryable(%{query: nil, schema: schema}, _table_state) do
+  defp base_queryable(%{query: nil, schema: schema}, _table_state, _context) do
     if function_exported?(schema, :__schema__, 1), do: from(row in schema), else: schema
   end
 
-  defp base_queryable(resource, table_state) do
-    Incant.Callback.call(resource.query, resource.schema, %{table: table_state})
+  defp base_queryable(resource, table_state, context) do
+    Incant.Callback.call(resource.query, resource.schema, %{
+      table: table_state,
+      actor: Map.get(context, :actor)
+    })
   end
 
-  defp query_count(%{repo: repo} = resource, table_state) do
-    queryable = queryable(resource, table_state, false)
+  defp scope_query(queryable, resource, %{admin: %{opts: opts}, actor: actor} = context) do
+    case opts[:policy] do
+      nil ->
+        queryable
+
+      policy when is_atom(policy) ->
+        if function_exported?(policy, :scope_query, 4) do
+          apply(policy, :scope_query, [actor, resource, queryable, context])
+        else
+          queryable
+        end
+    end
+  end
+
+  defp scope_query(queryable, _resource, _context), do: queryable
+
+  defp scope_rows(rows, resource, %{admin: %{opts: opts}, actor: actor} = context) do
+    case opts[:policy] do
+      nil ->
+        rows
+
+      policy when is_atom(policy) ->
+        if function_exported?(policy, :scope_rows, 4) do
+          apply(policy, :scope_rows, [actor, resource, rows, context])
+        else
+          rows
+        end
+    end
+  end
+
+  defp scope_rows(rows, _resource, _context), do: rows
+
+  defp query_count(%{repo: repo} = resource, table_state, context) do
+    queryable = queryable(resource, table_state, false, context)
 
     apply(repo, :aggregate, [queryable, :count])
   rescue
-    _error -> length(raw(resource, table_state))
+    _error -> length(raw(resource, table_state, [], context))
   end
 
   defp paginate_query(queryable, %{page: page, page_size: page_size}) do

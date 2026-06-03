@@ -11,11 +11,21 @@ defmodule Incant.Live.RowsTest do
       do: [%{id: 1, limit: query.limit.expr, offset: query.offset.expr}]
 
     def all({:filtered, schema, status}), do: [%{id: 1, schema: schema, status: status}]
+    def all({:scoped, schema, actor}), do: [%{id: 1, schema: schema, actor: actor}]
     def all(schema), do: [%{id: 1, schema: schema}]
     def aggregate(%Ecto.Query{}, :count), do: 42
+    def aggregate({:scoped, _schema, _actor}, :count), do: 1
   end
 
   defmodule Product do
+  end
+
+  defmodule Policy do
+    def scope_rows(actor, _resource, rows, _context) do
+      Enum.filter(rows, &(&1.owner_id == actor.id))
+    end
+
+    def scope_query(actor, _resource, queryable, _context), do: {:scoped, queryable, actor.id}
   end
 
   defmodule QueryProduct do
@@ -54,6 +64,28 @@ defmodule Incant.Live.RowsTest do
     page = Rows.page(resource, %{search: "", filters: %{}, sort: "", page: "2", page_size: "10"})
     assert page.total == 42
     assert page.total_pages == 5
+  end
+
+  test "scopes data rows with policy scope_rows callback" do
+    resource = %Metadata{
+      data: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
+      table: %Table{}
+    }
+
+    context = %{admin: %{opts: [policy: Policy]}, actor: %{id: 1}}
+
+    assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}, context) == [
+             %{id: 1, owner_id: 1}
+           ]
+  end
+
+  test "scopes repo queries with policy scope_query callback" do
+    resource = %Metadata{repo: Repo, schema: Product, table: %Table{}}
+    context = %{admin: %{opts: [policy: Policy]}, actor: %{id: 7}}
+
+    assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}, context) == [
+             %{id: 1, schema: Product, actor: 7}
+           ]
   end
 
   test "applies query callbacks and filter query callbacks before repo loading" do

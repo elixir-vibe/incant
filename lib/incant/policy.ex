@@ -10,6 +10,21 @@ defmodule Incant.Policy do
   @callback authorize(action :: atom(), actor :: term(), context :: map()) ::
               true | :ok | false | :error | {:error, term()}
 
+  @callback scope_query(
+              actor :: term(),
+              resource :: Incant.Resource.Metadata.t(),
+              queryable :: term(),
+              context :: map()
+            ) :: term()
+  @callback scope_rows(
+              actor :: term(),
+              resource :: Incant.Resource.Metadata.t(),
+              rows :: [term()],
+              context :: map()
+            ) :: [term()]
+
+  @optional_callbacks scope_query: 4, scope_rows: 4
+
   defmacro __using__(_opts \\ []) do
     quote do
       @behaviour Incant.Policy
