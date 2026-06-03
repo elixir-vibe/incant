@@ -296,6 +296,7 @@ defmodule Incant.Live.AdminLive do
     %{}
     |> Map.put("search", Map.get(table_params, "search"))
     |> Map.put("filter", filters)
+    |> Map.put("page_size", Map.get(table_params, "page_size"))
   end
 
   defp reject_empty_values(map) do

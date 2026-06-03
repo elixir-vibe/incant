@@ -43,6 +43,10 @@ defmodule Incant.Live.Resource.Header do
           filter={filter}
           value={Map.get(@table_state.filters, to_string(filter.name), "")}
         />
+        <label class="grid gap-1 text-sm">
+          <span class="text-[var(--incant-text-muted)]">Rows per page</span>
+          <.select name="table[page_size]" value={@table_state.page_size} options={[10, 25, 50, 100]} />
+        </label>
       </.form>
     </.card>
     """
