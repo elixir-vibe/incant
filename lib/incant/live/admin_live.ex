@@ -85,7 +85,8 @@ defmodule Incant.Live.AdminLive do
       |> Map.put("page", "1")
       |> reject_empty_values()
 
-    {:noreply, push_patch(socket, to: resource_path(socket.assigns.context.base_path, resource, params))}
+    {:noreply,
+     push_patch(socket, to: resource_path(socket.assigns.context.base_path, resource, params))}
   end
 
   def handle_event("sort", %{"column" => column}, socket) do
@@ -147,7 +148,11 @@ defmodule Incant.Live.AdminLive do
          |> put_flash(:info, message)
          |> push_patch(
            to:
-             saved_record_path(socket.assigns.context.base_path, socket.assigns.context.resource, record)
+             saved_record_path(
+               socket.assigns.context.base_path,
+               socket.assigns.context.resource,
+               record
+             )
          )}
 
       {:error, changeset} when is_map(changeset) ->

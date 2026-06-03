@@ -20,6 +20,8 @@ defmodule Incant.FilterCastTest do
 
     assert Shared.cast_query_value(%Filter{name: :inventory}, "42", context) == 42
     assert Shared.cast_query_value(%Filter{name: :published}, "true", context) == true
-    assert Shared.cast_query_value(%Filter{name: :published_on}, "2026-05-31", context) == ~D[2026-05-31]
+
+    assert Shared.cast_query_value(%Filter{name: :published_on}, "2026-05-31", context) ==
+             ~D[2026-05-31]
   end
 end
