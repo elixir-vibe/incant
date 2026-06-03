@@ -6,6 +6,8 @@ defmodule Incant.Live.Resource.Table do
   import Incant.Live.Components
   import Incant.Live.Routes
 
+  alias Incant.Live.Authorization
+
   attr(:context, Incant.Live.Context, required: true)
 
   def view(assigns) do
@@ -87,7 +89,7 @@ defmodule Incant.Live.Resource.Table do
 
     ~H"""
     <div class="inline-flex items-center gap-1">
-      <%= for action <- @resource.table.actions do %>
+      <%= for action <- @resource.table.actions, action_allowed?(@context, action, @row) do %>
         <.primary_link :if={action.name == :edit && @row_id && form_enabled?(@resource)} patch={resource_edit_path(@base_path, @resource, @row_id)} class={action_class(action)}>
           {action_label(action)}
         </.primary_link>
@@ -146,6 +148,40 @@ defmodule Incant.Live.Resource.Table do
       nil -> format_value(value, column.opts[:format])
       render -> Incant.Callback.call(render, value, row)
     end
+  end
+
+  defp action_allowed?(context, %{name: :edit}, row) do
+    if form_enabled?(context.resource) do
+      Authorization.allowed?(
+        context.admin,
+        :edit,
+        context.actor,
+        authorization_context(context, row)
+      )
+    else
+      Authorization.allowed?(
+        context.admin,
+        :run_action,
+        context.actor,
+        authorization_context(context, row, %{action: :edit})
+      )
+    end
+  end
+
+  defp action_allowed?(context, action, row) do
+    Authorization.allowed?(
+      context.admin,
+      :run_action,
+      context.actor,
+      authorization_context(context, row, %{action: action.name})
+    )
+  end
+
+  defp authorization_context(context, row, extra \\ %{}) do
+    context
+    |> Map.from_struct()
+    |> Map.merge(%{row: row})
+    |> Map.merge(extra)
   end
 
   defp form_enabled?(resource), do: not is_nil(resource.repo) and not is_nil(resource.changeset)

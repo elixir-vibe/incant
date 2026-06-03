@@ -7,7 +7,7 @@ defmodule Incant.Live.AdminLive do
 
   import Incant.Live.Routes
 
-  alias Incant.Live.{Dashboard, Resource, Shell}
+  alias Incant.Live.{Authorization, Dashboard, Resource, Shell}
 
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
@@ -21,6 +21,7 @@ defmodule Incant.Live.AdminLive do
       |> assign(:resources, Enum.map(admin.resources, &Incant.metadata/1))
       |> assign(:dashboards, Enum.map(admin.dashboards, &Incant.metadata/1))
       |> assign(:theme, theme_metadata(admin))
+      |> assign(:actor, Authorization.actor(socket.assigns, admin))
 
     {:ok, socket}
   end
@@ -37,36 +38,33 @@ defmodule Incant.Live.AdminLive do
 
     section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
     table_state = table_state(params)
-    resource_page = Incant.Live.Rows.page(selected_resource, table_state)
-    resource_rows = resource_page.rows
     dashboard_variables = Map.get(params, "var", %{})
     form_mode = form_mode(socket.assigns.live_action)
+    selected_row = Incant.Live.Rows.one(selected_resource, params["id"])
     form_record = form_record(selected_resource, params["id"], form_mode)
     form_changeset = form_changeset(selected_resource, form_record, form_mode)
 
-    selected_row = Incant.Live.Rows.one(selected_resource, params["id"])
-    widget_values = widget_values(selected_dashboard, dashboard_variables)
-
-    context = %Incant.Live.Context{
-      admin: socket.assigns.admin,
-      base_path: socket.assigns.base_path,
-      resources: resources,
-      dashboards: dashboards,
-      theme: socket.assigns.theme,
-      resource: selected_resource,
-      dashboard: selected_dashboard,
-      section: section,
-      detail_id: params["id"],
-      selected_row: selected_row,
-      form_mode: form_mode,
-      form_record: form_record,
-      form_changeset: form_changeset,
-      table_state: table_state,
-      rows: resource_rows,
-      pagination: Map.drop(resource_page, [:rows]),
-      dashboard_variables: dashboard_variables,
-      widget_values: widget_values
-    }
+    context =
+      %Incant.Live.Context{
+        admin: socket.assigns.admin,
+        base_path: socket.assigns.base_path,
+        resources: resources,
+        dashboards: dashboards,
+        theme: socket.assigns.theme,
+        actor: socket.assigns.actor,
+        resource: selected_resource,
+        dashboard: selected_dashboard,
+        section: section,
+        detail_id: params["id"],
+        selected_row: selected_row,
+        form_mode: form_mode,
+        form_record: form_record,
+        form_changeset: form_changeset,
+        table_state: table_state,
+        dashboard_variables: dashboard_variables
+      }
+      |> authorize_context(socket.assigns.admin)
+      |> load_authorized_context()
 
     {:noreply,
      socket
@@ -118,48 +116,67 @@ defmodule Incant.Live.AdminLive do
   end
 
   def handle_event("row_action", %{"action" => action, "id" => id}, socket) do
-    case Incant.Live.Actions.run(socket.assigns.context.resource, action, id, socket.assigns) do
-      {:ok, message} -> {:noreply, put_flash(socket, :info, message)}
-      {:error, message} -> {:noreply, put_flash(socket, :error, message)}
+    context = socket.assigns.context
+    row = Incant.Live.Rows.one(context.resource, id)
+
+    with :ok <- authorize(context, :run_action, %{action: action, row: row}) do
+      case Incant.Live.Actions.run(context.resource, action, id, socket.assigns) do
+        {:ok, message} -> {:noreply, put_flash(socket, :info, message)}
+        {:error, message} -> {:noreply, put_flash(socket, :error, message)}
+      end
+    else
+      {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
   end
 
   def handle_event("validate_form", %{"resource" => attrs}, socket) do
-    changeset =
-      Incant.Live.FormState.validate(
-        socket.assigns.context.resource,
-        socket.assigns.context.form_record,
-        attrs
-      )
+    context = socket.assigns.context
 
-    {:noreply, assign_context(socket, :form_changeset, changeset)}
+    with :ok <- authorize(context, form_action(context)) do
+      changeset =
+        Incant.Live.FormState.validate(
+          context.resource,
+          context.form_record,
+          attrs
+        )
+
+      {:noreply, assign_context(socket, :form_changeset, changeset)}
+    else
+      {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
+    end
   end
 
   def handle_event("save_form", %{"resource" => attrs}, socket) do
-    case Incant.Live.FormState.save(
-           socket.assigns.context.form_mode,
-           socket.assigns.context.resource,
-           socket.assigns.context.form_record,
-           attrs
-         ) do
-      {:ok, message, record} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, message)
-         |> push_patch(
-           to:
-             saved_record_path(
-               socket.assigns.context.base_path,
-               socket.assigns.context.resource,
-               record
-             )
-         )}
+    context = socket.assigns.context
 
-      {:error, changeset} when is_map(changeset) ->
-        {:noreply, assign_context(socket, :form_changeset, changeset)}
+    with :ok <- authorize(context, form_action(context)) do
+      case Incant.Live.FormState.save(
+             context.form_mode,
+             context.resource,
+             context.form_record,
+             attrs
+           ) do
+        {:ok, message, record} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, message)
+           |> push_patch(
+             to:
+               saved_record_path(
+                 context.base_path,
+                 context.resource,
+                 record
+               )
+           )}
 
-      {:error, message} ->
-        {:noreply, put_flash(socket, :error, message)}
+        {:error, changeset} when is_map(changeset) ->
+          {:noreply, assign_context(socket, :form_changeset, changeset)}
+
+        {:error, message} ->
+          {:noreply, put_flash(socket, :error, message)}
+      end
+    else
+      {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
   end
 
@@ -167,15 +184,81 @@ defmodule Incant.Live.AdminLive do
   def render(assigns) do
     ~H"""
     <Shell.view context={@context} page_title={page_title(@context)}>
-      <Dashboard.view :if={@context.section == "dashboard" and @context.dashboard} context={@context} />
-      <Resource.view :if={@context.section == "resource" and @context.resource} context={@context} />
+      <.access_denied :if={match?({:error, _reason}, @context.authorization)} context={@context} />
+      <Dashboard.view :if={@context.authorization == :ok and @context.section == "dashboard" and @context.dashboard} context={@context} />
+      <Resource.view :if={@context.authorization == :ok and @context.section == "resource" and @context.resource} context={@context} />
     </Shell.view>
+    """
+  end
+
+  def access_denied(assigns) do
+    ~H"""
+    <section class="rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-8 text-center shadow-sm">
+      <p class="text-sm text-[var(--incant-text-muted)]">Access denied</p>
+      <h2 class="mt-2 text-2xl font-semibold tracking-tight">You are not authorized to view this admin area.</h2>
+    </section>
     """
   end
 
   defp assign_context(socket, key, value) do
     assign(socket, :context, Map.put(socket.assigns.context, key, value))
   end
+
+  defp authorize_context(context, admin) do
+    authorization =
+      with :ok <-
+             Authorization.authorize(admin, :view_admin, context.actor, Map.from_struct(context)),
+           :ok <-
+             Authorization.authorize(
+               admin,
+               view_action(context),
+               context.actor,
+               Map.from_struct(context)
+             ),
+           :ok <- authorize_form_navigation(admin, context) do
+        :ok
+      end
+
+    %{context | authorization: authorization}
+  end
+
+  defp load_authorized_context(%{authorization: :ok, section: "resource"} = context) do
+    resource_page = Incant.Live.Rows.page(context.resource, context.table_state)
+
+    %{context | rows: resource_page.rows, pagination: Map.drop(resource_page, [:rows])}
+  end
+
+  defp load_authorized_context(%{authorization: :ok, section: "dashboard"} = context) do
+    %{context | widget_values: widget_values(context.dashboard, context.dashboard_variables)}
+  end
+
+  defp load_authorized_context(context), do: context
+
+  defp authorize(context, action, extra \\ %{}) do
+    Authorization.authorize(
+      context.admin,
+      action,
+      context.actor,
+      context |> Map.from_struct() |> Map.merge(extra)
+    )
+  end
+
+  defp authorize_form_navigation(_admin, %{form_mode: nil}), do: :ok
+
+  defp authorize_form_navigation(admin, context) do
+    Authorization.authorize(admin, form_action(context), context.actor, Map.from_struct(context))
+  end
+
+  defp view_action(%{section: "dashboard"}), do: :view_dashboard
+  defp view_action(%{section: "resource"}), do: :view_resource
+  defp view_action(_context), do: :view_admin
+
+  defp form_action(%{form_mode: :new}), do: :create
+  defp form_action(%{form_mode: :edit}), do: :edit
+  defp form_action(_context), do: :view_resource
+
+  defp authorization_message(:unauthorized), do: "You are not authorized to perform this action."
+  defp authorization_message(reason), do: to_string(reason)
 
   defp widget_values(nil, _variables), do: %{}
 

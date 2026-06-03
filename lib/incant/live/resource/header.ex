@@ -6,6 +6,8 @@ defmodule Incant.Live.Resource.Header do
   import Incant.Live.Components
   import Incant.Live.Routes
 
+  alias Incant.Live.Authorization
+
   attr(:context, Incant.Live.Context, required: true)
 
   def view(assigns) do
@@ -23,7 +25,7 @@ defmodule Incant.Live.Resource.Header do
       <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
       <div class="flex items-start justify-between gap-4">
         <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
-        <.primary_link :if={form_enabled?(@resource)} patch={resource_new_path(@base_path, @resource)} class="text-sm">
+        <.primary_link :if={can_create?(@context)} patch={resource_new_path(@base_path, @resource)} class="text-sm">
           New
         </.primary_link>
       </div>
@@ -53,6 +55,11 @@ defmodule Incant.Live.Resource.Header do
     ~H"""
     {Incant.Filter.control(@filter, @value, assigns)}
     """
+  end
+
+  defp can_create?(context) do
+    form_enabled?(context.resource) and
+      Authorization.allowed?(context.admin, :create, context.actor, Map.from_struct(context))
   end
 
   defp form_enabled?(resource), do: not is_nil(resource.repo) and not is_nil(resource.changeset)

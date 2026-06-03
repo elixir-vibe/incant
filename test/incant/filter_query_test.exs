@@ -28,7 +28,8 @@ defmodule Incant.FilterQueryTest do
   end
 
   test "multi-select filters bind cast Ecto values" do
-    query = MultiSelect.apply_query(%Filter{name: :status}, Product, ["active", "draft"], context())
+    query =
+      MultiSelect.apply_query(%Filter{name: :status}, Product, ["active", "draft"], context())
 
     assert where_param(query) == [:active, :draft]
   end

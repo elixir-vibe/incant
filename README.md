@@ -175,6 +175,45 @@ end
 
 When no form fields are declared, `Incant.Forms.fields/1` can infer fields from Ecto-style `schema.__schema__/1`, excluding `:id`, `:inserted_at`, and `:updated_at`.
 
+## Authorization
+
+Incant reuses the host Phoenix application's existing authentication. It does not generate a user model. The LiveView context exposes an `actor`, detected from assigns in this order:
+
+```elixir
+:current_scope
+:current_user
+:current_admin
+:actor
+:user
+```
+
+Configure an explicit assign and policy on the admin root when needed:
+
+```elixir
+defmodule MyApp.Admin do
+  use Incant.Admin,
+    policy: MyApp.Admin.Policy,
+    actor_assign: :current_scope
+end
+```
+
+Policies use a Bodyguard-compatible callback shape:
+
+```elixir
+defmodule MyApp.Admin.Policy do
+  use Incant.Policy
+
+  def authorize(:view_admin, actor, context), do: allow_admin?(actor, context)
+  def authorize(:view_resource, actor, %{resource: resource}), do: can_view?(actor, resource)
+  def authorize(:view_dashboard, actor, %{dashboard: dashboard}), do: can_view?(actor, dashboard)
+  def authorize(:create, actor, %{resource: resource}), do: can_create?(actor, resource)
+  def authorize(:edit, actor, %{resource: resource, row: row}), do: can_edit?(actor, resource, row)
+  def authorize(:run_action, actor, %{action: action, row: row}), do: can_run?(actor, action, row)
+end
+```
+
+Return `true`/`:ok` to allow or `false`/`:error`/`{:error, reason}` to deny. Without a configured policy, Incant allows all actions.
+
 ## Row actions
 
 Resource tables can declare row actions. Actions render in the table and detail view; provide a callback to execute behaviour from the LiveView.

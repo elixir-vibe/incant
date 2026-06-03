@@ -7,6 +7,8 @@ defmodule Incant.Live.Context do
     :resources,
     :dashboards,
     :theme,
+    :actor,
+    :authorization,
     :resource,
     :dashboard,
     :section,
