@@ -2,7 +2,7 @@
 
 Incant is an Elixir/Phoenix-native control plane for serious admin, content, analytics, dashboards, and operations work.
 
-It is currently in its first implementation pass. The initial package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources. LiveView rendering, Ecto execution, Igniter generators, and CMS features will build on this metadata layer.
+It is currently in its first implementation pass. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a generic LiveView renderer for tables, details, forms, filters, dashboards, and row actions.
 
 See [PLAN.md](PLAN.md) for the full product thesis and roadmap, [CONVENTIONS.md](CONVENTIONS.md) for the recommended application structure, and [REFERENCES.md](REFERENCES.md) for external packages and products informing the design.
 
@@ -15,6 +15,24 @@ cd examples/playground
 mix setup
 mix phx.server
 ```
+
+## Install
+
+Generate starter files in a Phoenix app:
+
+```sh
+mix incant.install
+```
+
+The task creates:
+
+```text
+lib/my_app/admin.ex
+lib/my_app/admin/resources/sample.ex
+lib/my_app/admin/themes/default.ex
+```
+
+Then add the router and CSS snippets printed by the task.
 
 ## Example resource
 
@@ -90,7 +108,7 @@ See `Incant.Design.css_variables/0` and the playground's `assets/css/app.css` fo
 
 ## Filters
 
-Resource filters are rendered and applied through `Incant.Filter`, a behaviour-backed registry. Built-ins include `:text`, `:select`, `:multi_select`, `:date_range`, and `:boolean`.
+Resource filters are rendered and applied through `Incant.Filter`, a behaviour-backed registry. Built-ins include `:text`, `:select`, `:multi_select`, `:date_range`, and `:boolean`. For Ecto schema-backed resources, built-in query filters cast submitted values through `Ecto.Type.cast/2`, so field types such as integers, decimals, dates, datetimes, booleans, and `Ecto.Enum` values bind as typed query params.
 
 ```elixir
 filter :status, :select, options: [:draft, :published]
@@ -195,7 +213,7 @@ defmodule MyApp.Admin.Resources.Product do
 end
 ```
 
-Custom filter query callbacks run before `repo.all/1`. Built-in filters keep the queryable unchanged unless a query callback is supplied.
+Custom filter query callbacks run before `repo.all/1`. Built-in filters apply Ecto `where` clauses for query-backed resources and bind values cast through the schema field type.
 
 ## Example theme
 
@@ -226,6 +244,19 @@ defmodule MyApp.Admin.Themes.Default do
   end
 end
 ```
+
+## Live components
+
+The generic renderer follows Phoenix-style module names. Root components expose `view/1` and nested resource modules keep local names concise:
+
+```heex
+<Shell.view context={@context}>
+  <Dashboard.view context={@context} />
+  <Resource.view context={@context} />
+</Shell.view>
+```
+
+Resource rendering is split across `Incant.Live.Resource.Header`, `Incant.Live.Resource.Form`, `Incant.Live.Resource.Detail`, and `Incant.Live.Resource.Table`.
 
 ## Development
 
