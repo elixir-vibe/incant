@@ -38,7 +38,10 @@ defmodule Incant.Live.AdminLive do
 
     section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
     table_state = table_state(params)
-    dashboard_variables = Map.get(params, "var", %{})
+
+    dashboard_variables =
+      cast_dashboard_variables(selected_dashboard, Map.get(params, "var", %{}))
+
     form_mode = form_mode(socket.assigns.live_action)
     actor_context = %{admin: socket.assigns.admin, actor: socket.assigns.actor}
     selected_row = Incant.Live.Rows.one(selected_resource, params["id"], actor_context)
@@ -288,6 +291,43 @@ defmodule Incant.Live.AdminLive do
       {widget.id, value}
     end)
   end
+
+  defp cast_dashboard_variables(nil, variables), do: variables
+
+  defp cast_dashboard_variables(dashboard, variables) do
+    Map.new(dashboard.variables, fn variable ->
+      key = to_string(variable.name)
+      value = Map.get(variables, key, variable.opts[:default])
+      {key, cast_dashboard_variable(variable, value)}
+    end)
+    |> Map.merge(Map.drop(variables, Enum.map(dashboard.variables, &to_string(&1.name))))
+    |> reject_empty_values()
+  end
+
+  defp cast_dashboard_variable(%{type: :multi_select}, nil), do: []
+  defp cast_dashboard_variable(%{type: :multi_select}, values) when is_list(values), do: values
+  defp cast_dashboard_variable(%{type: :multi_select}, value), do: [value]
+
+  defp cast_dashboard_variable(%{type: :date_range}, value) when is_map(value) do
+    value
+    |> Map.take(["from", "to"])
+    |> Map.new(fn {key, value} -> {key, cast_date(value)} end)
+    |> reject_empty_values()
+  end
+
+  defp cast_dashboard_variable(%{type: :date}, value), do: cast_date(value)
+  defp cast_dashboard_variable(_variable, value), do: value
+
+  defp cast_date(%Date{} = date), do: date
+
+  defp cast_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> date
+      _error -> value
+    end
+  end
+
+  defp cast_date(value), do: value
 
   defp table_state(params) do
     %{

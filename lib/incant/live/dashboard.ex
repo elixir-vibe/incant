@@ -234,8 +234,11 @@ defmodule Incant.Live.Dashboard do
   defp widget_label(%{id: id, opts: opts}), do: opts[:label] || humanize(id)
   defp widget_label(%{name: name, opts: opts}), do: opts[:label] || humanize(name)
 
-  defp map_value(value, key) when is_map(value), do: Map.get(value, key, "")
+  defp map_value(value, key) when is_map(value), do: Map.get(value, key, "") |> input_value()
   defp map_value(_value, _key), do: ""
+
+  defp input_value(%Date{} = date), do: Date.to_iso8601(date)
+  defp input_value(value), do: value
 
   defp humanize(value) do
     value
