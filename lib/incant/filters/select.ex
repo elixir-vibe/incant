@@ -41,7 +41,11 @@ defmodule Incant.Filters.Select do
     if Shared.custom_query?(filter) or Shared.blank?(value) do
       Shared.apply_query_callback(filter, queryable, value, context)
     else
-      where(queryable, [row], field(row, ^filter.name) == ^value)
+      where(
+        queryable,
+        [row],
+        field(row, ^filter.name) == ^Shared.cast_query_value(filter, value, context)
+      )
     end
   rescue
     _error -> queryable

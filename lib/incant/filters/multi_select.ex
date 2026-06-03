@@ -42,6 +42,7 @@ defmodule Incant.Filters.MultiSelect do
     if Shared.custom_query?(filter) or values == [] do
       Shared.apply_query_callback(filter, queryable, value, context)
     else
+      values = Enum.map(values, &Shared.cast_query_value(filter, &1, context))
       where(queryable, [row], field(row, ^filter.name) in ^values)
     end
   rescue
