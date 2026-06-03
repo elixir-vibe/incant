@@ -58,10 +58,28 @@ defmodule Incant.Live.Routes do
     path = base_path <> "/" <> suffix
     query_params = reject_empty_values(query_params)
 
-    case URI.encode_query(query_params) do
+    case encode_query(query_params) do
       "" -> path
       query -> path <> "?" <> query
     end
+  end
+
+  defp encode_query(query_params) do
+    query_params
+    |> query_pairs()
+    |> URI.encode_query()
+  end
+
+  defp query_pairs(map) when is_map(map) do
+    Enum.flat_map(map, fn
+      {key, value} when is_map(value) ->
+        value
+        |> reject_empty_values()
+        |> Enum.map(fn {nested_key, nested_value} -> {"#{key}[#{nested_key}]", nested_value} end)
+
+      pair ->
+        [pair]
+    end)
   end
 
   defp reject_empty_values(map) do
