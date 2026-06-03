@@ -71,23 +71,12 @@ defmodule Incant.Live.AdminLive do
     {:noreply,
      socket
      |> assign(:params, params)
-     |> assign(:context, context)
-     |> assign(:section, section)
-     |> assign(:selected_resource, selected_resource)
-     |> assign(:selected_dashboard, selected_dashboard)
-     |> assign(:detail_id, params["id"])
-     |> assign(:selected_row, selected_row)
-     |> assign(:form_mode, form_mode)
-     |> assign(:form_record, form_record)
-     |> assign(:form_changeset, form_changeset)
-     |> assign(:table_state, table_state)
-     |> assign(:resource_rows, resource_rows)
-     |> assign(:widget_values, widget_values)}
+     |> assign(:context, context)}
   end
 
   @impl Phoenix.LiveView
   def handle_event("table_state", %{"table" => table_params}, socket) do
-    resource = socket.assigns.selected_resource
+    resource = socket.assigns.context.resource
 
     params =
       socket.assigns.params
@@ -96,7 +85,7 @@ defmodule Incant.Live.AdminLive do
       |> Map.put("page", "1")
       |> reject_empty_values()
 
-    {:noreply, push_patch(socket, to: resource_path(socket.assigns.base_path, resource, params))}
+    {:noreply, push_patch(socket, to: resource_path(socket.assigns.context.base_path, resource, params))}
   end
 
   def handle_event("sort", %{"column" => column}, socket) do
@@ -128,7 +117,7 @@ defmodule Incant.Live.AdminLive do
   end
 
   def handle_event("row_action", %{"action" => action, "id" => id}, socket) do
-    case Incant.Live.Actions.run(socket.assigns.selected_resource, action, id, socket.assigns) do
+    case Incant.Live.Actions.run(socket.assigns.context.resource, action, id, socket.assigns) do
       {:ok, message} -> {:noreply, put_flash(socket, :info, message)}
       {:error, message} -> {:noreply, put_flash(socket, :error, message)}
     end
@@ -137,8 +126,8 @@ defmodule Incant.Live.AdminLive do
   def handle_event("validate_form", %{"resource" => attrs}, socket) do
     changeset =
       Incant.Live.FormState.changeset(
-        socket.assigns.selected_resource,
-        socket.assigns.form_record,
+        socket.assigns.context.resource,
+        socket.assigns.context.form_record,
         attrs
       )
 
@@ -147,9 +136,9 @@ defmodule Incant.Live.AdminLive do
 
   def handle_event("save_form", %{"resource" => attrs}, socket) do
     case Incant.Live.FormState.save(
-           socket.assigns.form_mode,
-           socket.assigns.selected_resource,
-           socket.assigns.form_record,
+           socket.assigns.context.form_mode,
+           socket.assigns.context.resource,
+           socket.assigns.context.form_record,
            attrs
          ) do
       {:ok, message, record} ->
@@ -158,7 +147,7 @@ defmodule Incant.Live.AdminLive do
          |> put_flash(:info, message)
          |> push_patch(
            to:
-             saved_record_path(socket.assigns.base_path, socket.assigns.selected_resource, record)
+             saved_record_path(socket.assigns.context.base_path, socket.assigns.context.resource, record)
          )}
 
       {:error, changeset} when is_map(changeset) ->
@@ -172,7 +161,7 @@ defmodule Incant.Live.AdminLive do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <Shell.view context={@context} page_title={page_title(assigns)}>
+    <Shell.view context={@context} page_title={page_title(@context)}>
       <Dashboard.view :if={@context.section == "dashboard" and @context.dashboard} context={@context} />
       <Resource.view :if={@context.section == "resource" and @context.resource} context={@context} />
     </Shell.view>
@@ -263,12 +252,12 @@ defmodule Incant.Live.AdminLive do
   defp form_changeset(resource, record, _mode),
     do: Incant.Live.FormState.changeset(resource, record)
 
-  defp page_title(%{section: "resource", selected_resource: resource})
+  defp page_title(%{section: "resource", resource: resource})
        when not is_nil(resource) do
     short_module(resource.module)
   end
 
-  defp page_title(%{section: "dashboard", selected_dashboard: dashboard})
+  defp page_title(%{section: "dashboard", dashboard: dashboard})
        when not is_nil(dashboard) do
     dashboard.title || short_module(dashboard.module)
   end

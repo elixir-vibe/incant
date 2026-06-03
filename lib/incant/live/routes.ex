@@ -21,32 +21,25 @@ defmodule Incant.Live.Routes do
     path([base_path, "resources", module_slug(resource.module), id, "edit"], query_params)
   end
 
-  def current_path(
-        %{
-          section: "resource",
-          selected_resource: resource,
-          params: params,
-          base_path: base_path
-        },
-        query_params
-      ) do
+  def current_path(%{context: context, params: params}, query_params) do
+    current_path(context, params, query_params)
+  end
+
+  def current_path(%{section: "resource"} = context, params, query_params) do
     cond do
-      params["id"] && params["form"] == "edit" ->
-        resource_edit_path(base_path, resource, params["id"], query_params)
+      context.form_mode == :edit && context.detail_id ->
+        resource_edit_path(context.base_path, context.resource, context.detail_id, query_params)
 
       params["id"] ->
-        resource_detail_path(base_path, resource, params["id"], query_params)
+        resource_detail_path(context.base_path, context.resource, params["id"], query_params)
 
       true ->
-        resource_path(base_path, resource, query_params)
+        resource_path(context.base_path, context.resource, query_params)
     end
   end
 
-  def current_path(
-        %{section: "dashboard", selected_dashboard: dashboard, base_path: base_path},
-        query_params
-      ) do
-    dashboard_path(base_path, dashboard, query_params)
+  def current_path(%{section: "dashboard"} = context, _params, query_params) do
+    dashboard_path(context.base_path, context.dashboard, query_params)
   end
 
   def module_slug(module) do
