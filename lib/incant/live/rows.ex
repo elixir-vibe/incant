@@ -9,6 +9,24 @@ defmodule Incant.Live.Rows do
 
   def page(nil, table_state), do: page([], table_state)
 
+  def page(%{repo: repo, schema: schema} = resource, table_state)
+      when not is_nil(repo) and not is_nil(schema) do
+    page = positive_integer(Map.get(table_state, :page), 1)
+    page_size = positive_integer(Map.get(table_state, :page_size), 25)
+    total = query_count(resource, table_state)
+    total_pages = max(ceil(total / page_size), 1)
+    page = min(page, total_pages)
+    table_state = table_state |> Map.put(:page, page) |> Map.put(:page_size, page_size)
+
+    %{
+      rows: raw(resource, table_state, paginate: true),
+      page: page,
+      page_size: page_size,
+      total: total,
+      total_pages: total_pages
+    }
+  end
+
   def page(resource, table_state) do
     rows = all(resource, table_state)
     page = positive_integer(Map.get(table_state, :page), 1)
@@ -46,25 +64,25 @@ defmodule Incant.Live.Rows do
     _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> nil
   end
 
-  def raw(resource, table_state \\ %{})
-  def raw(nil, _table_state), do: []
+  def raw(resource, table_state \\ %{}, opts \\ [])
+  def raw(nil, _table_state, _opts), do: []
 
-  def raw(%{data: data} = _resource, table_state) when not is_nil(data) do
+  def raw(%{data: data} = _resource, table_state, _opts) when not is_nil(data) do
     data
     |> Incant.Callback.call(%{table: table_state}, [])
     |> Incant.Tabular.to_rows()
   end
 
-  def raw(%{repo: repo, schema: schema} = resource, table_state)
+  def raw(%{repo: repo, schema: schema} = resource, table_state, opts)
       when not is_nil(repo) and not is_nil(schema) do
-    queryable = queryable(resource, table_state)
+    queryable = queryable(resource, table_state, Keyword.get(opts, :paginate, false))
 
     repo
     |> apply(:all, [queryable])
     |> Incant.Tabular.to_rows()
   end
 
-  def raw(_resource, _table_state), do: []
+  def raw(_resource, _table_state, _opts), do: []
 
   def id(row), do: row |> field(:id) |> id_string()
 
@@ -94,7 +112,7 @@ defmodule Incant.Live.Rows do
     Map.get(row, field, Map.get(row, to_string(field)))
   end
 
-  defp queryable(resource, table_state) do
+  defp queryable(resource, table_state, paginate?) do
     queryable = base_queryable(resource, table_state)
 
     filtered =
@@ -108,13 +126,23 @@ defmodule Incant.Live.Rows do
         }
       )
 
-    paginate_query(filtered, table_state)
+    if paginate?, do: paginate_query(filtered, table_state), else: filtered
   end
 
-  defp base_queryable(%{query: nil, schema: schema}, _table_state), do: schema
+  defp base_queryable(%{query: nil, schema: schema}, _table_state) do
+    if function_exported?(schema, :__schema__, 1), do: from(row in schema), else: schema
+  end
 
   defp base_queryable(resource, table_state) do
     Incant.Callback.call(resource.query, resource.schema, %{table: table_state})
+  end
+
+  defp query_count(%{repo: repo} = resource, table_state) do
+    queryable = queryable(resource, table_state, false)
+
+    apply(repo, :aggregate, [queryable, :count])
+  rescue
+    _error -> length(raw(resource, table_state))
   end
 
   defp paginate_query(queryable, %{page: page, page_size: page_size}) do

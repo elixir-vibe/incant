@@ -12,6 +12,7 @@ defmodule Incant.Live.RowsTest do
 
     def all({:filtered, schema, status}), do: [%{id: 1, schema: schema, status: status}]
     def all(schema), do: [%{id: 1, schema: schema}]
+    def aggregate(%Ecto.Query{}, :count), do: 42
   end
 
   defmodule Product do
@@ -49,6 +50,10 @@ defmodule Incant.Live.RowsTest do
 
     assert limit != nil
     assert offset != nil
+
+    page = Rows.page(resource, %{search: "", filters: %{}, sort: "", page: "2", page_size: "10"})
+    assert page.total == 42
+    assert page.total_pages == 5
   end
 
   test "applies query callbacks and filter query callbacks before repo loading" do
