@@ -267,7 +267,16 @@ defmodule Incant.Live.AdminLive do
     dashboard.widgets
     |> Enum.filter(&(&1.opts[:query] != nil))
     |> Map.new(fn widget ->
-      {widget.id, Incant.Callback.call(widget.opts[:query], variables, nil)}
+      value =
+        try do
+          Incant.Callback.call(widget.opts[:query], variables, nil)
+        rescue
+          error -> {:error, Exception.message(error)}
+        catch
+          kind, reason -> {:error, "#{kind}: #{inspect(reason)}"}
+        end
+
+      {widget.id, value}
     end)
   end
 

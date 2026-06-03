@@ -38,6 +38,7 @@ defmodule Incant.Live.Dashboard do
           widget={widget}
           value={Map.get(@widget_values, widget.id)}
           loaded={Map.has_key?(@widget_values, widget.id)}
+          error={widget_error_message(Map.get(@widget_values, widget.id))}
         />
       </div>
     </section>
@@ -89,6 +90,7 @@ defmodule Incant.Live.Dashboard do
   attr(:widget, Incant.Dashboard.Widget, required: true)
   attr(:value, :any, default: nil)
   attr(:loaded, :boolean, default: false)
+  attr(:error, :any, default: nil)
 
   def widget_card(%{widget: %{type: :stat}} = assigns) do
     ~H"""
@@ -97,10 +99,14 @@ defmodule Incant.Live.Dashboard do
         <div>
           <p class="text-sm text-[var(--incant-text-muted)]">{widget_label(@widget)}</p>
           <div class="mt-4 text-3xl font-semibold tracking-tight">
-            <%= if @loaded do %>
-              {format_widget_value(@value, @widget)}
+            <%= if @error do %>
+              <span class="text-base text-[var(--incant-error)]">{@error}</span>
             <% else %>
-              <span class="text-[var(--incant-text-dimmed)]">—</span>
+              <%= if @loaded do %>
+                {format_widget_value(@value, @widget)}
+              <% else %>
+                <span class="text-[var(--incant-text-dimmed)]">—</span>
+              <% end %>
             <% end %>
           </div>
         </div>
@@ -120,14 +126,18 @@ defmodule Incant.Live.Dashboard do
         </div>
         <.pill>span {@widget.opts[:span] || "auto"}</.pill>
       </div>
-      <%= if @loaded && is_list(@value) && @value != [] do %>
-        <div class="mt-5 flex h-48 items-end gap-2 rounded-xl bg-[var(--incant-bg-muted)] p-4">
-          <div :for={point <- @value} class="min-w-2 flex-1 rounded-t bg-[var(--incant-primary)]" style={"height: #{bar_height(point, @value)}%;"}></div>
-        </div>
+      <%= if @error do %>
+        <.widget_error message={@error} />
       <% else %>
-        <div class="mt-5 flex h-48 items-center justify-center rounded-xl bg-[var(--incant-bg-muted)] text-sm text-[var(--incant-text-muted)]">
-          Chart renderer coming soon
-        </div>
+        <%= if @loaded && is_list(@value) && @value != [] do %>
+          <div class="mt-5 flex h-48 items-end gap-2 rounded-xl bg-[var(--incant-bg-muted)] p-4">
+            <div :for={point <- @value} class="min-w-2 flex-1 rounded-t bg-[var(--incant-primary)]" style={"height: #{bar_height(point, @value)}%;"}></div>
+          </div>
+        <% else %>
+          <div class="mt-5 flex h-48 items-center justify-center rounded-xl bg-[var(--incant-bg-muted)] text-sm text-[var(--incant-text-muted)]">
+            Chart renderer coming soon
+          </div>
+        <% end %>
       <% end %>
     </.card>
     """
@@ -143,23 +153,27 @@ defmodule Incant.Live.Dashboard do
         </div>
         <.pill>span {@widget.opts[:span] || "auto"}</.pill>
       </div>
-      <%= if @loaded && is_list(@value) && @value != [] do %>
-        <table class="min-w-full border-t border-[var(--incant-border)] text-sm">
-          <thead class="bg-[var(--incant-bg-accented)] text-left text-xs uppercase tracking-wider text-[var(--incant-text-muted)]">
-            <tr>
-              <th :for={column <- table_columns(@value)} class="px-4 py-3 font-medium">{column}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[var(--incant-border)]">
-            <tr :for={row <- @value}>
-              <td :for={column <- table_columns(@value)} class="px-4 py-3 text-[var(--incant-text-toned)]">{Map.get(row, column)}</td>
-            </tr>
-          </tbody>
-        </table>
+      <%= if @error do %>
+        <.widget_error message={@error} />
       <% else %>
-        <div class="border-t border-[var(--incant-border)] p-8 text-center text-sm text-[var(--incant-text-muted)]">
-          Table widget renderer coming soon
-        </div>
+        <%= if @loaded && is_list(@value) && @value != [] do %>
+          <table class="min-w-full border-t border-[var(--incant-border)] text-sm">
+            <thead class="bg-[var(--incant-bg-accented)] text-left text-xs uppercase tracking-wider text-[var(--incant-text-muted)]">
+              <tr>
+                <th :for={column <- table_columns(@value)} class="px-4 py-3 font-medium">{column}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--incant-border)]">
+              <tr :for={row <- @value}>
+                <td :for={column <- table_columns(@value)} class="px-4 py-3 text-[var(--incant-text-toned)]">{Map.get(row, column)}</td>
+              </tr>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="border-t border-[var(--incant-border)] p-8 text-center text-sm text-[var(--incant-text-muted)]">
+            Table widget renderer coming soon
+          </div>
+        <% end %>
       <% end %>
     </.card>
     """
@@ -179,6 +193,19 @@ defmodule Incant.Live.Dashboard do
     </.card>
     """
   end
+
+  attr(:message, :string, required: true)
+
+  def widget_error(assigns) do
+    ~H"""
+    <div class="mt-5 rounded-xl bg-[color-mix(in_oklab,var(--incant-error)_12%,transparent)] p-4 text-sm text-[var(--incant-error)]">
+      Widget failed: {@message}
+    </div>
+    """
+  end
+
+  defp widget_error_message({:error, message}), do: message
+  defp widget_error_message(_value), do: nil
 
   defp bar_height(point, points) do
     value = numeric_value(point)
