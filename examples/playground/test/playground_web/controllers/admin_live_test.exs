@@ -36,4 +36,11 @@ defmodule Playground.AdminLiveTest do
     refute html =~ "LLMRequest"
     refute html =~ "phx-value-action=\"archive\""
   end
+
+  test "renders unavailable message for denied detail rows", %{conn: conn} do
+    {:ok, _view, html} = live(conn, ~p"/restricted-admin/resources/product/2")
+
+    assert html =~ "Record not found or unavailable"
+    refute html =~ "Dashboard Wand"
+  end
 end

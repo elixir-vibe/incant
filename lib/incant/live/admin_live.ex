@@ -202,10 +202,12 @@ defmodule Incant.Live.AdminLive do
   end
 
   def access_denied(assigns) do
+    assigns = assign(assigns, :message, denied_message(assigns.context.authorization))
+
     ~H"""
     <section class="rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-8 text-center shadow-sm">
       <p class="text-sm text-[var(--incant-text-muted)]">Access denied</p>
-      <h2 class="mt-2 text-2xl font-semibold tracking-tight">You are not authorized to view this admin area.</h2>
+      <h2 class="mt-2 text-2xl font-semibold tracking-tight">{@message}</h2>
     </section>
     """
   end
@@ -267,7 +269,10 @@ defmodule Incant.Live.AdminLive do
   defp authorize_row_navigation(_admin, %{detail_id: nil}), do: :ok
 
   defp authorize_row_navigation(admin, %{section: "resource"} = context) do
-    Authorization.authorize(admin, :view_row, context.actor, Map.from_struct(context))
+    case Authorization.authorize(admin, :view_row, context.actor, Map.from_struct(context)) do
+      :ok -> :ok
+      {:error, _reason} -> {:error, :not_found}
+    end
   end
 
   defp authorize_row_navigation(_admin, _context), do: :ok
@@ -286,7 +291,11 @@ defmodule Incant.Live.AdminLive do
   defp form_action(%{form_mode: :edit}), do: :edit
   defp form_action(_context), do: :view_resource
 
+  defp denied_message({:error, :not_found}), do: "Record not found or unavailable."
+  defp denied_message(_authorization), do: "You are not authorized to view this admin area."
+
   defp authorization_message(:unauthorized), do: "You are not authorized to perform this action."
+  defp authorization_message(:not_found), do: "Record not found or unavailable."
   defp authorization_message(reason), do: to_string(reason)
 
   defp widget_values(nil, _variables), do: %{}
