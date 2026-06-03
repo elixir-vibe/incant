@@ -75,12 +75,19 @@ defmodule Incant.Live.Routes do
       {key, value} when is_map(value) ->
         value
         |> reject_empty_values()
-        |> Enum.map(fn {nested_key, nested_value} -> {"#{key}[#{nested_key}]", nested_value} end)
+        |> Enum.flat_map(fn {nested_key, nested_value} ->
+          query_value_pairs("#{key}[#{nested_key}]", nested_value)
+        end)
 
-      pair ->
-        [pair]
+      {key, value} ->
+        query_value_pairs(key, value)
     end)
   end
+
+  defp query_value_pairs(key, values) when is_list(values),
+    do: Enum.map(values, &{"#{key}[]", &1})
+
+  defp query_value_pairs(key, value), do: [{key, value}]
 
   defp reject_empty_values(map) do
     Map.reject(map, fn {_key, value} -> value in [nil, "", %{}] end)

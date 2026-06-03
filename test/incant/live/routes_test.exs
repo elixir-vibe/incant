@@ -47,6 +47,15 @@ defmodule Incant.Live.RoutesTest do
              "/admin/dashboards/llm?var%5Brange%5D=7d&var%5Bteam%5D=core"
   end
 
+  test "preserves dashboard multi-select params" do
+    dashboard = %{module: LLM}
+
+    assert Routes.dashboard_path("/admin", dashboard, %{
+             "var" => %{"provider" => ["openai", "anthropic"]}
+           }) ==
+             "/admin/dashboards/llm?var%5Bprovider%5D%5B%5D=openai&var%5Bprovider%5D%5B%5D=anthropic"
+  end
+
   test "drops empty query values" do
     dashboard = %{module: LLM}
 

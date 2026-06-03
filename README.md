@@ -32,7 +32,7 @@ lib/my_app/admin/resources/sample.ex
 lib/my_app/admin/themes/default.ex
 ```
 
-Then add the router and CSS snippets printed by the task.
+The Igniter-powered installer also patches the Phoenix router and app CSS when it can detect them. If a file cannot be found or patched confidently, it prints fallback instructions.
 
 ## Example resource
 

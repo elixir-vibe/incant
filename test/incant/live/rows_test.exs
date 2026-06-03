@@ -94,6 +94,18 @@ defmodule Incant.Live.RowsTest do
            ]
   end
 
+  test "scopes detail row lookup" do
+    resource = %Metadata{
+      data: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
+      table: %Table{}
+    }
+
+    context = %{admin: %{opts: [policy: Policy]}, actor: %{id: 1}}
+
+    assert Rows.one(resource, "1", context) == %{id: 1, owner_id: 1}
+    assert Rows.one(resource, "2", context) == nil
+  end
+
   test "falls back to subquery count when aggregate count fails" do
     resource = %Metadata{repo: GroupedRepo, schema: QueryProduct, table: %Table{}}
 
