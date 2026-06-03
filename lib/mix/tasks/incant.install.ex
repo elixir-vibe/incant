@@ -26,10 +26,14 @@ defmodule Mix.Tasks.Incant.Install do
     )
     |> Igniter.create_new_file(
       Path.join(["lib", app, "admin", "themes", "default.ex"]),
-      theme_module(namespace), on_exists: :warning)
+      theme_module(namespace),
+      on_exists: :warning
+    )
     |> Igniter.create_new_file(
       Path.join(["lib", app, "admin", "resources", "sample.ex"]),
-      sample_resource_module(namespace), on_exists: :warning)
+      sample_resource_module(namespace),
+      on_exists: :warning
+    )
     |> patch_router(app, namespace)
     |> patch_css()
     |> add_fallback_notice(namespace)
@@ -43,8 +47,8 @@ defmodule Mix.Tasks.Incant.Install do
       path ->
         Igniter.update_file(igniter, path, fn source ->
           source
-          |> update_content(igniter, &ensure_router_import/1)
-          |> update_content(igniter, &ensure_admin_route(&1, namespace))
+          |> update_content(igniter, &Incant.Install.Patcher.ensure_router_import/1)
+          |> update_content(igniter, &Incant.Install.Patcher.ensure_admin_route(&1, namespace))
         end)
     end
   end
@@ -56,7 +60,7 @@ defmodule Mix.Tasks.Incant.Install do
 
       path ->
         Igniter.update_file(igniter, path, fn source ->
-          update_content(source, igniter, &ensure_incant_source/1)
+          update_content(source, igniter, &Incant.Install.Patcher.ensure_incant_source/1)
         end)
     end
   end
@@ -64,45 +68,6 @@ defmodule Mix.Tasks.Incant.Install do
   defp update_content(source, igniter, updater) do
     content = Rewrite.Source.get(source, :content)
     Igniter.update_source(source, igniter, :content, updater.(content))
-  end
-
-  defp ensure_router_import(content) do
-    if String.contains?(content, "use Incant.Router") or
-         String.contains?(content, "import Incant.Router") do
-      content
-    else
-      String.replace(content, ~r/(use\s+[^\n]+,\s*:router\n)/, "\\1  use Incant.Router\n",
-        global: false
-      )
-    end
-  end
-
-  defp ensure_admin_route(content, namespace) do
-    route = "incant_admin \"/admin\", #{namespace}.Admin"
-
-    cond do
-      String.contains?(content, "incant_admin") ->
-        content
-
-      String.contains?(content, "pipe_through :browser") ->
-        String.replace(
-          content,
-          ~r/(scope\s+"\/"(?:,\s*[^\n]+)?\s+do\n\s+pipe_through\s+:browser\n)/,
-          "\\1\n    #{route}\n",
-          global: false
-        )
-
-      true ->
-        content <> "\n# Add inside your browser scope:\n# #{route}\n"
-    end
-  end
-
-  defp ensure_incant_source(content) do
-    if String.contains?(content, "@source \"../deps/incant/lib\"") do
-      content
-    else
-      "@source \"../deps/incant/lib\";\n" <> content
-    end
   end
 
   defp router_paths(app) do
