@@ -34,7 +34,7 @@ defmodule Incant.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:vibe_kit, "~> 0.1"},
-      {:igniter, "~> 0.6", only: [:dev, :test]},
+      {:igniter, "~> 0.6", runtime: false},
       {:ecto, "~> 3.13"},
       {:phoenix_live_view, "~> 1.1"}
     ]
