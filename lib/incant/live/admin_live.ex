@@ -78,6 +78,12 @@ defmodule Incant.Live.AdminLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_event("incant:event", params, socket) do
+    params
+    |> Incant.UI.Event.parse()
+    |> handle_ui_event(socket)
+  end
+
   def handle_event("table_state", %{"table" => table_params}, socket) do
     resource = socket.assigns.context.resource
 
@@ -184,6 +190,20 @@ defmodule Incant.Live.AdminLive do
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
   end
+
+  def handle_ui_event(%Incant.UI.Event{op: :sort, target: column}, socket) do
+    handle_event("sort", %{"column" => column}, socket)
+  end
+
+  def handle_ui_event(%Incant.UI.Event{op: :paginate, value: page}, socket) do
+    handle_event("page", %{"page" => page}, socket)
+  end
+
+  def handle_ui_event(%Incant.UI.Event{op: :row_action, target: action, value: id}, socket) do
+    handle_event("row_action", %{"action" => action, "id" => id}, socket)
+  end
+
+  def handle_ui_event(_event, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveView
   def render(assigns) do
