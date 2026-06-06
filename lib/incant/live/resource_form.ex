@@ -35,7 +35,7 @@ defmodule Incant.Live.Resource.Form do
       <pre :if={@changeset && !form_like?(@changeset)} class="m-3 overflow-auto rounded-md bg-[var(--incant-bg-muted)] p-2 text-xs text-[var(--incant-text-muted)]"><%= inspect(@changeset, pretty: true) %></pre>
 
       <.form for={@form} phx-change="validate_form" phx-submit="save_form" class="grid gap-3 p-3 md:grid-cols-2">
-        <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={form_value(@changeset, @record, field.name)} errors={field_errors(@changeset, field.name)} />
+        <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={Incant.Live.FormValues.value(@changeset, @record, field.name)} errors={Incant.Live.FormValues.errors(@changeset, field.name)} />
         <div class="md:col-span-2">
           <button type="submit" class="h-8 rounded-md bg-[var(--incant-primary)] px-3 text-sm font-medium text-[var(--incant-text-inverted)] transition hover:brightness-95">
             Save
@@ -107,31 +107,6 @@ defmodule Incant.Live.Resource.Form do
     ~H"""
     <p :for={error <- @errors} class="text-xs font-normal normal-case tracking-normal text-[var(--incant-error)]">{error}</p>
     """
-  end
-
-  defp form_value(%{changes: changes}, record, field) when is_map(changes) do
-    Map.get(changes, field, Incant.Live.Rows.field(record, field))
-  end
-
-  defp form_value(_changeset, record, field), do: Incant.Live.Rows.field(record, field)
-
-  defp field_errors(%{action: nil}, _field), do: []
-
-  defp field_errors(%{errors: errors}, field) when is_list(errors) do
-    errors
-    |> Keyword.get_values(field)
-    |> Enum.map(fn
-      {message, opts} -> interpolate_error(message, opts)
-      message -> to_string(message)
-    end)
-  end
-
-  defp field_errors(_changeset, _field), do: []
-
-  defp interpolate_error(message, opts) do
-    Enum.reduce(opts, message, fn {key, value}, message ->
-      String.replace(message, "%{#{key}}", to_string(value))
-    end)
   end
 
   defp form_source(nil), do: %{}

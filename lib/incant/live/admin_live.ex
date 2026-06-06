@@ -7,7 +7,7 @@ defmodule Incant.Live.AdminLive do
 
   import Incant.Live.Routes
 
-  alias Incant.Live.{Authorization, Dashboard, Resource, Shell}
+  alias Incant.Live.Authorization
 
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
@@ -187,12 +187,16 @@ defmodule Incant.Live.AdminLive do
 
   @impl Phoenix.LiveView
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign(
+        :ui_document,
+        Incant.UI.Document.from_context(assigns.context, page_title: page_title(assigns.context))
+      )
+      |> assign(:ui_env, Incant.UI.Env.new(assigns.context, assigns))
+
     ~H"""
-    <Shell.view context={@context} page_title={page_title(@context)}>
-      <.access_denied :if={match?({:error, _reason}, @context.authorization)} context={@context} />
-      <Dashboard.view :if={@context.authorization == :ok and @context.section == "dashboard" and @context.dashboard} context={@context} />
-      <Resource.view :if={@context.authorization == :ok and @context.section == "resource" and @context.resource} context={@context} />
-    </Shell.view>
+    <%= Incant.UI.render(@ui_document, @ui_env) %>
     """
   end
 
