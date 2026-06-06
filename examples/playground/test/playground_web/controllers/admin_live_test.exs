@@ -39,7 +39,7 @@ defmodule Playground.AdminLiveTest do
   test "renders form validation errors", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/admin/resources/ticket/new")
 
-    html = render_change(view, "validate_form", %{"resource" => %{"title" => ""}})
+    html = render_change(view, "incant:event", %{"op" => "form_validate", "resource" => %{"title" => ""}})
 
     assert html =~ "can&#39;t be blank"
   end
@@ -47,7 +47,10 @@ defmodule Playground.AdminLiveTest do
   test "saves valid form submissions", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/admin/resources/ticket/new")
 
-    render_submit(view, "save_form", %{"resource" => %{"title" => "Need help", "priority" => "high", "status" => "open"}})
+    render_submit(view, "incant:event", %{
+      "op" => "form_submit",
+      "resource" => %{"title" => "Need help", "priority" => "high", "status" => "open"}
+    })
 
     assert_patch(view, "/admin/resources/ticket/99")
   end

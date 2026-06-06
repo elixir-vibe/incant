@@ -79,12 +79,21 @@ defmodule Incant.Live.AdminLive do
 
   @impl Phoenix.LiveView
   def handle_event("incant:event", params, socket) do
-    params
-    |> Incant.UI.Event.parse()
-    |> handle_ui_event(socket)
+    event = Incant.UI.Event.parse(params)
+
+    case event.op do
+      :filter_commit -> filter_commit(event, socket)
+      :dashboard_variable_commit -> dashboard_variable_commit(event, socket)
+      :sort -> sort(event, socket)
+      :paginate -> paginate(event, socket)
+      :row_action -> row_action(event, socket)
+      :form_validate -> form_validate(event, socket)
+      :form_submit -> form_submit(event, socket)
+      _op -> {:noreply, socket}
+    end
   end
 
-  def handle_event("table_state", %{"table" => table_params}, socket) do
+  defp filter_commit(%{meta: %{"table" => table_params}}, socket) do
     resource = socket.assigns.context.resource
 
     params =
@@ -98,7 +107,16 @@ defmodule Incant.Live.AdminLive do
      push_patch(socket, to: resource_path(socket.assigns.context.base_path, resource, params))}
   end
 
-  def handle_event("sort", %{"column" => column}, socket) do
+  defp dashboard_variable_commit(%{meta: %{"var" => variables}}, socket) do
+    params =
+      socket.assigns.params
+      |> Map.put("var", variables)
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
+  end
+
+  defp sort(%{target: column}, socket) do
     params =
       socket.assigns.params
       |> Map.put("sort", next_sort(socket.assigns.params["sort"], column))
@@ -108,7 +126,7 @@ defmodule Incant.Live.AdminLive do
     {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
   end
 
-  def handle_event("page", %{"page" => page}, socket) do
+  defp paginate(%{value: page}, socket) do
     params =
       socket.assigns.params
       |> Map.put("page", page)
@@ -117,16 +135,7 @@ defmodule Incant.Live.AdminLive do
     {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
   end
 
-  def handle_event("dashboard_variables", %{"var" => variables}, socket) do
-    params =
-      socket.assigns.params
-      |> Map.put("var", variables)
-      |> reject_empty_values()
-
-    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
-  end
-
-  def handle_event("row_action", %{"action" => action, "id" => id}, socket) do
+  defp row_action(%{target: action, value: id}, socket) do
     context = socket.assigns.context
     row = Incant.Live.Rows.one(context.resource, id, context)
 
@@ -140,24 +149,18 @@ defmodule Incant.Live.AdminLive do
     end
   end
 
-  def handle_event("validate_form", %{"resource" => attrs}, socket) do
+  defp form_validate(%{meta: %{"resource" => attrs}}, socket) do
     context = socket.assigns.context
 
     with :ok <- authorize_form(context, attrs) do
-      changeset =
-        Incant.Live.FormState.validate(
-          context.resource,
-          context.form_record,
-          attrs
-        )
-
+      changeset = Incant.Live.FormState.validate(context.resource, context.form_record, attrs)
       {:noreply, assign_context(socket, :form_changeset, changeset)}
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
   end
 
-  def handle_event("save_form", %{"resource" => attrs}, socket) do
+  defp form_submit(%{meta: %{"resource" => attrs}}, socket) do
     context = socket.assigns.context
 
     with :ok <- authorize_form(context, attrs) do
@@ -171,14 +174,7 @@ defmodule Incant.Live.AdminLive do
           {:noreply,
            socket
            |> put_flash(:info, message)
-           |> push_patch(
-             to:
-               saved_record_path(
-                 context.base_path,
-                 context.resource,
-                 record
-               )
-           )}
+           |> push_patch(to: saved_record_path(context.base_path, context.resource, record))}
 
         {:error, changeset} when is_map(changeset) ->
           {:noreply, assign_context(socket, :form_changeset, changeset)}
@@ -190,20 +186,6 @@ defmodule Incant.Live.AdminLive do
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
   end
-
-  def handle_ui_event(%Incant.UI.Event{op: :sort, target: column}, socket) do
-    handle_event("sort", %{"column" => column}, socket)
-  end
-
-  def handle_ui_event(%Incant.UI.Event{op: :paginate, value: page}, socket) do
-    handle_event("page", %{"page" => page}, socket)
-  end
-
-  def handle_ui_event(%Incant.UI.Event{op: :row_action, target: action, value: id}, socket) do
-    handle_event("row_action", %{"action" => action, "id" => id}, socket)
-  end
-
-  def handle_ui_event(_event, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveView
   def render(assigns) do

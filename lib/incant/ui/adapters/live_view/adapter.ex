@@ -140,7 +140,7 @@ defmodule Incant.UI.Adapters.LiveView do
   def filter_bar(assigns) do
     ~H"""
     <div class="rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]">
-      <.form :let={_form} for={%{}} as={form_as(@filter_bar)} phx-change={change_event(@filter_bar)} class="grid gap-2 p-2 md:grid-cols-[minmax(12rem,1fr)_minmax(10rem,1fr)_minmax(14rem,1fr)_8rem]">
+      <.form :let={_form} for={%{}} as={form_as(@filter_bar)} phx-change="incant:event" phx-value-op={filter_bar_op(@filter_bar)} class="grid gap-2 p-2 md:grid-cols-[minmax(12rem,1fr)_minmax(10rem,1fr)_minmax(14rem,1fr)_8rem]">
         <.control :if={@filter_bar.search} control={@filter_bar.search} />
         <.control :for={control <- @filter_bar.filters} control={control} />
         <label :if={@filter_bar.id == "resource.filters"} class="grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">
@@ -342,10 +342,11 @@ defmodule Incant.UI.Adapters.LiveView do
         </div>
         <.link patch={form_back_path(@env)} class="text-xs font-medium text-[var(--incant-text-highlighted)] hover:underline">Cancel</.link>
       </div>
-      <.form for={@phoenix_form} phx-change="validate_form" phx-submit="save_form" class="grid gap-3 p-3 md:grid-cols-2">
+      <.form for={@phoenix_form} phx-change="incant:event" phx-submit="incant:event" class="grid gap-3 p-3 md:grid-cols-2">
+        <input type="hidden" name="op" value="form_validate" />
         <.form_control :for={field <- @form.fields} field={field} />
         <div class="md:col-span-2">
-          <button type="submit" class="h-8 rounded-md bg-[var(--incant-primary)] px-3 text-sm font-medium text-[var(--incant-text-inverted)] transition hover:brightness-95">Save</button>
+          <button type="submit" name="op" value="form_submit" class="h-8 rounded-md bg-[var(--incant-primary)] px-3 text-sm font-medium text-[var(--incant-text-inverted)] transition hover:brightness-95">Save</button>
         </div>
       </.form>
     </div>
@@ -464,8 +465,8 @@ defmodule Incant.UI.Adapters.LiveView do
   defp form_as(%{id: "dashboard.variables"}), do: :var
   defp form_as(_filter_bar), do: :table
 
-  defp change_event(%{id: "dashboard.variables"}), do: "dashboard_variables"
-  defp change_event(_filter_bar), do: "table_state"
+  defp filter_bar_op(%{id: "dashboard.variables"}), do: "dashboard_variable_commit"
+  defp filter_bar_op(_filter_bar), do: "filter_commit"
 
   defp control_name(%{role: :search}), do: "table[search]"
   defp control_name(%{role: :filter, name: name}), do: "table[filters][#{name}]"

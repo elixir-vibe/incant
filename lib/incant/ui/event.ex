@@ -40,12 +40,15 @@ defmodule Incant.UI.Event do
   end
 
   def parse(%{"op" => op} = params) do
+    explicit_meta = Map.get(params, "meta", %{})
+    implicit_meta = Map.drop(params, ["op", "surface", "target", "value", "meta"])
+
     %__MODULE__{
       op: parse_op(op),
       surface: params["surface"],
       target: params["target"],
       value: params["value"],
-      meta: Map.get(params, "meta", %{})
+      meta: Map.merge(implicit_meta, explicit_meta)
     }
   end
 
