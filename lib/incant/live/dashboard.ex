@@ -63,8 +63,8 @@ defmodule Incant.Live.Dashboard do
     <label class="grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)] md:col-span-2">
       {widget_label(@variable)}
       <div class="grid grid-cols-2 gap-2">
-        <.input type="date" name={"var[#{@variable.name}][from]"} value={map_value(@value, "from")} />
-        <.input type="date" name={"var[#{@variable.name}][to]"} value={map_value(@value, "to")} />
+        <.input type="text" name={"var[#{@variable.name}][from]"} value={map_value(@value, "from")} placeholder="From" class="font-mono" />
+        <.input type="text" name={"var[#{@variable.name}][to]"} value={map_value(@value, "to")} placeholder="To" class="font-mono" />
       </div>
     </label>
     """

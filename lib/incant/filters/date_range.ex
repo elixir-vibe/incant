@@ -19,16 +19,18 @@ defmodule Incant.Filters.DateRange do
     ~H"""
     <div class="grid grid-cols-2 gap-2">
       <.input
-        type="date"
+        type="text"
         name={"table[filters][#{@filter.name}][from]"}
         value={filter_value(@value, "from")}
-        placeholder={"#{@filter.name} from"}
+        placeholder="From"
+        class="font-mono"
       />
       <.input
-        type="date"
+        type="text"
         name={"table[filters][#{@filter.name}][to]"}
         value={filter_value(@value, "to")}
-        placeholder={"#{@filter.name} to"}
+        placeholder="To"
+        class="font-mono"
       />
     </div>
     """
