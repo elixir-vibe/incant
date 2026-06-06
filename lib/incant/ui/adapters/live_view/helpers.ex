@@ -4,6 +4,7 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   import Incant.Live.Routes
 
   alias Incant.Live.Authorization
+  alias Incant.UI.Adapters.LiveView.Theme
 
   def input_class do
     "h-8 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] transition focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_12%,transparent)]"
@@ -74,10 +75,8 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def cell_class(cell) do
-    [
-      "px-3 py-1.5 text-[var(--incant-text-toned)]",
-      cell.source.opts[:align] == :right && "text-right tabular-nums"
-    ]
+    align = if cell.source.opts[:align] == :right, do: :right, else: :left
+    Theme.slot(:table, :cell, align: align)
   end
 
   def sort_column("-" <> column), do: column

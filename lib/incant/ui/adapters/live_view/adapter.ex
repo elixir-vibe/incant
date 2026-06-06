@@ -14,6 +14,7 @@ defmodule Incant.UI.Adapters.LiveView do
   import Incant.UI.Adapters.LiveView.Inspector
   import Incant.UI.Adapters.LiveView.Table
 
+  alias Incant.UI.Adapters.LiveView.Theme
   alias Incant.UI.Document
   alias Incant.UI.Regions.WidgetGrid
   alias Incant.UI.Surfaces.{Dashboard, Empty, ResourceIndex}
@@ -23,26 +24,26 @@ defmodule Incant.UI.Adapters.LiveView do
     assigns = %{document: document, env: env, nav: document.nav, surface: document.surface}
 
     ~H"""
-    <div class="min-h-screen bg-[var(--incant-bg)] text-[var(--incant-text)] antialiased">
-      <aside class="fixed inset-y-0 left-0 hidden w-56 border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] lg:block">
-        <div class="border-b border-[var(--incant-border-muted)] px-3 py-2.5">
-          <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--incant-primary)]">Incant</div>
-          <div class="mt-1 text-sm font-medium text-[var(--incant-text-highlighted)]">{short_module(@env.admin)}</div>
+    <div class={Theme.slot(:shell, :root)}>
+      <aside class={Theme.slot(:shell, :sidebar)}>
+        <div class={Theme.slot(:shell, :brand)}>
+          <div class={Theme.slot(:shell, :brand_mark)}>Incant</div>
+          <div class={Theme.slot(:shell, :brand_title)}>{short_module(@env.admin)}</div>
         </div>
         <.nav nav={@nav} />
       </aside>
 
-      <main class="lg:pl-56">
-        <div class="sticky top-0 z-10 border-b border-[var(--incant-border)] bg-[color-mix(in_oklab,var(--incant-bg-elevated)_92%,transparent)] px-4 backdrop-blur lg:px-5">
-          <div class="flex h-11 items-center justify-between gap-3">
-            <h1 class="min-w-0 truncate text-sm font-semibold text-[var(--incant-text-highlighted)]">{@document.title}</h1>
+      <main class={Theme.slot(:shell, :main)}>
+        <div class={Theme.slot(:shell, :topbar)}>
+          <div class={Theme.slot(:shell, :topbar_inner)}>
+            <div></div>
             <div class="hidden shrink-0 text-xs text-[var(--incant-text-muted)] md:block">
               {nav_count(@nav, :resource)} resources · {nav_count(@nav, :dashboard)} dashboards
             </div>
           </div>
         </div>
 
-        <div class="p-3 lg:p-4">
+        <div class={Theme.slot(:shell, :body)}>
           <.render_surface surface={@surface} env={@env} />
         </div>
       </main>
@@ -62,7 +63,7 @@ defmodule Incant.UI.Adapters.LiveView do
 
   def nav(assigns) do
     ~H"""
-    <nav class="space-y-4 px-2 py-3">
+    <nav class="space-y-5 px-3 py-4">
       <.nav_group title="Dashboards" items={Enum.filter(@nav.items, &(&1.group == :dashboards))} active_id={@nav.active_id} />
       <.nav_group title="Resources" items={Enum.filter(@nav.items, &(&1.group == :resources))} active_id={@nav.active_id} />
     </nav>
@@ -81,16 +82,26 @@ defmodule Incant.UI.Adapters.LiveView do
         <.link
           :for={item <- @items}
           patch={item.path}
-          class={[
-            "block rounded-md px-2 py-1.5 text-sm transition",
-            item.id == @active_id && "bg-[var(--incant-bg-muted)] text-[var(--incant-text-highlighted)] shadow-[inset_2px_0_0_var(--incant-primary)]",
-            item.id != @active_id && "text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
-          ]}
+          class={Theme.slot(:nav_item, :base, active: item.id == @active_id)}
         >
           {item.label}
         </.link>
       </div>
     </div>
+    """
+  end
+
+  attr(:title, :string, required: true)
+  attr(:eyebrow, :string, required: true)
+
+  def page_header(assigns) do
+    ~H"""
+    <header class={Theme.slot(:page_header, :root)}>
+      <div>
+        <p class={Theme.slot(:page_header, :eyebrow)}>{@eyebrow}</p>
+        <h2 class={Theme.slot(:page_header, :title)}>{@title}</h2>
+      </div>
+    </header>
     """
   end
 
@@ -101,11 +112,25 @@ defmodule Incant.UI.Adapters.LiveView do
     assigns = assign(assigns, :surface, surface)
 
     ~H"""
-    <section class="space-y-3">
-      <.filter_bar :if={@surface.filter_bar} filter_bar={@surface.filter_bar} env={@env} />
-      <.resource_form :if={@surface.form} form={@surface.form} env={@env} />
-      <.inspector :if={@surface.detail} inspector={@surface.detail} env={@env} />
-      <.table table={@surface.table} env={@env} />
+    <section class={Theme.slot(:surface, :stack)}>
+      <%= cond do %>
+        <% @surface.form -> %>
+          <.page_header title={@surface.title} eyebrow={form_eyebrow(@surface.form.mode)} />
+          <.resource_form form={@surface.form} env={@env} />
+        <% @surface.detail -> %>
+          <.page_header title={@surface.detail.title} eyebrow="Detail" />
+          <.inspector inspector={@surface.detail} env={@env} />
+        <% true -> %>
+          <.page_header title={@surface.title} eyebrow="Resource" />
+          <div class={Theme.slot(:surface, :index)}>
+            <div class={Theme.slot(:surface, :primary)}>
+              <.table table={@surface.table} env={@env} />
+            </div>
+            <aside :if={@surface.filter_bar} class={Theme.slot(:surface, :aside)}>
+              <.filter_bar filter_bar={@surface.filter_bar} env={@env} />
+            </aside>
+          </div>
+      <% end %>
     </section>
     """
   end
@@ -114,7 +139,8 @@ defmodule Incant.UI.Adapters.LiveView do
     assigns = assign(assigns, :surface, surface)
 
     ~H"""
-    <section class="space-y-3">
+    <section class={Theme.slot(:surface, :stack)}>
+      <.page_header title={@surface.title} eyebrow="Dashboard" />
       <.filter_bar :if={@surface.variables != []} filter_bar={List.first(@surface.regions)} env={@env} />
       <.widget_grid grid={Enum.find(@surface.regions, &match?(%WidgetGrid{}, &1))} />
     </section>
