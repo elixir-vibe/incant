@@ -37,7 +37,7 @@ defmodule Incant.Install.PatcherTest do
     end
     """
 
-    assert Patcher.ensure_admin_route(router, "MyApp") =~ ~s(incant_admin "/admin", MyApp.Admin)
+    assert Patcher.ensure_admin_route(router, "MyApp") =~ ~S|incant_admin("/admin", MyApp.Admin)|
   end
 
   test "adds Incant Tailwind source once" do
