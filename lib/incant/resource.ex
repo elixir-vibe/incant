@@ -1,6 +1,24 @@
 defmodule Incant.Resource do
   @moduledoc """
   Defines a code-first admin resource.
+
+  Resources describe table columns, filters, row actions, forms, and the data
+  source used by the generic LiveView renderer.
+
+      defmodule MyApp.Admin.Resources.Product do
+        use Incant.Resource,
+          schema: MyApp.Catalog.Product,
+          repo: MyApp.Repo
+
+        changeset &MyApp.Catalog.Product.changeset/2
+
+        table do
+          column :name, link: true
+          column :status, as: :badge
+          filter :status, :select, options: [:draft, :active]
+          action :edit
+        end
+      end
   """
 
   alias Incant.Form

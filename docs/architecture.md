@@ -17,7 +17,7 @@ The LiveView renderer consumes metadata; it does not depend on user-written HEEx
 
 ## Live context
 
-`Incant.Live.Context` is the runtime state passed to components. It includes:
+The live context is the runtime state passed to components. It includes:
 
 - admin metadata
 - visible resources and dashboards
@@ -41,19 +41,19 @@ The context keeps component APIs small:
 
 The generic renderer is organized by surface:
 
-- `Incant.Live.Shell`
-- `Incant.Live.Dashboard`
-- `Incant.Live.Resource`
-- `Incant.Live.Resource.Header`
-- `Incant.Live.Resource.Form`
-- `Incant.Live.Resource.Detail`
-- `Incant.Live.Resource.Table`
+- Shell
+- Dashboard
+- Resource
+- Resource header
+- Resource form
+- Resource detail
+- Resource table
 
-`Incant.Live.Resource` is mostly orchestration; table/detail/form concerns live in submodules.
+The resource renderer is mostly orchestration; table/detail/form concerns live in submodules.
 
 ## Data loading flow
 
-`Incant.Live.AdminLive.handle_params/3` builds a base context, authorizes the admin surface, then loads data only when allowed.
+The admin LiveView builds a base context, authorizes the admin surface, then loads data only when allowed.
 
 For resources:
 

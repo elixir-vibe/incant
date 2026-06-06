@@ -1,6 +1,21 @@
 defmodule Incant.Dashboard do
   @moduledoc """
   Defines a code-first dashboard with variables and widgets.
+
+      defmodule MyApp.Admin.Dashboards.Operations do
+        use Incant.Dashboard
+
+        title "Operations"
+
+        variables do
+          var :range, :date_range
+        end
+
+        grid columns: 12 do
+          stat :total_requests, span: 3, query: &MyApp.Admin.Metrics.total_requests/2
+          table :slow_requests, span: 6, query: &MyApp.Admin.Metrics.slow_requests/2
+        end
+      end
   """
 
   alias Incant.Dashboard.Metadata

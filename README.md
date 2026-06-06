@@ -2,7 +2,7 @@
 
 Incant is an Elixir/Phoenix-native control plane for serious admin, content, analytics, dashboards, and operations work.
 
-It is currently experimental and in its first implementation pass. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a generic LiveView renderer for tables, details, forms, filters, dashboards, and row actions.
+Incant is experimental. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a generic LiveView renderer for tables, details, forms, filters, dashboards, and row actions.
 
 See [PLAN.md](PLAN.md) for the full product thesis and roadmap, [CONVENTIONS.md](CONVENTIONS.md) for the recommended application structure, and [REFERENCES.md](REFERENCES.md) for external packages and products informing the design.
 
@@ -18,7 +18,7 @@ The Igniter-powered installer creates an admin root, a sample resource, a theme,
 
 ## Playground
 
-A Phoenix playground lives in [`examples/playground`](examples/playground). It uses the local Incant package and VibeKit, then defines realistic Catalog and LLM contexts, admin resources, an operations dashboard, and a theme contract.
+A Phoenix playground lives in [`examples/playground`](examples/playground/README.md). It uses the local Incant package and VibeKit, then defines realistic Catalog and LLM contexts, admin resources, an operations dashboard, and a theme contract.
 
 ```sh
 cd examples/playground

@@ -115,6 +115,8 @@ defmodule Incant.Live.Resource.Form do
 
   defp form_value(_changeset, record, field), do: Incant.Live.Rows.field(record, field)
 
+  defp field_errors(%{action: nil}, _field), do: []
+
   defp field_errors(%{errors: errors}, field) when is_list(errors) do
     errors
     |> Keyword.get_values(field)

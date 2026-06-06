@@ -38,6 +38,6 @@ The admin demonstrates:
 - form validation and save flow through a small repo stub
 - semantic CSS variables via the theme
 
-## Why no separate restricted route?
+## Authorization
 
-Authorization behavior is covered by Incant's library tests. The playground keeps one clean `/admin` surface so it feels like a real app rather than a test harness.
+Authorization behavior is covered by Incant's library tests. The playground keeps one clean `/admin` surface focused on the main admin experience.

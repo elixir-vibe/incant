@@ -19,12 +19,9 @@ defmodule Incant.Live.Dashboard do
     ~H"""
     <section class="space-y-6">
       <.card class="flex flex-col gap-4 p-5">
-        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p class="text-sm text-[var(--incant-text-muted)]">Dashboard</p>
-            <h2 class="text-3xl font-semibold tracking-tight">{@dashboard.title}</h2>
-          </div>
-          <div class="font-mono text-xs text-[var(--incant-text-muted)]">{inspect(@dashboard.grid)}</div>
+        <div>
+          <p class="text-sm text-[var(--incant-text-muted)]">Dashboard</p>
+          <h2 class="text-3xl font-semibold tracking-tight">{@dashboard.title}</h2>
         </div>
 
         <.form :let={_form} :if={@dashboard.variables != []} for={%{}} as={:var} phx-change="dashboard_variables" class="grid gap-3 md:grid-cols-3">

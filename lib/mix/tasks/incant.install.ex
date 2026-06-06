@@ -1,6 +1,19 @@
 defmodule Mix.Tasks.Incant.Install do
   @moduledoc """
   Generates starter Incant admin files and patches Phoenix setup when possible.
+
+  The installer creates:
+
+    * `lib/my_app/admin.ex`
+    * `lib/my_app/admin/resources/sample.ex`
+    * `lib/my_app/admin/themes/default.ex`
+
+  When it can detect standard Phoenix files, it also adds `use Incant.Router`,
+  mounts `incant_admin "/admin", MyApp.Admin`, and adds the Incant Tailwind
+  source to `assets/css/app.css`.
+
+  Use Igniter's regular options such as `--dry-run` and `--yes` to preview or
+  apply changes.
   """
 
   use Igniter.Mix.Task
@@ -11,7 +24,7 @@ defmodule Mix.Tasks.Incant.Install do
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :incant,
-      example: "mix incant.install"
+      example: "mix incant.install --dry-run"
     }
   end
 

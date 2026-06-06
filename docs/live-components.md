@@ -1,7 +1,6 @@
 # Live components
 
-Incant is experimental; internal LiveView component modules may still change before a first stable release.
-
+Incant is experimental; LiveView component organization may still change before a first stable release.
 
 The generic renderer follows Phoenix-style module names. Root components expose `view/1` and nested resource modules keep local names concise:
 
@@ -12,4 +11,4 @@ The generic renderer follows Phoenix-style module names. Root components expose 
 </Shell.view>
 ```
 
-Resource rendering is split across `Incant.Live.Resource.Header`, `Incant.Live.Resource.Form`, `Incant.Live.Resource.Detail`, and `Incant.Live.Resource.Table`.
+Resource rendering is split into header, form, detail, and table components.

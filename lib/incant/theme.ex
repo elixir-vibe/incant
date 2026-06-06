@@ -1,6 +1,19 @@
 defmodule Incant.Theme do
   @moduledoc """
   Defines Tailwind 4 and CSS-variable-first theme metadata.
+
+      defmodule MyApp.Admin.Themes.Default do
+        use Incant.Theme
+
+        css_vars_prefix "--incant"
+        palette :zinc
+        accent :violet
+
+        tokens do
+          color :background, "var(--incant-bg)"
+          radius :md, "var(--incant-radius-md)"
+        end
+      end
   """
 
   alias Incant.Theme.Metadata

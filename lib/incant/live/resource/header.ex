@@ -13,18 +13,25 @@ defmodule Incant.Live.Resource.Header do
   def view(assigns) do
     context = assigns.context
 
+    resource = context.resource
+
     assigns =
       assigns
-      |> assign(:resource, context.resource)
+      |> assign(:resource, resource)
       |> assign(:base_path, context.base_path)
       |> assign(:table_state, context.table_state)
+      |> assign(:metadata, metadata_items(resource))
 
     ~H"""
     <.card class="p-5">
       <p class="text-sm text-[var(--incant-text-muted)]">Resource</p>
       <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
       <div class="flex items-start justify-between gap-4">
-        <p class="mt-2 font-mono text-sm text-[var(--incant-text-muted)]">schema {inspect(@resource.schema)} · repo {inspect(@resource.repo)}</p>
+        <div class="mt-2 flex flex-wrap gap-2 text-xs text-[var(--incant-text-muted)]">
+          <.pill :for={{label, value} <- @metadata}>
+            <span class="font-medium uppercase">{label}</span> {value}
+          </.pill>
+        </div>
         <.primary_link :if={can_create?(@context)} patch={resource_new_path(@base_path, @resource)} class="text-sm">
           New
         </.primary_link>
@@ -67,6 +74,22 @@ defmodule Incant.Live.Resource.Header do
   end
 
   defp form_enabled?(resource), do: not is_nil(resource.repo) and not is_nil(resource.changeset)
+
+  defp metadata_items(resource) do
+    [
+      {"schema", module_label(resource.schema)},
+      {"repo", module_label(resource.repo)},
+      {"data", callback_label(resource.data)}
+    ]
+    |> Enum.reject(fn {_label, value} -> is_nil(value) end)
+  end
+
+  defp module_label(nil), do: nil
+  defp module_label(module) when is_atom(module), do: inspect(module)
+
+  defp callback_label(nil), do: nil
+  defp callback_label(callback) when is_function(callback), do: "callback"
+  defp callback_label(callback), do: inspect(callback)
 
   defp short_module(module) do
     module

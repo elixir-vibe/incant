@@ -1,6 +1,19 @@
 defmodule Incant.Admin do
   @moduledoc """
   Defines the root Incant admin surface for an application.
+
+  Admin modules wire resources, dashboards, plugins, and global options together.
+
+      defmodule MyApp.Admin do
+        use Incant.Admin,
+          repo: MyApp.Repo,
+          theme: MyApp.Admin.Themes.Default,
+          policy: MyApp.Admin.Policy,
+          actor_assign: :current_scope
+
+        resource MyApp.Admin.Resources.Product
+        dashboard MyApp.Admin.Dashboards.Operations
+      end
   """
 
   alias Incant.Admin.Metadata
