@@ -23,21 +23,25 @@ defmodule Incant.Live.Resource.Header do
       |> assign(:metadata, metadata_items(resource))
 
     ~H"""
-    <.card class="p-5">
-      <p class="text-sm text-[var(--incant-text-muted)]">Resource</p>
-      <h2 class="mt-1 text-3xl font-semibold tracking-tight">{short_module(@resource.module)}</h2>
-      <div class="flex items-start justify-between gap-4">
-        <div class="mt-2 flex flex-wrap gap-2 text-xs text-[var(--incant-text-muted)]">
-          <.pill :for={{label, value} <- @metadata}>
-            <span class="font-medium uppercase">{label}</span> {value}
-          </.pill>
+    <.card class="overflow-hidden">
+      <div class="flex items-center justify-between gap-3 border-b border-[var(--incant-border-muted)] px-3 py-2.5">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <p class="text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">Resource</p>
+            <div class="flex flex-wrap gap-1.5 text-xs text-[var(--incant-text-muted)]">
+              <.pill :for={{label, value} <- @metadata}>
+                <span class="mr-1 font-medium uppercase">{label}</span>{value}
+              </.pill>
+            </div>
+          </div>
+          <h2 class="mt-1 truncate text-lg font-semibold tracking-tight text-[var(--incant-text-highlighted)]">{short_module(@resource.module)}</h2>
         </div>
-        <.primary_link :if={can_create?(@context)} patch={resource_new_path(@base_path, @resource)} class="text-sm">
+        <.primary_link :if={can_create?(@context)} patch={resource_new_path(@base_path, @resource)} class="rounded-md border border-[var(--incant-border)] px-2 py-1 text-xs hover:bg-[var(--incant-bg-accented)] hover:no-underline">
           New
         </.primary_link>
       </div>
 
-      <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="mt-5 grid gap-3 md:grid-cols-3">
+      <.form :let={_form} for={%{}} as={:table} phx-change="table_state" class="grid gap-2 p-3 md:grid-cols-4">
         <.input
           :if={@resource.table.search}
           type="search"
@@ -50,8 +54,8 @@ defmodule Incant.Live.Resource.Header do
           filter={filter}
           value={Map.get(@table_state.filters, to_string(filter.name), "")}
         />
-        <label class="grid gap-1 text-sm">
-          <span class="text-[var(--incant-text-muted)]">Rows per page</span>
+        <label class="grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">
+          Rows
           <.select name="table[page_size]" value={@table_state.page_size} options={[10, 25, 50, 100]} />
         </label>
       </.form>

@@ -15,8 +15,7 @@ config :playground, Playground.Endpoint,
   debug_errors: true,
   secret_key_base: "3YsLUnrxoh63/ygLtTosfW6hT6JULwNk/9kq1TeLpLwmobmnR5AduC31aMBNR8CT",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:playground, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:playground, ~w(--watch)]}
+    volt: {Mix.Tasks.Volt.Dev, :run, [~w(--tailwind)]}
   ]
 
 # ## SSL Support
@@ -41,6 +40,10 @@ config :playground, Playground.Endpoint,
 # If desired, both `http:` and `https:` keys can be
 # configured to run both http and https servers on
 # different ports.
+
+config :volt, :server,
+  prefix: "/assets",
+  watch_dirs: ["lib/", "assets/", "../../lib/"]
 
 # Reload browser tabs when matching files change.
 config :playground, Playground.Endpoint,

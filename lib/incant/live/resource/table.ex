@@ -21,29 +21,29 @@ defmodule Incant.Live.Resource.Table do
 
     ~H"""
     <.card class="overflow-hidden">
-      <table class="min-w-full divide-y divide-[var(--incant-border)] text-sm">
-        <thead class="bg-[var(--incant-bg-accented)] text-left text-xs uppercase tracking-wider text-[var(--incant-text-muted)]">
+      <table class="min-w-full text-sm">
+        <thead class="border-b border-[var(--incant-border)] bg-[var(--incant-bg-muted)] text-left text-[11px] uppercase tracking-wide text-[var(--incant-text-muted)]">
           <tr>
-            <th :for={column <- @resource.table.columns} class="px-4 py-3 font-medium">
-              <button type="button" phx-click="sort" phx-value-column={column.name} class="inline-flex items-center gap-1 hover:text-[var(--incant-text-highlighted)]">
+            <th :for={column <- @resource.table.columns} class="h-8 px-3 font-medium">
+              <button type="button" phx-click="sort" phx-value-column={column.name} class="inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]">
                 {column.name}
                 <span :if={sort_column(@table_state.sort) == to_string(column.name)}>{sort_direction(@table_state.sort)}</span>
               </button>
             </th>
-            <th :if={@resource.table.actions != []} class="px-4 py-3 text-right font-medium">Actions</th>
+            <th :if={@resource.table.actions != []} class="h-8 px-3 text-right font-medium">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-[var(--incant-border)]">
+        <tbody class="divide-y divide-[var(--incant-border-muted)]">
           <tr :if={@rows == []}>
-            <td colspan={length(@resource.table.columns)} class="px-4 py-10 text-center text-[var(--incant-text-muted)]">
+            <td colspan={length(@resource.table.columns)} class="px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]">
               No rows. Add a resource data callback or loosen the current filters.
             </td>
           </tr>
-          <tr :for={row <- @rows} class="hover:bg-[var(--incant-bg-accented)]">
+          <tr :for={row <- @rows} class="h-9 hover:bg-[var(--incant-bg-muted)]">
             <td :for={column <- @resource.table.columns} class={cell_class(column)}>
               <.cell context={@context} row={row} column={column} />
             </td>
-            <td :if={@resource.table.actions != []} class="px-4 py-3 text-right">
+            <td :if={@resource.table.actions != []} class="px-3 py-1.5 text-right">
               <.actions context={@context} row={row} />
             </td>
           </tr>
@@ -60,13 +60,13 @@ defmodule Incant.Live.Resource.Table do
     assigns = assign(assigns, :pagination, assigns.context.pagination)
 
     ~H"""
-    <div class="flex items-center justify-between gap-3 border-t border-[var(--incant-border)] px-4 py-3 text-sm text-[var(--incant-text-muted)]">
+    <div class="flex h-10 items-center justify-between gap-3 border-t border-[var(--incant-border)] px-3 text-xs text-[var(--incant-text-muted)]">
       <div>
         Page {@pagination.page} of {@pagination.total_pages} · {@pagination.total} rows
       </div>
-      <div class="flex items-center gap-2">
-        <button type="button" phx-click="page" phx-value-page={@pagination.page - 1} disabled={@pagination.page <= 1} class="rounded-lg px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Previous</button>
-        <button type="button" phx-click="page" phx-value-page={@pagination.page + 1} disabled={@pagination.page >= @pagination.total_pages} class="rounded-lg px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Next</button>
+      <div class="flex items-center gap-1">
+        <button type="button" phx-click="page" phx-value-page={@pagination.page - 1} disabled={@pagination.page <= 1} class="rounded-md border border-[var(--incant-border)] px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Previous</button>
+        <button type="button" phx-click="page" phx-value-page={@pagination.page + 1} disabled={@pagination.page >= @pagination.total_pages} class="rounded-md border border-[var(--incant-border)] px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Next</button>
       </div>
     </div>
     """
@@ -199,7 +199,7 @@ defmodule Incant.Live.Resource.Table do
 
   defp action_class(action) do
     [
-      "rounded-lg px-2 py-1 text-xs transition",
+      "rounded-md px-1.5 py-1 text-xs transition",
       action.opts[:tone] == :danger &&
         "text-[var(--incant-error)] hover:bg-[color-mix(in_oklab,var(--incant-error)_12%,transparent)]",
       action.opts[:tone] != :danger &&
@@ -217,7 +217,7 @@ defmodule Incant.Live.Resource.Table do
     align = column.opts[:align]
 
     [
-      "px-4 py-3 text-[var(--incant-text-toned)]",
+      "px-3 py-1.5 text-[var(--incant-text-toned)]",
       align == :right && "text-right tabular-nums"
     ]
   end

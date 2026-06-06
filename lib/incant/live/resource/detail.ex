@@ -22,34 +22,34 @@ defmodule Incant.Live.Resource.Detail do
       |> assign(:form_mode, context.form_mode)
 
     ~H"""
-    <.card :if={!@form_mode && @selected_row} class="p-5">
-      <div class="flex items-start justify-between gap-4">
+    <.card :if={!@form_mode && @selected_row} class="overflow-hidden">
+      <div class="flex items-start justify-between gap-4 border-b border-[var(--incant-border-muted)] px-3 py-2.5">
         <div>
-          <p class="text-sm text-[var(--incant-text-muted)]">Detail</p>
-          <h3 class="mt-1 text-xl font-semibold tracking-tight">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
+          <p class="text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">Detail</p>
+          <h3 class="mt-1 text-base font-semibold tracking-tight text-[var(--incant-text-highlighted)]">{Incant.Live.Rows.title(@selected_row, @resource)}</h3>
         </div>
         <div class="flex items-center gap-2">
           <Table.actions context={@context} row={@selected_row} />
-          <.back_link patch={resource_path(@base_path, @resource)}>
+          <.back_link patch={resource_path(@base_path, @resource)} class="text-xs">
             Back to list
           </.back_link>
         </div>
       </div>
-      <dl class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div :for={column <- @resource.table.columns} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
-          <dt class="text-xs uppercase tracking-wide text-[var(--incant-text-muted)]">{column_label(column)}</dt>
+      <dl class="grid divide-y divide-[var(--incant-border-muted)] md:grid-cols-2 md:divide-x md:divide-y-0 xl:grid-cols-3">
+        <div :for={column <- @resource.table.columns} class="px-3 py-2.5">
+          <dt class="text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">{column_label(column)}</dt>
           <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">
             <Table.cell_value row={@selected_row} column={column} value={Incant.Live.Rows.field(@selected_row, column.name)} />
           </dd>
         </div>
-        <div :for={{key, value} <- extra_fields(@selected_row, @resource)} class="rounded-xl bg-[var(--incant-bg-muted)] p-3">
-          <dt class="text-xs uppercase tracking-wide text-[var(--incant-text-muted)]">{key}</dt>
+        <div :for={{key, value} <- extra_fields(@selected_row, @resource)} class="px-3 py-2.5">
+          <dt class="text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">{key}</dt>
           <dd class="mt-1 text-sm text-[var(--incant-text-highlighted)]">{value}</dd>
         </div>
       </dl>
     </.card>
 
-    <.card :if={!@form_mode && @detail_id && !@selected_row} class="p-8 text-center">
+    <.card :if={!@form_mode && @detail_id && !@selected_row} class="p-6 text-center">
       <p class="text-sm text-[var(--incant-text-muted)]">Record not found</p>
       <h3 class="mt-2 text-xl font-semibold tracking-tight">No resource row matches {@detail_id}</h3>
       <div class="mt-4">

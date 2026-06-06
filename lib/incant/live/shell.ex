@@ -25,14 +25,14 @@ defmodule Incant.Live.Shell do
       |> assign(:base_path, context.base_path)
 
     ~H"""
-    <div class="min-h-screen bg-[var(--incant-bg)] text-[var(--incant-text)]">
-      <aside class="fixed inset-y-0 left-0 hidden w-72 border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-5 lg:block">
-        <div>
-          <div class="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--incant-primary)]">Incant</div>
-          <div class="mt-2 text-xl font-semibold">{short_module(@admin.module)}</div>
+    <div class="min-h-screen bg-[var(--incant-bg)] text-[var(--incant-text)] antialiased">
+      <aside class="fixed inset-y-0 left-0 hidden w-60 border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] lg:block">
+        <div class="border-b border-[var(--incant-border-muted)] px-3 py-3">
+          <div class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--incant-primary)]">Incant</div>
+          <div class="mt-1 text-sm font-semibold text-[var(--incant-text-highlighted)]">{short_module(@admin.module)}</div>
         </div>
 
-        <nav class="mt-8 space-y-8">
+        <nav class="space-y-5 px-2 py-3">
           <.nav_section title="Dashboards">
             <.nav_item
               :for={dashboard <- @dashboards}
@@ -55,14 +55,14 @@ defmodule Incant.Live.Shell do
         </nav>
       </aside>
 
-      <main class="lg:pl-72">
-        <div class="border-b border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-5 py-4 backdrop-blur lg:px-8">
-          <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p class="text-sm text-[var(--incant-text-muted)]">Admin surface</p>
-              <h1 class="text-2xl font-semibold tracking-tight">{@page_title}</h1>
+      <main class="lg:pl-60">
+        <div class="sticky top-0 z-10 border-b border-[var(--incant-border)] bg-[color-mix(in_oklab,var(--incant-bg-elevated)_88%,transparent)] px-4 py-2.5 backdrop-blur lg:px-5">
+          <div class="flex h-9 items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">Admin surface</p>
+              <h1 class="truncate text-base font-semibold text-[var(--incant-text-highlighted)]">{@page_title}</h1>
             </div>
-            <div class="flex flex-wrap gap-2 text-xs text-[var(--incant-text-muted)]">
+            <div class="flex shrink-0 flex-wrap gap-1.5 text-xs text-[var(--incant-text-muted)]">
               <.pill>{length(@resources)} resources</.pill>
               <.pill>{length(@dashboards)} dashboards</.pill>
               <.pill :if={@theme}>{@theme.css_vars_prefix}</.pill>
@@ -70,7 +70,7 @@ defmodule Incant.Live.Shell do
           </div>
         </div>
 
-        <div class="p-5 lg:p-8">
+        <div class="p-4 lg:p-5">
           {render_slot(@inner_block)}
         </div>
       </main>
@@ -84,8 +84,8 @@ defmodule Incant.Live.Shell do
   def nav_section(assigns) do
     ~H"""
     <div>
-      <div class="text-xs font-medium uppercase tracking-widest text-[var(--incant-text-muted)]">{@title}</div>
-      <div class="mt-3 space-y-1">
+      <div class="px-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--incant-text-muted)]">{@title}</div>
+      <div class="mt-1 space-y-0.5">
         {render_slot(@inner_block)}
       </div>
     </div>
@@ -101,8 +101,8 @@ defmodule Incant.Live.Shell do
     <.link
       patch={@patch}
       class={[
-        "block rounded-lg px-3 py-2 text-sm transition",
-        @active && "bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] text-[var(--incant-text-highlighted)] ring-1 ring-[color-mix(in_oklab,var(--incant-primary)_35%,transparent)]",
+        "block rounded-md px-2 py-1.5 text-sm transition",
+        @active && "bg-[var(--incant-bg-accented)] text-[var(--incant-text-highlighted)] shadow-[inset_2px_0_0_var(--incant-primary)]",
         !@active && "text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
       ]}
     >

@@ -11,7 +11,7 @@ defmodule Incant.Live.Components do
 
   def card(assigns) do
     ~H"""
-    <div {@rest} class={["rounded-2xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]", @class]}>
+    <div {@rest} class={["rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]", @class]}>
       {render_slot(@inner_block)}
     </div>
     """
@@ -34,7 +34,7 @@ defmodule Incant.Live.Components do
 
   def pill(assigns) do
     ~H"""
-    <span class={["rounded-full border border-[var(--incant-border)] px-3 py-1 text-xs text-[var(--incant-text-muted)]", @class]}>
+    <span class={["inline-flex h-5 items-center rounded-md border border-[var(--incant-border)] px-1.5 text-[11px] leading-none text-[var(--incant-text-muted)]", @class]}>
       {render_slot(@inner_block)}
     </span>
     """
@@ -46,7 +46,7 @@ defmodule Incant.Live.Components do
 
   def primary_link(assigns) do
     ~H"""
-    <.link patch={@patch} class={["text-[var(--incant-primary)] hover:underline", @class]}>
+    <.link patch={@patch} class={["font-medium text-[var(--incant-primary)] hover:underline", @class]}>
       {render_slot(@inner_block)}
     </.link>
     """
@@ -72,7 +72,7 @@ defmodule Incant.Live.Components do
     <input
       {@rest}
       class={[
-        "rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]",
+        "h-8 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] transition focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_12%,transparent)]", 
         @class
       ]}
     />
@@ -92,7 +92,7 @@ defmodule Incant.Live.Components do
     <select
       {@rest}
       class={[
-        "rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none focus:border-[var(--incant-primary)]",
+        "h-8 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] outline-none transition focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_12%,transparent)]", 
         @class
       ]}
     >
@@ -105,11 +105,11 @@ defmodule Incant.Live.Components do
   end
 
   defp badge_class(:primary) do
-    "rounded-full bg-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)] px-2 py-1 text-xs text-[var(--incant-primary)]"
+    "inline-flex h-5 items-center rounded-md bg-[color-mix(in_oklab,var(--incant-primary)_10%,transparent)] px-1.5 text-[11px] font-medium leading-none text-[var(--incant-primary)]"
   end
 
   defp badge_class(_tone) do
-    "rounded-full border border-[var(--incant-border)] px-2 py-1 text-xs text-[var(--incant-text-muted)]"
+    "inline-flex h-5 items-center rounded-md border border-[var(--incant-border)] px-1.5 text-[11px] leading-none text-[var(--incant-text-muted)]"
   end
 
   defp selected_values(nil), do: []

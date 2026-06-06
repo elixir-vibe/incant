@@ -19,7 +19,7 @@ defmodule Incant.Live.Resource do
       |> assign(:form_changeset, context.form_changeset)
 
     ~H"""
-    <section class="space-y-6">
+    <section class="space-y-3">
       <Header.view context={@context} />
       <Form.view :if={@form_mode} resource={@resource} record={@form_record} changeset={@form_changeset} mode={@form_mode} base_path={@base_path} />
       <Detail.view context={@context} />

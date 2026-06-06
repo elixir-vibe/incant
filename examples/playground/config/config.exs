@@ -21,25 +21,20 @@ config :playground, Playground.Endpoint,
   pubsub_server: Playground.PubSub,
   live_view: [signing_salt: "AXa04QN1"]
 
-# Configure esbuild (the version is required)
-config :esbuild,
-  version: "0.25.4",
-  playground: [
-    args:
-      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
-  ]
-
-# Configure tailwind (the version is required)
-config :tailwind,
-  version: "4.1.12",
-  playground: [
-    args: ~w(
-      --input=assets/css/app.css
-      --output=priv/static/assets/css/app.css
-    ),
-    cd: Path.expand("..", __DIR__)
+config :volt,
+  entry: "assets/js/app.js",
+  outdir: "priv/static/assets",
+  root: "assets",
+  target: :es2022,
+  resolve_dirs: [Path.expand("../deps", __DIR__), Mix.Project.build_path()],
+  aliases: %{"@" => "."},
+  tailwind: [
+    css: "assets/css/app.css",
+    sources: [
+      %{base: "lib/", pattern: "**/*.{ex,heex}"},
+      %{base: "assets/", pattern: "**/*.{js,ts,jsx,tsx}"},
+      %{base: "../../lib/", pattern: "**/*.ex"}
+    ]
   ]
 
 # Configure Elixir's Logger

@@ -21,23 +21,23 @@ defmodule Incant.Live.Resource.Form do
       )
 
     ~H"""
-    <.card class="p-5">
-      <div class="flex items-start justify-between gap-4">
+    <.card class="overflow-hidden">
+      <div class="flex items-start justify-between gap-4 border-b border-[var(--incant-border-muted)] px-3 py-2.5">
         <div>
-          <p class="text-sm text-[var(--incant-text-muted)]">{form_eyebrow(@mode)}</p>
-          <h3 class="mt-1 text-xl font-semibold tracking-tight">{form_title(@resource, @record, @mode)}</h3>
+          <p class="text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">{form_eyebrow(@mode)}</p>
+          <h3 class="mt-1 text-base font-semibold tracking-tight text-[var(--incant-text-highlighted)]">{form_title(@resource, @record, @mode)}</h3>
         </div>
-        <.back_link patch={back_path(@base_path, @resource, @record, @mode)}>
+        <.back_link patch={back_path(@base_path, @resource, @record, @mode)} class="text-xs">
           Cancel
         </.back_link>
       </div>
 
-      <pre :if={@changeset && !form_like?(@changeset)} class="mt-5 overflow-auto rounded-xl bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(@changeset, pretty: true) %></pre>
+      <pre :if={@changeset && !form_like?(@changeset)} class="m-3 overflow-auto rounded-md bg-[var(--incant-bg-muted)] p-2 text-xs text-[var(--incant-text-muted)]"><%= inspect(@changeset, pretty: true) %></pre>
 
-      <.form for={@form} phx-change="validate_form" phx-submit="save_form" class="mt-5 grid gap-4 md:grid-cols-2">
+      <.form for={@form} phx-change="validate_form" phx-submit="save_form" class="grid gap-3 p-3 md:grid-cols-2">
         <.form_field :for={field <- Incant.Forms.fields(@resource)} field={field} value={form_value(@changeset, @record, field.name)} errors={field_errors(@changeset, field.name)} />
         <div class="md:col-span-2">
-          <button type="submit" class="rounded-xl bg-[var(--incant-primary)] px-4 py-2 text-sm font-medium text-[var(--incant-text-inverted)]">
+          <button type="submit" class="h-8 rounded-md bg-[var(--incant-primary)] px-3 text-sm font-medium text-[var(--incant-text-inverted)] transition hover:brightness-95">
             Save
           </button>
         </div>
@@ -52,8 +52,8 @@ defmodule Incant.Live.Resource.Form do
 
   def form_field(%{field: %{type: :select}} = assigns) do
     ~H"""
-    <label class="grid gap-1 text-sm">
-      <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
+    <label class="grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">
+      {field_label(@field)}
       <.select name={"resource[#{@field.name}]"} value={@value} options={@field.opts[:options] || []} disabled={@field.opts[:readonly]} />
       <.field_errors errors={@errors} />
     </label>
@@ -68,13 +68,13 @@ defmodule Incant.Live.Resource.Form do
 
   def form_field(%{field: %{type: :textarea}} = assigns) do
     ~H"""
-    <label class="grid gap-1 text-sm md:col-span-2">
-      <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
+    <label class="grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)] md:col-span-2">
+      {field_label(@field)}
       <textarea
         name={"resource[#{@field.name}]"}
         readonly={@field.opts[:readonly]}
         rows={@field.opts[:rows] || 5}
-        class="rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)]"
+        class="rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 py-2 text-sm font-normal normal-case tracking-normal text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_12%,transparent)]"
       >{to_string(@value || "")}</textarea>
       <.field_errors errors={@errors} />
     </label>
@@ -83,8 +83,8 @@ defmodule Incant.Live.Resource.Form do
 
   def form_field(%{field: %{type: :boolean}} = assigns) do
     ~H"""
-    <label class="grid gap-1 text-sm">
-      <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
+    <label class="grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">
+      {field_label(@field)}
       <.select name={"resource[#{@field.name}]"} value={@value} options={[{"Yes", "true"}, {"No", "false"}]} disabled={@field.opts[:readonly]} />
       <.field_errors errors={@errors} />
     </label>
@@ -93,9 +93,9 @@ defmodule Incant.Live.Resource.Form do
 
   def form_field(assigns) do
     ~H"""
-    <label class="grid gap-1 text-sm">
-      <span class="text-[var(--incant-text-muted)]">{field_label(@field)}</span>
-      <.input type={input_type(@field)} name={"resource[#{@field.name}]"} value={input_value(@field, @value)} readonly={@field.opts[:readonly]} step={input_step(@field)} />
+    <label class="grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">
+      {field_label(@field)}
+      <.input type={input_type(@field)} name={"resource[#{@field.name}]"} value={input_value(@field, @value)} readonly={@field.opts[:readonly]} step={input_step(@field)} class="font-normal normal-case tracking-normal" />
       <.field_errors errors={@errors} />
     </label>
     """
@@ -105,7 +105,7 @@ defmodule Incant.Live.Resource.Form do
 
   def field_errors(assigns) do
     ~H"""
-    <p :for={error <- @errors} class="text-xs text-[var(--incant-error)]">{error}</p>
+    <p :for={error <- @errors} class="text-xs font-normal normal-case tracking-normal text-[var(--incant-error)]">{error}</p>
     """
   end
 
