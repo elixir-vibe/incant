@@ -39,14 +39,9 @@ defmodule Incant.Live.AdminLive do
     section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
     table_state = table_state(params)
 
-    dashboard_variables =
-      cast_dashboard_variables(selected_dashboard, Map.get(params, "var", %{}))
-
+    raw_dashboard_variables = Map.get(params, "var", %{})
+    dashboard_variables = cast_dashboard_variables(selected_dashboard, raw_dashboard_variables)
     form_mode = form_mode(socket.assigns.live_action)
-    actor_context = %{admin: socket.assigns.admin, actor: socket.assigns.actor}
-    selected_row = Incant.Live.Rows.one(selected_resource, params["id"], actor_context)
-    form_record = form_record(selected_resource, params["id"], form_mode, actor_context)
-    form_changeset = form_changeset(selected_resource, form_record, form_mode)
 
     visible_resources =
       filter_authorized(resources, socket.assigns.admin, socket.assigns.actor, :view_resource)
@@ -66,15 +61,14 @@ defmodule Incant.Live.AdminLive do
         dashboard: selected_dashboard,
         section: section,
         detail_id: params["id"],
-        selected_row: selected_row,
         form_mode: form_mode,
-        form_record: form_record,
-        form_changeset: form_changeset,
         table_state: table_state,
-        dashboard_variables: dashboard_variables
+        dashboard_variables: dashboard_variables,
+        raw_dashboard_variables: raw_dashboard_variables
       }
-      |> authorize_context(socket.assigns.admin)
+      |> authorize_surface(socket.assigns.admin)
       |> load_authorized_context()
+      |> authorize_loaded_context(socket.assigns.admin)
 
     {:noreply,
      socket
@@ -142,7 +136,7 @@ defmodule Incant.Live.AdminLive do
   def handle_event("validate_form", %{"resource" => attrs}, socket) do
     context = socket.assigns.context
 
-    with :ok <- authorize(context, form_action(context)) do
+    with :ok <- authorize_form(context, attrs) do
       changeset =
         Incant.Live.FormState.validate(
           context.resource,
@@ -159,7 +153,7 @@ defmodule Incant.Live.AdminLive do
   def handle_event("save_form", %{"resource" => attrs}, socket) do
     context = socket.assigns.context
 
-    with :ok <- authorize(context, form_action(context)) do
+    with :ok <- authorize_form(context, attrs) do
       case Incant.Live.FormState.save(
              context.form_mode,
              context.resource,
@@ -226,7 +220,7 @@ defmodule Incant.Live.AdminLive do
     assign(socket, :context, Map.put(socket.assigns.context, key, value))
   end
 
-  defp authorize_context(context, admin) do
+  defp authorize_surface(context, admin) do
     authorization =
       with :ok <-
              Authorization.authorize(admin, :view_admin, context.actor, Map.from_struct(context)),
@@ -236,9 +230,7 @@ defmodule Incant.Live.AdminLive do
                view_action(context),
                context.actor,
                Map.from_struct(context)
-             ),
-           :ok <- authorize_row_navigation(admin, context),
-           :ok <- authorize_form_navigation(admin, context) do
+             ) do
         :ok
       end
 
@@ -247,17 +239,47 @@ defmodule Incant.Live.AdminLive do
 
   defp load_authorized_context(%{authorization: :ok, section: "resource"} = context) do
     resource_page = Incant.Live.Rows.page(context.resource, context.table_state, context)
+    selected_row = Incant.Live.Rows.one(context.resource, context.detail_id, context)
+    form_record = form_record(context.resource, context.detail_id, context.form_mode, context)
+    form_changeset = form_changeset(context.resource, form_record, context.form_mode)
 
-    %{context | rows: resource_page.rows, pagination: Map.drop(resource_page, [:rows])}
+    %{
+      context
+      | rows: resource_page.rows,
+        pagination: Map.drop(resource_page, [:rows]),
+        selected_row: selected_row,
+        form_record: form_record,
+        form_changeset: form_changeset
+    }
   end
 
   defp load_authorized_context(%{authorization: :ok, section: "dashboard"} = context) do
-    %{context | widget_values: widget_values(context.dashboard, context.dashboard_variables)}
+    %{
+      context
+      | widget_values:
+          widget_values(
+            context.dashboard,
+            context.dashboard_variables,
+            context.raw_dashboard_variables
+          )
+    }
   end
 
   defp load_authorized_context(context), do: context
 
-  defp authorize(context, action, extra \\ %{}) do
+  defp authorize_loaded_context(%{authorization: :ok} = context, admin) do
+    authorization =
+      with :ok <- authorize_row_navigation(admin, context),
+           :ok <- authorize_form_navigation(admin, context) do
+        :ok
+      end
+
+    %{context | authorization: authorization}
+  end
+
+  defp authorize_loaded_context(context, _admin), do: context
+
+  defp authorize(context, action, extra) do
     Authorization.authorize(
       context.admin,
       action,
@@ -280,7 +302,28 @@ defmodule Incant.Live.AdminLive do
   defp authorize_form_navigation(_admin, %{form_mode: nil}), do: :ok
 
   defp authorize_form_navigation(admin, context) do
-    Authorization.authorize(admin, form_action(context), context.actor, Map.from_struct(context))
+    Authorization.authorize(
+      admin,
+      form_action(context),
+      context.actor,
+      form_context(context, %{})
+    )
+  end
+
+  defp authorize_form(context, attrs) do
+    Authorization.authorize(
+      context.admin,
+      form_action(context),
+      context.actor,
+      form_context(context, %{attrs: attrs})
+    )
+  end
+
+  defp form_context(context, extra) do
+    context
+    |> Map.from_struct()
+    |> Map.put(:row, context.selected_row || context.form_record)
+    |> Map.merge(extra)
   end
 
   defp view_action(%{section: "dashboard"}), do: :view_dashboard
@@ -298,15 +341,18 @@ defmodule Incant.Live.AdminLive do
   defp authorization_message(:not_found), do: "Record not found or unavailable."
   defp authorization_message(reason), do: to_string(reason)
 
-  defp widget_values(nil, _variables), do: %{}
+  defp widget_values(nil, _variables, _raw_variables), do: %{}
 
-  defp widget_values(dashboard, variables) do
+  defp widget_values(dashboard, variables, raw_variables) do
     dashboard.widgets
     |> Enum.filter(&(&1.opts[:query] != nil))
     |> Map.new(fn widget ->
       value =
         try do
-          Incant.Callback.call(widget.opts[:query], variables, nil)
+          Incant.Callback.call(widget.opts[:query], variables, %{
+            variables: variables,
+            raw_variables: raw_variables
+          })
         rescue
           error -> {:error, Exception.message(error)}
         catch

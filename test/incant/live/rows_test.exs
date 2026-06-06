@@ -13,6 +13,10 @@ defmodule Incant.Live.RowsTest do
     def all({:filtered, schema, status}), do: [%{id: 1, schema: schema, status: status}]
     def all({:scoped, schema, actor}), do: [%{id: 1, schema: schema, actor: actor}]
     def all(schema), do: [%{id: 1, schema: schema}]
+
+    def one(%Ecto.Query{} = query),
+      do: %{id: 1, params: query.wheres |> List.first() |> Map.get(:params)}
+
     def aggregate(%Ecto.Query{}, :count), do: 42
     def aggregate({:scoped, _schema, _actor}, :count), do: 1
   end
@@ -124,6 +128,12 @@ defmodule Incant.Live.RowsTest do
 
     assert Rows.one(resource, "1", context) == %{id: 1, owner_id: 1}
     assert Rows.one(resource, "2", context) == nil
+  end
+
+  test "loads repo-backed detail rows with a scoped id query" do
+    resource = %Metadata{repo: Repo, schema: QueryProduct, table: %Table{}}
+
+    assert %{id: 1, params: [{"1", {0, :id}}]} = Rows.one(resource, "1", %{})
   end
 
   test "falls back to subquery count when aggregate count fails" do

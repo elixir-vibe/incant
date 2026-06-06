@@ -21,6 +21,7 @@ defmodule Incant.Live.Context do
     selected_row: nil,
     pagination: %{},
     dashboard_variables: %{},
+    raw_dashboard_variables: %{},
     widget_values: %{}
   ]
 end

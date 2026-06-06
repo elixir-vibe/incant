@@ -60,13 +60,38 @@ defmodule Incant.Live.Rows do
   def one(resource, id, context \\ %{})
   def one(_resource, nil, _context), do: nil
 
-  def one(resource, id, context) do
+  def one(%{repo: repo, schema: schema} = resource, id, context)
+      when not is_nil(repo) and not is_nil(schema) do
+    queryable =
+      resource
+      |> queryable(%{}, false, context)
+      |> filter_by_id(id)
+
+    repo
+    |> apply(:one, [queryable])
+    |> normalize_one()
+  rescue
+    _error in [
+      ArgumentError,
+      FunctionClauseError,
+      Protocol.UndefinedError,
+      UndefinedFunctionError
+    ] ->
+      one_from_rows(resource, id, context)
+  end
+
+  def one(resource, id, context), do: one_from_rows(resource, id, context)
+
+  defp one_from_rows(resource, id, context) do
     resource
     |> raw(%{}, [], context)
     |> Enum.find(&(id(&1) == id))
   rescue
     _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> nil
   end
+
+  defp normalize_one(nil), do: nil
+  defp normalize_one(row), do: row
 
   def raw(resource, table_state \\ %{}, opts \\ [], context \\ %{})
   def raw(nil, _table_state, _opts, _context), do: []
@@ -177,6 +202,12 @@ defmodule Incant.Live.Rows do
   end
 
   defp scope_rows(rows, _resource, _context), do: rows
+
+  defp filter_by_id(%Ecto.Query{} = queryable, id) do
+    where(queryable, [row], field(row, :id) == ^id)
+  end
+
+  defp filter_by_id(queryable, _id), do: queryable
 
   defp query_count(%{repo: repo} = resource, table_state, context) do
     queryable = queryable(resource, table_state, false, context)
