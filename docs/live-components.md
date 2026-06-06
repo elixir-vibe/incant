@@ -1,14 +1,22 @@
-# Live components
+# LiveView adapter
 
-Incant is experimental; LiveView component organization may still change before a first stable release.
+Incant ships with `Incant.UI.Adapters.LiveView` as its default UI adapter. The adapter consumes semantic `Incant.UI.Document` nodes and renders Phoenix LiveView components.
 
-The generic renderer follows Phoenix-style module names. Root components expose `view/1` and nested resource modules keep local names concise:
+The adapter is split by admin surface concern:
 
-```heex
-<Shell.view context={@context}>
-  <Dashboard.view context={@context} />
-  <Resource.view context={@context} />
-</Shell.view>
+- Main adapter — shell and surface dispatch
+- Controls — filters, variables, and basic controls
+- Table — resource tables and row actions
+- Form — resource forms
+- Inspector — resource detail views
+- Dashboard — dashboard widgets
+
+Configure the adapter in runtime config:
+
+```elixir
+config :incant,
+  ui_adapter: Incant.UI.Adapters.LiveView,
+  density: :compact
 ```
 
-Resource rendering is split into header, form, detail, and table components.
+Per-admin overrides use the admin module as the config key.

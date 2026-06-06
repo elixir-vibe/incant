@@ -2,7 +2,7 @@
 
 Incant is an Elixir/Phoenix-native control plane for serious admin, content, analytics, dashboards, and operations work.
 
-Incant is experimental. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a generic LiveView renderer for tables, details, forms, filters, dashboards, and row actions.
+Incant is experimental. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a semantic UI document layer and default LiveView adapter for tables, details, forms, filters, dashboards, and row actions.
 
 See [PLAN.md](PLAN.md) for the full product thesis and roadmap, [CONVENTIONS.md](CONVENTIONS.md) for the recommended application structure, and [REFERENCES.md](REFERENCES.md) for external packages and products informing the design.
 
@@ -26,7 +26,7 @@ mix setup
 mix phx.server
 ```
 
-Visit `/admin` to see the generic LiveView renderer.
+Visit `/admin` to see the default LiveView UI adapter.
 
 ## Minimal resource
 

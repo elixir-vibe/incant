@@ -1,6 +1,6 @@
 # Architecture
 
-Incant is split into four layers: DSL metadata, runtime context, LiveView rendering, and policy/data execution.
+Incant is split into five layers: DSL metadata, runtime context, semantic UI documents, UI adapters, and policy/data execution.
 
 ## DSL metadata
 
@@ -13,7 +13,7 @@ The metadata layer is intentionally inspectable:
 - `Incant.Dashboard.Metadata`
 - `Incant.Theme.Metadata`
 
-The LiveView renderer consumes metadata; it does not depend on user-written HEEx templates for each resource.
+The runtime consumes metadata; it does not depend on user-written HEEx templates for each resource.
 
 ## Live context
 
@@ -28,28 +28,38 @@ The live context is the runtime state passed to components. It includes:
 - typed and raw dashboard variables
 - widget values
 
-The context keeps component APIs small:
+The live context is converted into an `Incant.UI.Document`, which is the stable input for UI adapters.
 
-```heex
-<Shell.view context={@context}>
-  <Dashboard.view context={@context} />
-  <Resource.view context={@context} />
-</Shell.view>
+## Semantic UI layer
+
+`Incant.UI.Document.from_context/2` builds admin-domain UI nodes:
+
+- `Incant.UI.Surfaces.*` for page-level surfaces
+- `Incant.UI.Regions.*` for admin page sections
+- `Incant.UI.Controls.*` for value-changing controls
+- `Incant.UI.Actions.*` for user-triggered commands
+
+This is not a generic component framework. Incant describes what the user can do; adapters decide markup, focus behavior, keyboard behavior, ARIA details, and local client state.
+
+## UI adapters
+
+The default adapter is `Incant.UI.Adapters.LiveView`. Configure adapters in runtime config:
+
+```elixir
+config :incant,
+  ui_adapter: Incant.UI.Adapters.LiveView,
+  density: :compact
 ```
 
-## Renderer modules
+Per-admin overrides use the admin module as the config key:
 
-The generic renderer is organized by surface:
+```elixir
+config :incant, MyApp.Admin,
+  ui_adapter: MyApp.Admin.UIAdapter,
+  density: :compact
+```
 
-- Shell
-- Dashboard
-- Resource
-- Resource header
-- Resource form
-- Resource detail
-- Resource table
-
-The resource renderer is mostly orchestration; table/detail/form concerns live in submodules.
+The admin DSL should define admin semantics. Visual preferences such as adapter and density belong in config unless they are intrinsic to the resource model.
 
 ## Data loading flow
 
