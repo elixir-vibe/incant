@@ -18,6 +18,11 @@ defmodule Incant.UI.DocumentTest do
       action(:archive, tone: :danger)
       search([:name])
     end
+
+    form do
+      field(:name)
+      field(:status, :select, options: [:draft, :active])
+    end
   end
 
   defmodule OperationsDashboard do
@@ -56,6 +61,68 @@ defmodule Incant.UI.DocumentTest do
     assert Enum.map(document.surface.table.row_actions, & &1.name) == [:archive]
   end
 
+  test "builds resource detail document" do
+    resource = Incant.metadata(ProductResource)
+
+    document =
+      context(
+        resource: resource,
+        resources: [resource],
+        selected_row: %{id: 12, name: "Notebook", status: :active}
+      )
+      |> Incant.UI.Document.from_context(page_title: "Notebook")
+
+    assert %Incant.UI.Surfaces.ResourceIndex{detail: detail, form: nil} = document.surface
+    assert detail.title == "Notebook"
+    assert Enum.map(detail.fields, & &1.id) == ["name", "status"]
+  end
+
+  test "builds new form document" do
+    resource = Incant.metadata(ProductResource)
+
+    document =
+      context(
+        resource: resource,
+        resources: [resource],
+        form_mode: :new,
+        form_record: %{},
+        form_changeset: %{}
+      )
+      |> Incant.UI.Document.from_context(page_title: "New Product")
+
+    assert %Incant.UI.Surfaces.ResourceIndex{form: form, detail: nil} = document.surface
+    assert form.mode == :new
+    assert Enum.map(form.fields, & &1.name) == ["name", "status"]
+  end
+
+  test "builds edit form document" do
+    resource = Incant.metadata(ProductResource)
+
+    document =
+      context(
+        resource: resource,
+        resources: [resource],
+        selected_row: %{id: 12, name: "Notebook", status: :active},
+        form_mode: :edit,
+        form_record: %{id: 12, name: "Notebook", status: :active},
+        form_changeset: %{name: "Notebook", status: :active}
+      )
+      |> Incant.UI.Document.from_context(page_title: "Edit Product")
+
+    assert %Incant.UI.Surfaces.ResourceIndex{form: form, detail: nil} = document.surface
+    assert form.mode == :edit
+    assert Enum.map(form.fields, & &1.value) == ["Notebook", :active]
+  end
+
+  test "builds empty document for denied or unmatched contexts" do
+    document =
+      context(resource: nil, section: nil, authorization: {:error, {:unauthorized, :index}})
+      |> Incant.UI.Document.from_context(page_title: "Denied")
+
+    assert %Incant.UI.Surfaces.Empty{context: %{authorization: {:error, {:unauthorized, :index}}}} =
+             document.surface
+  end
+
   test "builds dashboard document" do
     dashboard = Incant.metadata(OperationsDashboard)
 
@@ -90,6 +157,10 @@ defmodule Incant.UI.DocumentTest do
           section: if(dashboard, do: "dashboard", else: "resource"),
           resource: resource,
           dashboard: dashboard,
+          form_mode: nil,
+          form_record: nil,
+          form_changeset: nil,
+          selected_row: nil,
           table_state: %{search: "", filters: %{}, sort: "", page: 1, page_size: 25},
           rows: [],
           pagination: %{page: 1, page_size: 25, total: 0, total_pages: 1},

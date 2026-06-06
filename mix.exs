@@ -31,7 +31,7 @@ defmodule Incant.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp description do
-    "Phoenix-native admin/control-plane DSL and generic LiveView renderer for resources, dashboards, forms, filters, actions, themes, and policies."
+    "Phoenix-native admin/control-plane DSL with semantic UI documents, a default LiveView adapter, resources, dashboards, forms, filters, actions, themes, and policies."
   end
 
   defp package do
@@ -59,6 +59,7 @@ defmodule Incant.MixProject do
         "docs/authorization.md",
         "docs/design.md",
         "docs/live-components.md",
+        "docs/live-vue-adapter.md",
         "docs/architecture.md",
         "docs/release-checklist.md"
       ]

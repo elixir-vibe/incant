@@ -29,6 +29,33 @@ defmodule Incant.UI.Event do
 
   defstruct [:op, :surface, :target, :value, meta: %{}]
 
+  def new(op, attrs \\ []) when is_atom(op) do
+    attrs = normalize_attrs(attrs)
+
+    %__MODULE__{
+      op: parse_op(op),
+      surface: attrs.surface,
+      target: attrs.target,
+      value: attrs.value,
+      meta: attrs.meta
+    }
+  end
+
+  def navigate(attrs \\ []), do: new(:navigate, attrs)
+  def filter_commit(attrs \\ []), do: new(:filter_commit, attrs)
+  def filter_clear(attrs \\ []), do: new(:filter_clear, attrs)
+  def search_commit(attrs \\ []), do: new(:search_commit, attrs)
+  def sort(attrs \\ []), do: new(:sort, attrs)
+  def paginate(attrs \\ []), do: new(:paginate, attrs)
+  def row_select(attrs \\ []), do: new(:row_select, attrs)
+  def row_action(attrs \\ []), do: new(:row_action, attrs)
+  def bulk_action(attrs \\ []), do: new(:bulk_action, attrs)
+  def form_validate(attrs \\ []), do: new(:form_validate, attrs)
+  def form_submit(attrs \\ []), do: new(:form_submit, attrs)
+  def form_cancel(attrs \\ []), do: new(:form_cancel, attrs)
+  def dashboard_variable_commit(attrs \\ []), do: new(:dashboard_variable_commit, attrs)
+  def widget_refresh(attrs \\ []), do: new(:widget_refresh, attrs)
+
   def serialize(%__MODULE__{} = event) do
     %{
       "op" => event.op && to_string(event.op),
@@ -53,6 +80,17 @@ defmodule Incant.UI.Event do
   end
 
   def parse(params) when is_map(params), do: struct(__MODULE__, params)
+
+  defp normalize_attrs(attrs) do
+    attrs = Map.new(attrs)
+
+    %{
+      surface: Map.get(attrs, :surface, Map.get(attrs, "surface")),
+      target: Map.get(attrs, :target, Map.get(attrs, "target")),
+      value: Map.get(attrs, :value, Map.get(attrs, "value")),
+      meta: Map.get(attrs, :meta, Map.get(attrs, "meta", %{}))
+    }
+  end
 
   defp parse_op(op) when is_atom(op), do: op
   defp parse_op("navigate"), do: :navigate
