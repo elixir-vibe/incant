@@ -1,5 +1,7 @@
 # Design and theming
 
+Incant is experimental; theme tokens may still change before a first stable release.
+
 
 Incant renderers use semantic CSS variables instead of fixed Tailwind palette classes. Add the Incant source path to your Tailwind app and define the variables in your app CSS:
 

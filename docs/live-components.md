@@ -1,5 +1,7 @@
 # Live components
 
+Incant is experimental; internal LiveView component modules may still change before a first stable release.
+
 
 The generic renderer follows Phoenix-style module names. Root components expose `view/1` and nested resource modules keep local names concise:
 

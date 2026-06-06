@@ -2,7 +2,7 @@
 
 Incant is an Elixir/Phoenix-native control plane for serious admin, content, analytics, dashboards, and operations work.
 
-It is currently in its first implementation pass. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a generic LiveView renderer for tables, details, forms, filters, dashboards, and row actions.
+It is currently experimental and in its first implementation pass. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a generic LiveView renderer for tables, details, forms, filters, dashboards, and row actions.
 
 See [PLAN.md](PLAN.md) for the full product thesis and roadmap, [CONVENTIONS.md](CONVENTIONS.md) for the recommended application structure, and [REFERENCES.md](REFERENCES.md) for external packages and products informing the design.
 
@@ -68,6 +68,8 @@ end
 - [Authorization and policy scoping](docs/authorization.md)
 - [Design tokens and themes](docs/design.md)
 - [Live component structure](docs/live-components.md)
+- [Architecture](docs/architecture.md)
+- [Release checklist](docs/release-checklist.md)
 
 ## Development
 

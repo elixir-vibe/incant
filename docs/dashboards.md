@@ -1,5 +1,7 @@
 # Dashboards
 
+Incant is experimental; dashboard widgets and variable contracts may still change before a first stable release.
+
 
 ```elixir
 defmodule MyApp.Admin.Dashboards.LLMStats do
@@ -28,3 +30,5 @@ def total_requests(variables, %{raw_variables: raw_variables}) do
   # variables may contain typed dates; raw_variables keeps original URL params.
 end
 ```
+
+See [Architecture](architecture.md) for the dashboard data-loading flow.

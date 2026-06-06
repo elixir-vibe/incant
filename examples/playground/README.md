@@ -1,23 +1,6 @@
-# Incant Playground
+# Incant playground
 
-Phoenix playground for Incant development.
-
-It uses the local `incant` path dependency and VibeKit conventions, then follows Incant's concept-based admin structure:
-
-```text
-lib/playground/admin.ex
-lib/playground/admin/resources
-lib/playground/admin/dashboards
-lib/playground/admin/themes
-lib/playground/admin/metrics
-```
-
-The sample metadata covers:
-
-- product resource table
-- LLM request resource table
-- LLM proxy dashboard widgets
-- Tailwind/CSS-variable theme contract
+This Phoenix app exercises Incant against a small but realistic admin domain.
 
 ## Run
 
@@ -26,13 +9,35 @@ mix setup
 mix phx.server
 ```
 
-Visit [`localhost:4000`](http://localhost:4000) for the metadata overview or [`localhost:4000/admin`](http://localhost:4000/admin) for the generic Incant LiveView renderer.
+Open `/admin`.
 
-## Checks
+## Domain contexts
 
-```sh
-mix test
-mix ci
+The playground keeps admin definitions separate from domain data:
+
+- `Playground.Catalog` exposes products.
+- `Playground.LLM` exposes LLM request data and dashboard metrics.
+- `Playground.Support` exposes tickets with an Ecto changeset.
+
+## Admin structure
+
+```text
+lib/playground/admin.ex
+lib/playground/admin/resources/product.ex
+lib/playground/admin/resources/llm_request.ex
+lib/playground/admin/resources/ticket.ex
+lib/playground/admin/dashboards/llm.ex
+lib/playground/admin/themes/default.ex
 ```
 
-The playground `mix ci` keeps VibeKit's Credo, ExDNA, and Reach checks. Dialyzer is intentionally omitted here because the generated Phoenix test support currently emits framework macro warnings that are not useful for playground iteration.
+The admin demonstrates:
+
+- data-backed resources
+- table columns, filters, row actions, and detail pages
+- dashboard stat, timeseries, and table widgets
+- form validation and save flow through a small repo stub
+- semantic CSS variables via the theme
+
+## Why no separate restricted route?
+
+Authorization behavior is covered by Incant's library tests. The playground keeps one clean `/admin` surface so it feels like a real app rather than a test harness.

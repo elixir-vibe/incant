@@ -1,5 +1,7 @@
 # Resources
 
+Incant is experimental; resource DSL and renderer details may still change before a first stable release.
+
 
 ```elixir
 defmodule MyApp.Admin.Resources.Order do
@@ -27,6 +29,8 @@ defmodule MyApp.Admin.Resources.Order do
   end
 end
 ```
+
+See also [Authorization](authorization.md) for policy scoping and [Design and theming](design.md) for table styling.
 
 ## Filters
 

@@ -1,5 +1,6 @@
 # Authorization
 
+Incant is experimental; authorization APIs may still change before a first stable release.
 
 Incant reuses the host Phoenix application's existing authentication. It does not generate a user model. The LiveView context exposes an `actor`, detected from assigns in this order:
 
@@ -46,6 +47,8 @@ end
 ```
 
 Return `true`/`:ok` to allow or `false`/`:error`/`{:error, reason}` to deny. Without a configured policy, Incant allows all actions.
+
+See [Architecture](architecture.md) for the runtime authorization/data-loading flow.
 
 Policies may also scope data:
 
