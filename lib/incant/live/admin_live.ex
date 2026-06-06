@@ -31,10 +31,17 @@ defmodule Incant.Live.AdminLive do
     resources = socket.assigns.resources
     dashboards = socket.assigns.dashboards
 
-    selected_resource = select_by_module(resources, params["resource"]) || List.first(resources)
+    visible_resources =
+      filter_authorized(resources, socket.assigns.admin, socket.assigns.actor, :view_resource)
+
+    visible_dashboards =
+      filter_authorized(dashboards, socket.assigns.admin, socket.assigns.actor, :view_dashboard)
+
+    selected_resource =
+      select_by_module(resources, params["resource"]) || List.first(visible_resources)
 
     selected_dashboard =
-      select_by_module(dashboards, params["dashboard"]) || List.first(dashboards)
+      select_by_module(dashboards, params["dashboard"]) || List.first(visible_dashboards)
 
     section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
     table_state = table_state(params)
@@ -42,12 +49,6 @@ defmodule Incant.Live.AdminLive do
     raw_dashboard_variables = Map.get(params, "var", %{})
     dashboard_variables = cast_dashboard_variables(selected_dashboard, raw_dashboard_variables)
     form_mode = form_mode(socket.assigns.live_action)
-
-    visible_resources =
-      filter_authorized(resources, socket.assigns.admin, socket.assigns.actor, :view_resource)
-
-    visible_dashboards =
-      filter_authorized(dashboards, socket.assigns.admin, socket.assigns.actor, :view_dashboard)
 
     context =
       %Incant.Live.Context{

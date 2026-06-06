@@ -15,6 +15,7 @@ defmodule Incant.Live.AuthorizationTest do
     def authorize(:ok, _actor, _context), do: :ok
     def authorize(:denied, _actor, _context), do: false
     def authorize(:edit, _actor, _context), do: false
+    def authorize(:view_dashboard, _actor, _context), do: false
     def authorize(:reason, _actor, _context), do: {:error, :missing_role}
   end
 
@@ -22,6 +23,7 @@ defmodule Incant.Live.AuthorizationTest do
     use Incant.Policy
 
     def authorize(:edit, _actor, _context), do: true
+    def authorize(:view_dashboard, _actor, _context), do: true
   end
 
   test "detects Phoenix current scope before other actor assigns" do
@@ -73,5 +75,12 @@ defmodule Incant.Live.AuthorizationTest do
     resource = %{opts: [policy: LocalPolicy]}
 
     assert Authorization.authorize(admin, :edit, nil, %{resource: resource}) == :ok
+  end
+
+  test "dashboard policy overrides admin policy for dashboard actions" do
+    admin = %Metadata{opts: [policy: Policy]}
+    dashboard = %{opts: [policy: LocalPolicy]}
+
+    assert Authorization.authorize(admin, :view_dashboard, nil, %{dashboard: dashboard}) == :ok
   end
 end

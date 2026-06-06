@@ -65,7 +65,7 @@ defmodule Incant.Live.Rows do
     queryable =
       resource
       |> queryable(%{}, false, context)
-      |> filter_by_id(id)
+      |> filter_by_id(resource, id)
 
     repo
     |> apply(:one, [queryable])
@@ -203,11 +203,36 @@ defmodule Incant.Live.Rows do
 
   defp scope_rows(rows, _resource, _context), do: rows
 
-  defp filter_by_id(%Ecto.Query{} = queryable, id) do
-    where(queryable, [row], field(row, :id) == ^id)
+  defp filter_by_id(%Ecto.Query{} = queryable, resource, id) do
+    primary_key = primary_key(resource)
+    id = cast_id(resource, primary_key, id)
+
+    where(queryable, [row], field(row, ^primary_key) == ^id)
   end
 
-  defp filter_by_id(queryable, _id), do: queryable
+  defp filter_by_id(queryable, _resource, _id), do: queryable
+
+  defp primary_key(%{schema: schema}) when is_atom(schema) do
+    if function_exported?(schema, :__schema__, 1) do
+      schema |> apply(:__schema__, [:primary_key]) |> List.first() || :id
+    else
+      :id
+    end
+  end
+
+  defp primary_key(_resource), do: :id
+
+  defp cast_id(%{schema: schema}, field, id) when is_atom(schema) do
+    with true <- function_exported?(schema, :__schema__, 2),
+         type when not is_nil(type) <- apply(schema, :__schema__, [:type, field]),
+         {:ok, casted} <- Ecto.Type.cast(type, id) do
+      casted
+    else
+      _fallback -> id
+    end
+  end
+
+  defp cast_id(_resource, _field, id), do: id
 
   defp query_count(%{repo: repo} = resource, table_state, context) do
     queryable = queryable(resource, table_state, false, context)

@@ -43,4 +43,10 @@ defmodule Playground.AdminLiveTest do
     assert html =~ "Record not found or unavailable"
     refute html =~ "Dashboard Wand"
   end
+
+  test "form policies receive submitted attrs without crashing", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/restricted-admin/resources/product/1/edit")
+
+    assert render_change(view, "validate_form", %{"resource" => %{"name" => "Forbidden"}}) =~ "Product"
+  end
 end

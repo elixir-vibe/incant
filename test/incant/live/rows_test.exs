@@ -133,7 +133,7 @@ defmodule Incant.Live.RowsTest do
   test "loads repo-backed detail rows with a scoped id query" do
     resource = %Metadata{repo: Repo, schema: QueryProduct, table: %Table{}}
 
-    assert %{id: 1, params: [{"1", {0, :id}}]} = Rows.one(resource, "1", %{})
+    assert %{id: 1, params: [{1, {0, :id}}]} = Rows.one(resource, "1", %{})
   end
 
   test "falls back to subquery count when aggregate count fails" do
