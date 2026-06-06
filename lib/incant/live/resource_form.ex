@@ -133,6 +133,11 @@ defmodule Incant.Live.Resource.Form do
   end
 
   defp form_source(nil), do: %{}
+  defp form_source(%{__struct__: Ecto.Changeset, params: params}) when is_map(params), do: params
+
+  defp form_source(%{__struct__: Ecto.Changeset, changes: changes}) when is_map(changes),
+    do: changes
+
   defp form_source(changeset), do: changeset
 
   defp form_like?(%{__struct__: Phoenix.HTML.Form}), do: true

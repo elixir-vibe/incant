@@ -52,6 +52,24 @@ defmodule Incant.Live.RowsTest do
     end
   end
 
+  defmodule SlugProduct do
+    use Ecto.Schema
+
+    @primary_key {:slug, :string, []}
+    schema "slug_products" do
+      field(:name, :string)
+    end
+  end
+
+  defmodule UUIDProduct do
+    use Ecto.Schema
+
+    @primary_key {:id, :binary_id, []}
+    schema "uuid_products" do
+      field(:name, :string)
+    end
+  end
+
   test "loads rows from data callbacks" do
     resource = %Metadata{data: fn _params -> [%{id: 1, name: "Incant Pro"}] end, table: %Table{}}
 
@@ -134,6 +152,19 @@ defmodule Incant.Live.RowsTest do
     resource = %Metadata{repo: Repo, schema: QueryProduct, table: %Table{}}
 
     assert %{id: 1, params: [{1, {0, :id}}]} = Rows.one(resource, "1", %{})
+  end
+
+  test "loads repo-backed detail rows with custom primary keys" do
+    resource = %Metadata{repo: Repo, schema: SlugProduct, table: %Table{}}
+
+    assert %{id: 1, params: [{"wand", {0, :slug}}]} = Rows.one(resource, "wand", %{})
+  end
+
+  test "casts binary primary keys for repo-backed detail rows" do
+    uuid = "11111111-1111-1111-1111-111111111111"
+    resource = %Metadata{repo: Repo, schema: UUIDProduct, table: %Table{}}
+
+    assert %{id: 1, params: [{^uuid, {0, :id}}]} = Rows.one(resource, uuid, %{})
   end
 
   test "falls back to subquery count when aggregate count fails" do

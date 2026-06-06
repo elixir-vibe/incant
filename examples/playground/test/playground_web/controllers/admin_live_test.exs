@@ -35,4 +35,20 @@ defmodule Playground.AdminLiveTest do
     assert html =~ "Slow requests"
     assert html =~ "gemini-3-pro"
   end
+
+  test "renders form validation errors", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/admin/resources/ticket/new")
+
+    html = render_change(view, "validate_form", %{"resource" => %{"title" => ""}})
+
+    assert html =~ "can&#39;t be blank"
+  end
+
+  test "saves valid form submissions", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/admin/resources/ticket/new")
+
+    render_submit(view, "save_form", %{"resource" => %{"title" => "Need help", "priority" => "high", "status" => "open"}})
+
+    assert_patch(view, "/admin/resources/ticket/99")
+  end
 end

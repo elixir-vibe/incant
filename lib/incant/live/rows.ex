@@ -12,7 +12,7 @@ defmodule Incant.Live.Rows do
   def page(resource, table_state, context \\ %{})
   def page(nil, table_state, context), do: page([], table_state, context)
 
-  def page(%{repo: repo, schema: schema} = resource, table_state, context)
+  def page(%{repo: repo, schema: schema, data: nil} = resource, table_state, context)
       when not is_nil(repo) and not is_nil(schema) do
     page = positive_integer(Map.get(table_state, :page), 1)
     page_size = positive_integer(Map.get(table_state, :page_size), 25)

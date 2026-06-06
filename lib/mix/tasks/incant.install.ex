@@ -40,7 +40,7 @@ defmodule Mix.Tasks.Incant.Install do
   end
 
   defp patch_router(igniter, app, namespace) do
-    case Enum.find(router_paths(app), &File.exists?/1) do
+    case Enum.find(router_paths(app), &Igniter.exists?(igniter, &1)) do
       nil ->
         Igniter.add_warning(igniter, router_instructions(namespace))
 
@@ -54,7 +54,7 @@ defmodule Mix.Tasks.Incant.Install do
   end
 
   defp patch_css(igniter) do
-    case Enum.find(css_paths(), &File.exists?/1) do
+    case Enum.find(css_paths(), &Igniter.exists?(igniter, &1)) do
       nil ->
         Igniter.add_warning(igniter, css_instructions())
 

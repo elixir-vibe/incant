@@ -6,6 +6,7 @@ defmodule Playground.Admin do
 
   resource(Playground.Admin.Resources.Product)
   resource(Playground.Admin.Resources.LLMRequest)
+  resource(Playground.Admin.Resources.Ticket)
 
   dashboard(Playground.Admin.Dashboards.LLM)
 end
