@@ -1,14 +1,12 @@
 defmodule Playground.Admin.Resources.Product do
   @moduledoc false
 
-  alias Playground.Admin.Data
-
   use Incant.Resource,
-    schema: Playground.Catalog.Product,
-    repo: Playground.Repo
+    schema: Playground.Catalog.Product
 
-  query(&__MODULE__.index_query/2)
-  data(&Data.products/1)
+  alias Playground.Catalog
+
+  data(&Catalog.list_products/1)
 
   form do
     field(:name)
@@ -27,16 +25,8 @@ defmodule Playground.Admin.Resources.Product do
     filter(:status, :select, options: [:draft, :active, :archived])
     filter(:inserted_at, :date_range)
 
-    action(:edit)
-    action(:archive, confirm: true, tone: :danger)
-
-    transformer :inventory_health, label: "Inventory Health" do
-      query_transformer(&__MODULE__.inventory_health/3)
-    end
+    action(:archive, confirm: true, tone: :danger, callback: &Catalog.archive_product/1)
 
     search([:name])
   end
-
-  def index_query(query, _context), do: query
-  def inventory_health(query, _params, _context), do: query
 end

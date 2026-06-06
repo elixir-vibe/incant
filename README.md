@@ -8,7 +8,7 @@ See [PLAN.md](PLAN.md) for the full product thesis and roadmap, [CONVENTIONS.md]
 
 ## Playground
 
-A Phoenix playground lives in [`examples/playground`](examples/playground). It uses the local Incant package and VibeKit, then defines sample resources, a dashboard, and a theme contract. Visit `/admin` to see the generic LiveView renderer.
+A Phoenix playground lives in [`examples/playground`](examples/playground). It uses the local Incant package and VibeKit, then defines realistic Catalog and LLM contexts, admin resources, an operations dashboard, and a theme contract. Visit `/admin` to see the generic LiveView renderer.
 
 ```sh
 cd examples/playground

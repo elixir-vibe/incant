@@ -16,7 +16,10 @@
           production LiveView control plane.
         </p>
       </div>
-      <Layouts.theme_toggle />
+      <div class="flex items-center gap-3">
+        <.link navigate={~p"/admin"} class="btn btn-primary">Open admin</.link>
+        <Layouts.theme_toggle />
+      </div>
     </div>
 
     <div class="grid gap-4 md:grid-cols-3">
