@@ -355,7 +355,8 @@ defmodule Incant.Live.AdminLive do
             raw_variables: raw_variables
           })
         rescue
-          error -> {:error, Exception.message(error)}
+          error in [ArgumentError, FunctionClauseError, UndefinedFunctionError, RuntimeError] ->
+            {:error, Exception.message(error)}
         catch
           kind, reason -> {:error, "#{kind}: #{inspect(reason)}"}
         end
