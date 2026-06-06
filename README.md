@@ -85,6 +85,14 @@ defmodule MyApp.Admin.Dashboards.LLMStats do
 end
 ```
 
+Dashboard query callbacks receive typed variable values as the first argument. For two-argument callbacks, the second argument includes both typed and raw URL values:
+
+```elixir
+def total_requests(variables, %{raw_variables: raw_variables}) do
+  # variables may contain typed dates; raw_variables keeps original URL params.
+end
+```
+
 ## Design tokens
 
 Incant renderers use semantic CSS variables instead of fixed Tailwind palette classes. Add the Incant source path to your Tailwind app and define the variables in your app CSS:
@@ -215,8 +223,8 @@ defmodule MyApp.Admin.Policy do
   def authorize(:view_resource, actor, %{resource: resource}), do: can_view?(actor, resource)
   def authorize(:view_dashboard, actor, %{dashboard: dashboard}), do: can_view?(actor, dashboard)
   def authorize(:view_row, actor, %{resource: resource, selected_row: row}), do: can_view_row?(actor, resource, row)
-  def authorize(:create, actor, %{resource: resource}), do: can_create?(actor, resource)
-  def authorize(:edit, actor, %{resource: resource, row: row}), do: can_edit?(actor, resource, row)
+  def authorize(:create, actor, %{resource: resource, attrs: attrs}), do: can_create?(actor, resource, attrs)
+  def authorize(:edit, actor, %{resource: resource, row: row, attrs: attrs}), do: can_edit?(actor, resource, row, attrs)
   def authorize(:run_action, actor, %{action: action, row: row}), do: can_run?(actor, action, row)
 end
 ```
