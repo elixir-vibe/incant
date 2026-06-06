@@ -46,7 +46,7 @@ defmodule Incant.Live.Components do
 
   def primary_link(assigns) do
     ~H"""
-    <.link patch={@patch} class={["font-medium text-[var(--incant-primary)] hover:underline", @class]}>
+    <.link patch={@patch} class={["font-medium text-[var(--incant-text-highlighted)] hover:underline", @class]}>
       {render_slot(@inner_block)}
     </.link>
     """
@@ -105,7 +105,7 @@ defmodule Incant.Live.Components do
   end
 
   defp badge_class(:primary) do
-    "inline-flex h-5 items-center rounded-md bg-[color-mix(in_oklab,var(--incant-primary)_10%,transparent)] px-1.5 text-[11px] font-medium leading-none text-[var(--incant-primary)]"
+    "inline-flex h-5 items-center rounded-md bg-[var(--incant-bg-muted)] px-1.5 text-[11px] font-medium leading-none text-[var(--incant-text-toned)]"
   end
 
   defp badge_class(_tone) do

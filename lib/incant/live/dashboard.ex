@@ -18,13 +18,8 @@ defmodule Incant.Live.Dashboard do
 
     ~H"""
     <section class="space-y-3">
-      <.card class="flex flex-col gap-3 p-3">
-        <div>
-          <p class="text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">Dashboard</p>
-          <h2 class="text-lg font-semibold tracking-tight text-[var(--incant-text-highlighted)]">{@dashboard.title}</h2>
-        </div>
-
-        <.form :let={_form} :if={@dashboard.variables != []} for={%{}} as={:var} phx-change="dashboard_variables" class="grid gap-2 md:grid-cols-4">
+      <.card :if={@dashboard.variables != []} class="p-2">
+        <.form :let={_form} for={%{}} as={:var} phx-change="dashboard_variables" class="grid gap-2 md:grid-cols-4">
           <.variable_control :for={variable <- @dashboard.variables} variable={variable} value={Map.get(@variables, to_string(variable.name), variable.opts[:default])} />
         </.form>
       </.card>
@@ -92,10 +87,9 @@ defmodule Incant.Live.Dashboard do
   def widget_card(%{widget: %{type: :stat}} = assigns) do
     ~H"""
     <.card class="p-3" style={widget_style(@widget)}>
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <p class="text-xs font-medium text-[var(--incant-text-muted)]">{widget_label(@widget)}</p>
-          <div class="mt-2 text-2xl font-semibold tracking-tight text-[var(--incant-text-highlighted)]">
+      <div>
+        <p class="text-xs font-medium text-[var(--incant-text-muted)]">{widget_label(@widget)}</p>
+        <div class="mt-2 text-2xl font-semibold tracking-tight text-[var(--incant-text-highlighted)]">
             <%= if @error do %>
               <span class="text-base text-[var(--incant-error)]">{@error}</span>
             <% else %>
@@ -104,10 +98,8 @@ defmodule Incant.Live.Dashboard do
               <% else %>
                 <span class="text-[var(--incant-text-dimmed)]">—</span>
               <% end %>
-            <% end %>
-          </div>
+          <% end %>
         </div>
-        <.pill class="border-0 bg-[color-mix(in_oklab,var(--incant-primary)_10%,transparent)] text-[var(--incant-primary)]">stat</.pill>
       </div>
     </.card>
     """

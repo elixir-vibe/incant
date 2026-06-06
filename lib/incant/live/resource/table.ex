@@ -201,7 +201,7 @@ defmodule Incant.Live.Resource.Table do
     [
       "rounded-md px-1.5 py-1 text-xs transition",
       action.opts[:tone] == :danger &&
-        "text-[var(--incant-error)] hover:bg-[color-mix(in_oklab,var(--incant-error)_12%,transparent)]",
+        "text-[var(--incant-text-muted)] hover:bg-[color-mix(in_oklab,var(--incant-error)_8%,transparent)] hover:text-[var(--incant-error)]",
       action.opts[:tone] != :danger &&
         "text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
     ]
