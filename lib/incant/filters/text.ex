@@ -45,6 +45,6 @@ defmodule Incant.Filters.Text do
       where(queryable, [row], ilike(field(row, ^filter.name), ^pattern))
     end
   rescue
-    _error -> queryable
+    _error in [ArgumentError, Ecto.QueryError] -> queryable
   end
 end

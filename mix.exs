@@ -7,6 +7,10 @@ defmodule Incant.MixProject do
       version: "0.1.0",
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
+      description: description(),
+      package: package(),
+      docs: docs(),
+      dialyzer: [plt_add_apps: [:mix]],
       deps: deps(),
       aliases: aliases()
     ]
@@ -26,6 +30,41 @@ defmodule Incant.MixProject do
   end
 
   # Run "mix help deps" to learn about dependencies.
+  defp description do
+    "Phoenix-native admin/control-plane DSL and generic LiveView renderer for resources, dashboards, forms, filters, actions, themes, and policies."
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/dannote/incant"
+      },
+      files: ~w(lib mix.exs README.md CHANGELOG.md CONVENTIONS.md PLAN.md REFERENCES.md docs)
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: [
+        "README.md",
+        "CHANGELOG.md",
+        "CONVENTIONS.md",
+        "PLAN.md",
+        "REFERENCES.md",
+        "docs/install.md",
+        "docs/resources.md",
+        "docs/dashboards.md",
+        "docs/authorization.md",
+        "docs/design.md",
+        "docs/live-components.md",
+        "docs/architecture.md",
+        "docs/release-checklist.md"
+      ]
+    ]
+  end
+
   defp deps do
     [
       {:ex_slop, "~> 0.4", only: [:dev, :test], runtime: false},

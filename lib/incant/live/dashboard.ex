@@ -247,18 +247,6 @@ defmodule Incant.Live.Dashboard do
     |> String.capitalize()
   end
 
-  defp format_widget_value(value, widget), do: format_value(value, widget.opts[:format])
-
-  defp format_value(value, :money), do: format_currency(value)
-  defp format_value(value, :currency), do: format_currency(value)
-  defp format_value(value, :percent) when is_number(value), do: "#{Float.round(value * 100, 2)}%"
-  defp format_value(value, :relative), do: to_string(value)
-  defp format_value(value, _format), do: to_string(value)
-
-  defp format_currency(value) when is_integer(value), do: "$#{value}"
-
-  defp format_currency(value) when is_float(value),
-    do: "$#{:erlang.float_to_binary(value, decimals: 2)}"
-
-  defp format_currency(value), do: to_string(value)
+  defp format_widget_value(value, widget),
+    do: Incant.Live.Format.value(value, widget.opts[:format])
 end

@@ -62,6 +62,8 @@ end
 
 ## Guides
 
+See [docs/README.md](docs/README.md) for the full docs index.
+
 - [Installation](docs/install.md)
 - [Resources, filters, forms, actions, and query-backed data](docs/resources.md)
 - [Dashboards and variables](docs/dashboards.md)

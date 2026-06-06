@@ -51,9 +51,9 @@ defmodule Incant.Live.Routes do
 
   defp path([base_path | segments], query_params) do
     suffix =
-      segments
-      |> Enum.map(fn segment -> URI.encode(to_string(segment), &URI.char_unreserved?/1) end)
-      |> Enum.join("/")
+      Enum.map_join(segments, "/", fn segment ->
+        URI.encode(to_string(segment), &URI.char_unreserved?/1)
+      end)
 
     path = base_path <> "/" <> suffix
     query_params = reject_empty_values(query_params)

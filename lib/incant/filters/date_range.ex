@@ -60,7 +60,7 @@ defmodule Incant.Filters.DateRange do
       |> apply_to(filter, date_value(Map.get(value, "to")))
     end
   rescue
-    _error -> queryable
+    _error in [ArgumentError, Ecto.QueryError] -> queryable
   end
 
   defp apply_from(queryable, _filter, nil), do: queryable

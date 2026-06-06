@@ -46,6 +46,6 @@ defmodule Incant.Filters.MultiSelect do
       where(queryable, [row], field(row, ^filter.name) in ^values)
     end
   rescue
-    _error -> queryable
+    _error in [ArgumentError, Ecto.QueryError] -> queryable
   end
 end

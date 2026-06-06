@@ -244,7 +244,7 @@ defmodule Incant.Live.Rows do
   defp aggregate_count(repo, queryable) do
     apply(repo, :aggregate, [queryable, :count])
   rescue
-    _error -> nil
+    _error in [ArgumentError, FunctionClauseError, UndefinedFunctionError, RuntimeError] -> nil
   end
 
   defp subquery_count(repo, %Ecto.Query{} = queryable) do
@@ -256,7 +256,7 @@ defmodule Incant.Live.Rows do
 
     apply(repo, :one, [count_query])
   rescue
-    _error -> nil
+    _error in [ArgumentError, FunctionClauseError, UndefinedFunctionError, Ecto.QueryError] -> nil
   end
 
   defp subquery_count(_repo, _queryable), do: nil
@@ -269,7 +269,8 @@ defmodule Incant.Live.Rows do
     |> limit(^page_size)
     |> offset(^((page - 1) * page_size))
   rescue
-    _error -> queryable
+    _error in [ArgumentError, Ecto.QueryError, FunctionClauseError, Protocol.UndefinedError] ->
+      queryable
   end
 
   defp paginate_query(queryable, _table_state), do: queryable

@@ -7,7 +7,6 @@ defmodule Incant.Filters.Select do
 
   use Phoenix.Component
 
-  import Ecto.Query
   import Incant.Live.Components
 
   alias Incant.Filters.Shared
@@ -38,16 +37,6 @@ defmodule Incant.Filters.Select do
 
   @impl true
   def apply_query(filter, queryable, value, context) do
-    if Shared.custom_query?(filter) or Shared.blank?(value) do
-      Shared.apply_query_callback(filter, queryable, value, context)
-    else
-      where(
-        queryable,
-        [row],
-        field(row, ^filter.name) == ^Shared.cast_query_value(filter, value, context)
-      )
-    end
-  rescue
-    _error -> queryable
+    Shared.apply_equal_query(filter, queryable, value, context)
   end
 end

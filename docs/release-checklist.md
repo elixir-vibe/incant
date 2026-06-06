@@ -22,6 +22,15 @@ Incant is still experimental. Use this checklist before publishing a Hex release
 - Verify examples compile or are clearly marked conceptual.
 - Update `PLAN.md`, `CONVENTIONS.md`, and `REFERENCES.md` when product direction changes.
 
+## Current status
+
+Latest local release-prep smoke:
+
+- `mix ci` passes.
+- `cd examples/playground && mix test` passes.
+- Playground `/admin` renders in a local Phoenix server.
+- API naming remains `actor`, `actor_assign`, `actor`, and `policy` for now.
+
 ## Tests
 
 Run:

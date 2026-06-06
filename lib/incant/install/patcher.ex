@@ -47,7 +47,7 @@ defmodule Incant.Install.Patcher do
       |> Sourceror.to_string()
     end
   rescue
-    _error -> nil
+    _error in [ArgumentError, FunctionClauseError, MatchError] -> nil
   end
 
   defp ast_insert_admin_route(content, namespace) do
@@ -62,7 +62,7 @@ defmodule Incant.Install.Patcher do
       |> Sourceror.to_string()
     end
   rescue
-    _error -> nil
+    _error in [ArgumentError, FunctionClauseError, MatchError] -> nil
   end
 
   defp insert_route_in_scope(node, meta, args, route) do
