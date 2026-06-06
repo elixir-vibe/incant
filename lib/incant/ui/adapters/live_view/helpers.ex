@@ -6,10 +6,6 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   alias Incant.Live.Authorization
   alias Incant.UI.Adapters.LiveView.Theme
 
-  def input_class do
-    "h-8 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] transition focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_12%,transparent)]"
-  end
-
   def selected_values(nil), do: []
   def selected_values(values) when is_list(values), do: Enum.map(values, &to_string/1)
   def selected_values(value), do: [to_string(value)]
@@ -63,16 +59,6 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
 
   def form_enabled?(resource), do: not is_nil(resource.repo) and not is_nil(resource.changeset)
   def action_label(action), do: action.opts[:label] || humanize(action.name)
-
-  def action_class(action) do
-    [
-      "rounded-md px-1.5 py-1 text-xs transition",
-      action.opts[:tone] == :danger &&
-        "text-[var(--incant-text-muted)] hover:bg-[color-mix(in_oklab,var(--incant-error)_8%,transparent)] hover:text-[var(--incant-error)]",
-      action.opts[:tone] != :danger &&
-        "text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
-    ]
-  end
 
   def cell_class(cell) do
     align = if cell.source.opts[:align] == :right, do: :right, else: :left

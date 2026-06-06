@@ -25,7 +25,7 @@ defmodule Incant.UI.Adapters.LiveView.Form do
       <.form for={@phoenix_form} phx-change="incant:event" phx-submit="incant:event" class={Theme.slot(:panel, :body, kind: :form)}>
         <input type="hidden" name="op" value="form_validate" />
         <.form_control :for={field <- @form.fields} field={field} />
-        <div class="flex items-center gap-3 md:col-span-2">
+        <div class={Theme.slot(:panel, :form_actions)}>
           <button type="submit" name="op" value="form_submit" class={Theme.slot(:button, :base, variant: :primary)}>Save</button>
           <.link patch={form_back_path(@env)} class={Theme.slot(:button, :base, variant: :ghost)}>Cancel</.link>
         </div>

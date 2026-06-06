@@ -22,6 +22,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         topbar:
           "sticky top-0 z-10 border-b border-[var(--incant-border)] bg-[color-mix(in_oklab,var(--incant-bg-elevated)_94%,transparent)] px-5 backdrop-blur",
         topbar_inner: "mx-auto flex h-12 max-w-[1180px] items-center justify-between gap-3",
+        chrome_count: "hidden shrink-0 text-xs text-[var(--incant-text-muted)] md:block",
         body: "mx-auto max-w-[1180px] p-4 lg:p-5"
       }
     }
@@ -60,6 +61,26 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:nav) do
+    %Recipe{
+      slots: %{
+        root: "space-y-5 px-3 py-4",
+        group_label:
+          "px-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--incant-text-muted)]",
+        group_items: "mt-1 space-y-0.5"
+      }
+    }
+  end
+
+  def recipe(:debug) do
+    %Recipe{
+      slots: %{
+        pre:
+          "rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"
+      }
+    }
+  end
+
   def recipe(:surface) do
     %Recipe{
       slots: %{
@@ -78,14 +99,22 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
           "overflow-hidden rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]",
         header:
           "flex items-start justify-between gap-4 border-b border-[var(--incant-border-muted)] px-4 py-3",
-        body: "p-4"
+        body: "p-4",
+        form_actions: "flex items-center gap-3 md:col-span-2",
+        title: "text-sm text-[var(--incant-text-muted)]",
+        empty_title: "mt-2 text-xl font-semibold tracking-tight"
       },
       variants: %{
         kind: %{
-          filter: %{root: "rounded-lg", body: "space-y-3 p-3"},
+          filter: %{
+            root: "rounded-lg",
+            body: "space-y-3 p-3",
+            title: "text-lg font-semibold tracking-tight text-[var(--incant-text-highlighted)]"
+          },
           form: %{root: "max-w-[880px]", body: "grid gap-4 md:grid-cols-2"},
           table: %{root: "min-w-0"},
-          inspector: %{root: "max-w-[980px]"}
+          inspector: %{root: "max-w-[980px]"},
+          empty: %{root: "p-6 text-center"}
         }
       },
       default_variants: %{kind: :default}
@@ -97,6 +126,8 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
       slots: %{
         root:
           "grid gap-1 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]",
+        group: "space-y-3",
+        inline: "grid grid-cols-2 gap-2",
         input:
           "h-8 w-full rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm font-normal normal-case tracking-normal text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] transition-colors focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_12%,transparent)]",
         error: "text-xs font-normal normal-case tracking-normal text-[var(--incant-error)]"
@@ -105,9 +136,17 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         span: %{
           full: %{root: "md:col-span-2"},
           auto: %{}
+        },
+        style: %{
+          code: %{input: "font-mono"},
+          default: %{}
+        },
+        height: %{
+          tall: %{input: "min-h-20"},
+          default: %{}
         }
       },
-      default_variants: %{span: :auto}
+      default_variants: %{span: :auto, style: :default, height: :default}
     }
   end
 
@@ -144,25 +183,92 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:badge) do
+    %Recipe{
+      slots: %{
+        base: "inline-flex h-5 items-center rounded-md px-1.5 text-[11px] leading-none"
+      },
+      variants: %{
+        variant: %{
+          soft: %{base: "bg-[var(--incant-bg-muted)] font-medium text-[var(--incant-text-toned)]"},
+          outline: %{base: "border border-[var(--incant-border)] text-[var(--incant-text-muted)]"}
+        }
+      },
+      default_variants: %{variant: :outline}
+    }
+  end
+
   def recipe(:table) do
     %Recipe{
       slots: %{
+        viewport: "overflow-x-auto",
         root: "min-w-full text-sm",
         head:
           "border-b border-[var(--incant-border)] bg-[var(--incant-bg-muted)] text-left text-[11px] uppercase tracking-wide text-[var(--incant-text-muted)]",
         header_cell: "h-8 px-3 font-medium",
+        sort_button:
+          "inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+        body: "divide-y divide-[var(--incant-border-muted)]",
         row: "h-9 hover:bg-[var(--incant-bg-muted)]",
         cell: "px-3 py-1.5 text-[var(--incant-text-toned)]",
+        empty: "px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]",
+        actions: "px-3 py-1.5 text-right",
+        action_group: "inline-flex items-center gap-1",
+        link: "font-medium text-[var(--incant-text-highlighted)] hover:underline",
         pagination:
-          "flex h-10 items-center justify-between gap-3 border-t border-[var(--incant-border)] px-3 text-xs text-[var(--incant-text-muted)]"
+          "flex h-10 items-center justify-between gap-3 border-t border-[var(--incant-border)] px-3 text-xs text-[var(--incant-text-muted)]",
+        pagination_actions: "flex items-center gap-1"
       },
       variants: %{
         align: %{
-          right: %{cell: "text-right tabular-nums"},
+          right: %{header_cell: "text-right", cell: "text-right tabular-nums"},
           left: %{}
         }
       },
       default_variants: %{align: :left}
+    }
+  end
+
+  def recipe(:inspector) do
+    %Recipe{
+      slots: %{
+        list:
+          "grid divide-y divide-[var(--incant-border-muted)] md:grid-cols-2 md:divide-x md:divide-y-0 xl:grid-cols-3",
+        item: "px-4 py-3",
+        label: "text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]",
+        value: "mt-1 text-sm text-[var(--incant-text-highlighted)]"
+      }
+    }
+  end
+
+  def recipe(:widget_grid) do
+    %Recipe{
+      slots: %{
+        root: "grid grid-cols-1 gap-3 xl:grid-cols-12"
+      }
+    }
+  end
+
+  def recipe(:widget) do
+    %Recipe{
+      slots: %{
+        root:
+          "rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-3",
+        framed:
+          "overflow-hidden rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]",
+        title_row: "flex items-center justify-between gap-3",
+        header:
+          "flex items-center justify-between gap-3 border-b border-[var(--incant-border-muted)] p-3",
+        eyebrow:
+          "text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]",
+        title: "mt-1 font-mono text-sm font-semibold text-[var(--incant-text-highlighted)]",
+        stat_label: "text-xs font-medium text-[var(--incant-text-muted)]",
+        stat_value:
+          "mt-2 text-2xl font-semibold tracking-tight text-[var(--incant-text-highlighted)]",
+        error: "text-base text-[var(--incant-error)]",
+        chart: "mt-3 flex h-36 items-end gap-1.5 rounded-md bg-[var(--incant-bg-muted)] p-3",
+        bar: "min-w-2 flex-1 rounded-sm bg-[var(--incant-primary)]"
+      }
     }
   end
 end

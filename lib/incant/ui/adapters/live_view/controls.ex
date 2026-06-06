@@ -16,8 +16,8 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
     ~H"""
     <div class={Theme.slot(:panel, :root, kind: :filter)}>
       <div class={Theme.slot(:panel, :body, kind: :filter)}>
-        <h3 class="text-lg font-semibold tracking-tight text-[var(--incant-text-highlighted)]">Filters</h3>
-        <.form :let={_form} for={%{}} as={form_as(@filter_bar)} phx-change="incant:event" phx-value-op={filter_bar_op(@filter_bar)} class="space-y-3">
+        <h3 class={Theme.slot(:panel, :title, kind: :filter)}>Filters</h3>
+        <.form :let={_form} for={%{}} as={form_as(@filter_bar)} phx-change="incant:event" phx-value-op={filter_bar_op(@filter_bar)} class={Theme.slot(:field, :group)}>
           <.control :if={@filter_bar.search} control={@filter_bar.search} />
           <.control :for={control <- @filter_bar.filters} control={control} />
           <label :if={@filter_bar.id == "resource.filters"} class={Theme.slot(:field, :root)}>
@@ -40,9 +40,9 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
     ~H"""
     <label class={Theme.slot(:field, :root)}>
       {@control.label || @control.name}
-      <div class="grid grid-cols-2 gap-2">
-        <input type="text" name={control_name(@control, "from")} value={map_value(@control.value, "from")} placeholder="From" class={[Theme.slot(:field, :input), "font-mono"]} />
-        <input type="text" name={control_name(@control, "to")} value={map_value(@control.value, "to")} placeholder="To" class={[Theme.slot(:field, :input), "font-mono"]} />
+      <div class={Theme.slot(:field, :inline)}>
+        <input type="text" name={control_name(@control, "from")} value={map_value(@control.value, "from")} placeholder="From" class={Theme.slot(:field, :input, style: :code)} />
+        <input type="text" name={control_name(@control, "to")} value={map_value(@control.value, "to")} placeholder="To" class={Theme.slot(:field, :input, style: :code)} />
       </div>
     </label>
     """
@@ -70,7 +70,7 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
     ~H"""
     <label class={Theme.slot(:field, :root)}>
       {@control.label || @control.name}
-      <select name={control_name(@control) <> "[]"} multiple class={[Theme.slot(:field, :input), "min-h-20"]}>
+      <select name={control_name(@control) <> "[]"} multiple class={Theme.slot(:field, :input, height: :tall)}>
         <option :for={option <- @control.options || []} value={option.value} selected={to_string(option.value) in @values}>
           {option.label}
         </option>

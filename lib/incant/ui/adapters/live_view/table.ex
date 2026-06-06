@@ -15,28 +15,28 @@ defmodule Incant.UI.Adapters.LiveView.Table do
   def table(assigns) do
     ~H"""
     <div class={Theme.slot(:panel, :root, kind: :table)}>
-      <div class="overflow-x-auto">
+      <div class={Theme.slot(:table, :viewport)}>
         <table class={Theme.slot(:table, :root)}>
         <thead class={Theme.slot(:table, :head)}>
           <tr>
             <th :for={column <- @table.columns} class={Theme.slot(:table, :header_cell)}>
-              <button type="button" phx-click="incant:event" phx-value-op="sort" phx-value-target={column.id} class="inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]">
+              <button type="button" phx-click="incant:event" phx-value-op="sort" phx-value-target={column.id} class={Theme.slot(:table, :sort_button)}>
                 {column.id}
                 <span :if={sort_column(@table.sort) == column.id}>{sort_direction(@table.sort)}</span>
               </button>
             </th>
-            <th :if={@table.row_actions != []} class={[Theme.slot(:table, :header_cell), "text-right"]}>Actions</th>
+            <th :if={@table.row_actions != []} class={Theme.slot(:table, :header_cell, align: :right)}>Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-[var(--incant-border-muted)]">
+        <tbody class={Theme.slot(:table, :body)}>
           <tr :if={@table.rows == []}>
-            <td colspan={length(@table.columns)} class="px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]">{@table.empty_state}</td>
+            <td colspan={length(@table.columns)} class={Theme.slot(:table, :empty)}>{@table.empty_state}</td>
           </tr>
           <tr :for={row <- @table.rows} class={Theme.slot(:table, :row)}>
             <td :for={cell <- row.cells} class={cell_class(cell)}>
               <.table_cell cell={cell} row={row} env={@env} />
             </td>
-            <td :if={@table.row_actions != []} class="px-3 py-1.5 text-right">
+            <td :if={@table.row_actions != []} class={Theme.slot(:table, :actions)}>
               <.row_actions row={row} actions={@table.row_actions} env={@env} />
             </td>
           </tr>
@@ -52,7 +52,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     assigns = assign(assigns, :column, assigns.cell.source)
 
     ~H"""
-    <.link :if={detail_link?(@env.context, @column, @row.source, @row.id)} patch={resource_detail_path(@env.base_path, @env.context.resource, @row.id)} class="font-medium text-[var(--incant-text-highlighted)] hover:underline">
+    <.link :if={detail_link?(@env.context, @column, @row.source, @row.id)} patch={resource_detail_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:table, :link)}>
       <.cell_value cell={@cell} />
     </.link>
     <.cell_value :if={!detail_link?(@env.context, @column, @row.source, @row.id)} cell={@cell} />
@@ -63,7 +63,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
 
   def cell_value(assigns) do
     ~H"""
-    <span :if={@cell.format == :badge} class="inline-flex h-5 items-center rounded-md bg-[var(--incant-bg-muted)] px-1.5 text-[11px] font-medium leading-none text-[var(--incant-text-toned)]">{@cell.value}</span>
+    <span :if={@cell.format == :badge} class={Theme.slot(:badge, :base, variant: :soft)}>{@cell.value}</span>
     <span :if={@cell.format != :badge}>{@cell.display}</span>
     """
   end
@@ -74,7 +74,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
 
   def row_actions(assigns) do
     ~H"""
-    <div class="inline-flex items-center gap-1">
+    <div class={Theme.slot(:table, :action_group)}>
       <%= for action <- @actions, action_allowed?(@env.context, action, @row.source) do %>
         <.link :if={action.name == :edit && @row.id && form_enabled?(@env.context.resource)} patch={resource_edit_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:button, :base, variant: :ghost, size: :xs)}>
           {action_label(action)}
@@ -91,9 +91,9 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     ~H"""
     <div class={Theme.slot(:table, :pagination)}>
       <div>Page {@pagination.page} of {@pagination.total_pages} · {@pagination.total} rows</div>
-      <div class="flex items-center gap-1">
-        <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page - 1} disabled={@pagination.page <= 1} class="rounded-md border border-[var(--incant-border)] px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Previous</button>
-        <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page + 1} disabled={@pagination.page >= @pagination.total_pages} class="rounded-md border border-[var(--incant-border)] px-2 py-1 disabled:opacity-40 hover:bg-[var(--incant-bg-accented)]">Next</button>
+      <div class={Theme.slot(:table, :pagination_actions)}>
+        <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page - 1} disabled={@pagination.page <= 1} class={Theme.slot(:button, :base, variant: :outline, size: :xs)}>Previous</button>
+        <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page + 1} disabled={@pagination.page >= @pagination.total_pages} class={Theme.slot(:button, :base, variant: :outline, size: :xs)}>Next</button>
       </div>
     </div>
     """

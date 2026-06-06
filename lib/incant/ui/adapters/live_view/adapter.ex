@@ -37,7 +37,7 @@ defmodule Incant.UI.Adapters.LiveView do
         <div class={Theme.slot(:shell, :topbar)}>
           <div class={Theme.slot(:shell, :topbar_inner)}>
             <div></div>
-            <div class="hidden shrink-0 text-xs text-[var(--incant-text-muted)] md:block">
+            <div class={Theme.slot(:shell, :chrome_count)}>
               {nav_count(@nav, :resource)} resources · {nav_count(@nav, :dashboard)} dashboards
             </div>
           </div>
@@ -55,7 +55,7 @@ defmodule Incant.UI.Adapters.LiveView do
     assigns = %{node: node}
 
     ~H"""
-    <pre class="rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] p-3 text-xs text-[var(--incant-text-muted)]"><%= inspect(@node, pretty: true) %></pre>
+    <pre class={Theme.slot(:debug, :pre)}><%= inspect(@node, pretty: true) %></pre>
     """
   end
 
@@ -63,7 +63,7 @@ defmodule Incant.UI.Adapters.LiveView do
 
   def nav(assigns) do
     ~H"""
-    <nav class="space-y-5 px-3 py-4">
+    <nav class={Theme.slot(:nav, :root)}>
       <.nav_group title="Dashboards" items={Enum.filter(@nav.items, &(&1.group == :dashboards))} active_id={@nav.active_id} />
       <.nav_group title="Resources" items={Enum.filter(@nav.items, &(&1.group == :resources))} active_id={@nav.active_id} />
     </nav>
@@ -77,8 +77,8 @@ defmodule Incant.UI.Adapters.LiveView do
   def nav_group(assigns) do
     ~H"""
     <div>
-      <div class="px-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--incant-text-muted)]">{@title}</div>
-      <div class="mt-1 space-y-0.5">
+      <div class={Theme.slot(:nav, :group_label)}>{@title}</div>
+      <div class={Theme.slot(:nav, :group_items)}>
         <.link
           :for={item <- @items}
           patch={item.path}
@@ -151,9 +151,9 @@ defmodule Incant.UI.Adapters.LiveView do
     assigns = assign(assigns, :message, authorization_message(reason))
 
     ~H"""
-    <section class="rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-6 text-center">
-      <p class="text-sm text-[var(--incant-text-muted)]">Access denied</p>
-      <h2 class="mt-2 text-xl font-semibold tracking-tight">{@message}</h2>
+    <section class={Theme.slot(:panel, :root, kind: :empty)}>
+      <p class={Theme.slot(:panel, :title)}>Access denied</p>
+      <h2 class={Theme.slot(:panel, :empty_title)}>{@message}</h2>
     </section>
     """
   end
