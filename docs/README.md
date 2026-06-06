@@ -1,6 +1,6 @@
 # Incant docs
 
-Incant is experimental. These guides split the detailed material out of the root README.
+Incant is experimental. These guides cover installation, resources, dashboards, authorization, theming, architecture, and release preparation.
 
 - [Installation](install.md)
 - [Resources, filters, forms, actions, and query-backed data](resources.md)
