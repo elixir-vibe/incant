@@ -132,9 +132,21 @@ table do
 end
 ```
 
-`action/2` and `row/2` both declare row actions. `bulk/2` declares actions that operate on selected rows. `page/2` declares resource-level actions. Callback result types should stay semantic: refresh, navigate, download, toast, background job, open surface, or error.
+`action/2` and `row/2` both declare row actions. `bulk/2` declares actions that operate on selected rows. `page/2` declares resource-level actions.
 
-Callbacks receive action-specific context such as `%{action:, id:, row:, selected_ids:, resource:}` and the LiveView assigns. Return `:ok`, a message string, `{:ok, message}`, or `{:error, message}` while the action result contract is still experimental.
+Callbacks receive action-specific context such as `%{action:, id:, row:, selected_ids:, resource:}` and the LiveView assigns. They can return semantic action results:
+
+```elixir
+Incant.ActionResult.toast("Archived")
+Incant.ActionResult.refresh([:table, :widgets])
+Incant.ActionResult.navigate("/admin/resources/orders")
+Incant.ActionResult.download(export_id, label: "CSV export")
+Incant.ActionResult.job(job_id, label: "Sync started")
+Incant.ActionResult.open_surface(surface)
+Incant.ActionResult.error("Cannot archive this row")
+```
+
+Shorthand returns are normalized for convenience: `:ok`, a message string, `{:ok, message}`, and `{:error, message}`.
 
 ## Query-backed resources
 

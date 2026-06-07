@@ -197,10 +197,44 @@ defmodule Incant.Live.AdminLive do
     end
   end
 
-  defp action_result(socket, {:ok, message}), do: {:noreply, put_flash(socket, :info, message)}
+  defp action_result(socket, %Incant.ActionResult.Toast{level: level, message: message}) do
+    {:noreply, put_flash(socket, flash_level(level), message)}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.Error{message: message}) do
+    {:noreply, put_flash(socket, :error, message)}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.Refresh{}) do
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, socket.assigns.params))}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.Navigate{to: to, mode: :navigate}) do
+    {:noreply, push_navigate(socket, to: to)}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.Navigate{to: to}) do
+    {:noreply, push_patch(socket, to: to)}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.Download{label: label}) do
+    {:noreply, put_flash(socket, :info, label || "Download is ready")}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.Job{label: label}) do
+    {:noreply, put_flash(socket, :info, label || "Background job started")}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.OpenSurface{}) do
+    {:noreply, put_flash(socket, :info, "Action surface is ready")}
+  end
 
   defp action_result(socket, {:error, message}),
     do: {:noreply, put_flash(socket, :error, message)}
+
+  defp flash_level(level) when level in [:info, :error], do: level
+  defp flash_level(:warning), do: :error
+  defp flash_level(_level), do: :info
 
   defp form_validate(%{meta: %{"resource" => attrs}}, socket) do
     context = socket.assigns.context

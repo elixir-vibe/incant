@@ -1,6 +1,8 @@
 defmodule Incant.Live.Actions do
   @moduledoc false
 
+  alias Incant.ActionResult
+
   def run(resource, action_name, id, assigns) do
     with {:ok, action} <- fetch_action(resource.table.actions, action_name),
          {:ok, row} <- fetch_row(resource, id) do
@@ -41,25 +43,12 @@ defmodule Incant.Live.Actions do
   defp dispatch(action, params, assigns) do
     case action.opts[:callback] do
       nil ->
-        {:error, "#{action.name} action is not implemented yet"}
+        ActionResult.error("#{action.name} action is not implemented yet")
 
       callback ->
-        normalize_result(Incant.Callback.call(callback, params, assigns), action, params)
+        callback
+        |> Incant.Callback.call(params, assigns)
+        |> ActionResult.normalize(action: action, params: params)
     end
   end
-
-  defp normalize_result(:ok, action, params),
-    do: {:ok, completion_message(action, params)}
-
-  defp normalize_result({:ok, message}, _action, _params), do: {:ok, message}
-  defp normalize_result({:error, message}, _action, _params), do: {:error, message}
-  defp normalize_result(message, _action, _params) when is_binary(message), do: {:ok, message}
-
-  defp normalize_result(_result, action, params),
-    do: {:ok, completion_message(action, params)}
-
-  defp completion_message(%{scope: :row} = action, %{id: id}),
-    do: "#{action.name} action completed for #{id}"
-
-  defp completion_message(action, _params), do: "#{action.name} action completed"
 end
