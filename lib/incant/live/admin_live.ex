@@ -20,6 +20,7 @@ defmodule Incant.Live.AdminLive do
       |> assign(:admin, admin)
       |> assign(:resources, Enum.map(admin.resources, &Incant.metadata/1))
       |> assign(:dashboards, Enum.map(admin.dashboards, &Incant.metadata/1))
+      |> assign(:datasets, Enum.map(admin.datasets, &Incant.metadata/1))
       |> assign(:theme, theme_metadata(admin))
       |> assign(:actor, Authorization.actor(socket.assigns, admin))
 
@@ -30,6 +31,7 @@ defmodule Incant.Live.AdminLive do
   def handle_params(params, _uri, socket) do
     resources = socket.assigns.resources
     dashboards = socket.assigns.dashboards
+    datasets = socket.assigns.datasets
 
     visible_resources =
       filter_authorized(resources, socket.assigns.admin, socket.assigns.actor, :view_resource)
@@ -37,13 +39,21 @@ defmodule Incant.Live.AdminLive do
     visible_dashboards =
       filter_authorized(dashboards, socket.assigns.admin, socket.assigns.actor, :view_dashboard)
 
+    visible_datasets =
+      filter_authorized(datasets, socket.assigns.admin, socket.assigns.actor, :view_dataset)
+
     selected_resource =
       select_by_module(resources, params["resource"]) || List.first(visible_resources)
 
     selected_dashboard =
       select_by_module(dashboards, params["dashboard"]) || List.first(visible_dashboards)
 
-    section = section(socket.assigns.live_action, selected_dashboard, selected_resource)
+    selected_dataset =
+      select_by_module(datasets, params["dataset"]) || List.first(visible_datasets)
+
+    section =
+      section(socket.assigns.live_action, selected_dashboard, selected_resource, selected_dataset)
+
     table_state = table_state(params)
 
     raw_dashboard_variables = Map.get(params, "var", %{})
@@ -56,10 +66,12 @@ defmodule Incant.Live.AdminLive do
         base_path: socket.assigns.base_path,
         resources: visible_resources,
         dashboards: visible_dashboards,
+        datasets: visible_datasets,
         theme: socket.assigns.theme,
         actor: socket.assigns.actor,
         resource: selected_resource,
         dashboard: selected_dashboard,
+        dataset: selected_dataset,
         section: section,
         detail_id: params["id"],
         form_mode: form_mode,
@@ -309,6 +321,7 @@ defmodule Incant.Live.AdminLive do
 
   defp authorization_item_context(:view_resource, resource), do: %{resource: resource}
   defp authorization_item_context(:view_dashboard, dashboard), do: %{dashboard: dashboard}
+  defp authorization_item_context(:view_dataset, dataset), do: %{dataset: dataset}
 
   defp assign_context(socket, key, value) do
     assign(socket, :context, Map.put(socket.assigns.context, key, value))
@@ -357,6 +370,19 @@ defmodule Incant.Live.AdminLive do
             context.raw_dashboard_variables
           )
     }
+  end
+
+  defp load_authorized_context(
+         %{authorization: :ok, section: "dataset", dataset: dataset} = context
+       )
+       when not is_nil(dataset) do
+    dataset_result =
+      case Incant.Dataset.run(context.dataset, dataset_query_opts(context)) do
+        {:ok, result} -> result
+        {:error, reason} -> %Incant.Result{meta: %{error: reason}}
+      end
+
+    %{context | dataset_result: dataset_result}
   end
 
   defp load_authorized_context(context), do: context
@@ -421,6 +447,7 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp view_action(%{section: "dashboard"}), do: :view_dashboard
+  defp view_action(%{section: "dataset"}), do: :view_dataset
   defp view_action(%{section: "resource"}), do: :view_resource
   defp view_action(_context), do: :view_admin
 
@@ -557,19 +584,30 @@ defmodule Incant.Live.AdminLive do
     end
   end
 
+  defp dataset_query_opts(context) do
+    [
+      filters: context.table_state.filters,
+      page: Incant.Params.positive_integer(context.table_state.page, 1),
+      page_size: Incant.Params.positive_integer(context.table_state.page_size, 25),
+      context: context
+    ]
+  end
+
   defp select_by_module(collection, nil), do: List.first(collection)
 
   defp select_by_module(collection, module_id) do
     Enum.find(collection, &(module_slug(&1.module) == module_id))
   end
 
-  defp section(action, _dashboard, _resource)
+  defp section(action, _dashboard, _resource, _dataset)
        when action in [:resource, :resource_detail, :resource_new, :resource_edit],
        do: "resource"
 
-  defp section(:dashboard, _dashboard, _resource), do: "dashboard"
-  defp section(:index, nil, _resource), do: "resource"
-  defp section(:index, _dashboard, _resource), do: "dashboard"
+  defp section(:dashboard, _dashboard, _resource, _dataset), do: "dashboard"
+  defp section(:dataset, _dashboard, _resource, _dataset), do: "dataset"
+  defp section(:index, nil, _resource, dataset) when not is_nil(dataset), do: "dataset"
+  defp section(:index, nil, _resource, _dataset), do: "resource"
+  defp section(:index, _dashboard, _resource, _dataset), do: "dashboard"
 
   defp form_mode(:resource_new), do: :new
   defp form_mode(:resource_edit), do: :edit
@@ -601,6 +639,11 @@ defmodule Incant.Live.AdminLive do
   defp page_title(%{section: "dashboard", dashboard: dashboard})
        when not is_nil(dashboard) do
     dashboard.title || short_module(dashboard.module)
+  end
+
+  defp page_title(%{section: "dataset", dataset: dataset})
+       when not is_nil(dataset) do
+    dataset.title || short_module(dataset.module)
   end
 
   defp page_title(_assigns), do: "Incant"

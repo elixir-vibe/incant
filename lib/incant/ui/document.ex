@@ -4,7 +4,7 @@ defmodule Incant.UI.Document do
   """
 
   alias Incant.UI.Regions.Nav
-  alias Incant.UI.Surfaces.{Dashboard, ResourceIndex}
+  alias Incant.UI.Surfaces.{Dashboard, DatasetIndex, ResourceIndex}
 
   @type t :: %__MODULE__{
           id: String.t(),
@@ -45,6 +45,11 @@ defmodule Incant.UI.Document do
     ResourceIndex.from_context(context, title)
   end
 
+  defp surface_from_context(%{section: "dataset", dataset: dataset} = context, title)
+       when not is_nil(dataset) do
+    DatasetIndex.from_context(context, title)
+  end
+
   defp surface_from_context(context, title) do
     %Incant.UI.Surfaces.Empty{id: "empty", title: title, context: context}
   end
@@ -58,6 +63,7 @@ defmodule Incant.UI.Document do
     do: short_module(module)
 
   defp surface_title(%{dashboard: %{title: title}}) when is_binary(title), do: title
+  defp surface_title(%{dataset: %{title: title}}) when is_binary(title), do: title
   defp surface_title(_context), do: "Admin"
 
   defp short_module(module), do: module |> Module.split() |> List.last()

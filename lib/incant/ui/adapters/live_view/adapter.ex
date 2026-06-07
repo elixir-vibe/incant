@@ -17,7 +17,7 @@ defmodule Incant.UI.Adapters.LiveView do
   alias Incant.UI.Adapters.LiveView.Theme
   alias Incant.UI.Document
   alias Incant.UI.Regions.WidgetGrid
-  alias Incant.UI.Surfaces.{Dashboard, Empty, ResourceIndex}
+  alias Incant.UI.Surfaces.{Dashboard, DatasetIndex, Empty, ResourceIndex}
 
   @impl Incant.UI.Adapter
   def render(%Document{} = document, env) do
@@ -38,7 +38,7 @@ defmodule Incant.UI.Adapters.LiveView do
           <div class={Theme.slot(:shell, :topbar_inner)}>
             <div></div>
             <div class={Theme.slot(:shell, :chrome_count)}>
-              {nav_count(@nav, :resource)} resources · {nav_count(@nav, :dashboard)} dashboards
+              {nav_count(@nav, :resource)} resources · {nav_count(@nav, :dataset)} datasets · {nav_count(@nav, :dashboard)} dashboards
             </div>
           </div>
         </div>
@@ -65,6 +65,7 @@ defmodule Incant.UI.Adapters.LiveView do
     ~H"""
     <nav class={Theme.slot(:nav, :root)}>
       <.nav_group title="Dashboards" items={Enum.filter(@nav.items, &(&1.group == :dashboards))} active_id={@nav.active_id} />
+      <.nav_group title="Datasets" items={Enum.filter(@nav.items, &(&1.group == :datasets))} active_id={@nav.active_id} />
       <.nav_group title="Resources" items={Enum.filter(@nav.items, &(&1.group == :resources))} active_id={@nav.active_id} />
     </nav>
     """
@@ -143,6 +144,17 @@ defmodule Incant.UI.Adapters.LiveView do
       <.page_header title={@surface.title} eyebrow="Dashboard" />
       <.filter_bar :if={@surface.variables != []} filter_bar={List.first(@surface.regions)} env={@env} />
       <.widget_grid grid={Enum.find(@surface.regions, &match?(%WidgetGrid{}, &1))} />
+    </section>
+    """
+  end
+
+  def render_surface(%{surface: %DatasetIndex{} = surface} = assigns) do
+    assigns = assign(assigns, :surface, surface)
+
+    ~H"""
+    <section class={Theme.slot(:surface, :stack)}>
+      <.page_header title={@surface.title} eyebrow="Dataset" />
+      <.table table={@surface.table} env={@env} />
     </section>
     """
   end

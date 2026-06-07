@@ -32,6 +32,33 @@ defmodule Incant.UI.DocumentTest do
     end
   end
 
+  defmodule AnalyticsSource do
+    use Incant.DataSource
+
+    @impl Incant.DataSource
+    def query(_query), do: {:ok, [%{campaign: "brand", clicks: 12}]}
+  end
+
+  defmodule CampaignDataset do
+    use Incant.Dataset, source: AnalyticsSource
+
+    title("Campaigns")
+    from("campaign_daily")
+
+    dimensions do
+      dimension(:campaign)
+    end
+
+    metrics do
+      metric(:clicks, :sum)
+    end
+
+    table do
+      group_by([:campaign])
+      columns([:campaign, :clicks])
+    end
+  end
+
   defmodule OperationsDashboard do
     use Incant.Dashboard
 
@@ -134,6 +161,21 @@ defmodule Incant.UI.DocumentTest do
              document.surface
   end
 
+  test "builds dataset document" do
+    dataset = Incant.metadata(CampaignDataset)
+    {:ok, result} = Incant.Dataset.run(dataset)
+
+    document =
+      context(section: "dataset", dataset: dataset, datasets: [dataset], dataset_result: result)
+      |> Incant.UI.Document.from_context(page_title: "Campaigns")
+
+    assert %Incant.UI.Surfaces.DatasetIndex{} = document.surface
+    assert document.nav.active_id == "dataset.#{CampaignDataset}"
+    assert Enum.map(document.surface.table.columns, & &1.id) == ["campaign", "clicks"]
+    assert [%{cells: cells}] = document.surface.table.rows
+    assert Enum.map(cells, & &1.value) == ["brand", 12]
+  end
+
   test "builds dashboard document" do
     dashboard = Incant.metadata(OperationsDashboard)
 
@@ -165,13 +207,16 @@ defmodule Incant.UI.DocumentTest do
           base_path: "/admin",
           resources: [],
           dashboards: [],
+          datasets: [],
           section: if(dashboard, do: "dashboard", else: "resource"),
           resource: resource,
           dashboard: dashboard,
+          dataset: nil,
           form_mode: nil,
           form_record: nil,
           form_changeset: nil,
           selected_row: nil,
+          dataset_result: nil,
           table_state: %{
             search: "",
             filters: %{},

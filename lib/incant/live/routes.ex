@@ -5,6 +5,10 @@ defmodule Incant.Live.Routes do
     path([base_path, "dashboards", module_slug(dashboard.module)], query_params)
   end
 
+  def dataset_path(base_path, dataset, query_params \\ %{}) do
+    path([base_path, "datasets", module_slug(dataset.module)], query_params)
+  end
+
   def resource_path(base_path, resource, query_params \\ %{}) do
     path([base_path, "resources", module_slug(resource.module)], query_params)
   end
@@ -40,6 +44,10 @@ defmodule Incant.Live.Routes do
 
   def current_path(%{section: "dashboard"} = context, _params, query_params) do
     dashboard_path(context.base_path, context.dashboard, query_params)
+  end
+
+  def current_path(%{section: "dataset"} = context, _params, query_params) do
+    dataset_path(context.base_path, context.dataset, query_params)
   end
 
   def module_slug(module) do

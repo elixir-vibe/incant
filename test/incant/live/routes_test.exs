@@ -18,6 +18,12 @@ defmodule Incant.Live.RoutesTest do
     assert Routes.dashboard_path("/admin", dashboard) == "/admin/dashboards/llm"
   end
 
+  test "builds underscored dataset paths" do
+    dataset = %{module: LLM}
+
+    assert Routes.dataset_path("/admin", dataset) == "/admin/datasets/llm"
+  end
+
   test "builds underscored resource paths" do
     resource = %{module: LLMRequest}
 
@@ -69,6 +75,14 @@ defmodule Incant.Live.RoutesTest do
 
     assert Routes.current_path(%{context: context, params: %{}}, %{"var" => %{"range" => "30d"}}) ==
              "/admin/dashboards/llm?var%5Brange%5D=30d"
+  end
+
+  test "builds current dataset path from context" do
+    dataset = %{module: LLM}
+    context = %{section: "dataset", dataset: dataset, base_path: "/admin"}
+
+    assert Routes.current_path(%{context: context, params: %{}}, %{"page" => "2"}) ==
+             "/admin/datasets/llm?page=2"
   end
 
   test "builds current resource edit path from context" do

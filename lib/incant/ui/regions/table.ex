@@ -66,6 +66,22 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
+  def from_dataset_context(context) do
+    result = context.dataset_result || %Incant.Result{}
+    columns = Enum.map(result_columns(context.dataset, result), &dataset_column/1)
+    rows = Enum.map(result.rows || [], &dataset_row(&1, columns))
+
+    %__MODULE__{
+      id: "dataset.table",
+      columns: columns,
+      rows: rows,
+      sort: context.table_state.sort,
+      pagination: dataset_pagination(context, result),
+      empty_state: dataset_empty_state(result),
+      density: context.dataset.table.opts[:density] || :compact
+    }
+  end
+
   defp column_from_metadata(column) do
     %Column{
       id: to_string(column.name),
@@ -119,6 +135,78 @@ defmodule Incant.UI.Regions.Table do
       source: column
     }
   end
+
+  defp dataset_column(column) do
+    %Column{
+      id: to_string(column),
+      label: humanize(column),
+      sortable: true,
+      source: %{opts: []}
+    }
+  end
+
+  defp dataset_row(row, columns) do
+    %Row{
+      id: row_id(row),
+      cells: Enum.map(columns, &dataset_cell(row, &1)),
+      source: row
+    }
+  end
+
+  defp dataset_cell(row, column) do
+    key = column_key(column.id, row)
+    value = Map.get(row, key)
+
+    %Cell{
+      column: column.id,
+      value: value,
+      display: Incant.Live.Format.value(value, column.format),
+      format: column.format,
+      source: column.source
+    }
+  end
+
+  defp result_columns(dataset, %{columns: []}), do: dataset.table.columns
+  defp result_columns(_dataset, %{columns: columns}), do: columns
+
+  defp dataset_pagination(context, result) do
+    page_size = Incant.Params.positive_integer(context.table_state.page_size, 25)
+    total = result.total_count || length(result.rows || [])
+
+    %{
+      page: Incant.Params.positive_integer(context.table_state.page, 1),
+      page_size: page_size,
+      total: total,
+      total_pages: max(ceil(total / page_size), 1)
+    }
+  end
+
+  defp dataset_empty_state(%{meta: %{error: reason}}),
+    do: "Dataset query failed: #{inspect(reason)}"
+
+  defp dataset_empty_state(_result), do: "No rows match the current dataset query."
+
+  defp row_id(%{id: id}), do: id
+  defp row_id(%{"id" => id}), do: id
+  defp row_id(row), do: :erlang.phash2(row)
+
+  defp column_key(column, row) do
+    atom_column = existing_atom(column)
+
+    cond do
+      Map.has_key?(row, column) -> column
+      atom_column && Map.has_key?(row, atom_column) -> atom_column
+      true -> column
+    end
+  end
+
+  defp existing_atom(column) when is_binary(column) do
+    String.to_existing_atom(column)
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp existing_atom(_column), do: nil
 
   defp humanize(value) do
     value

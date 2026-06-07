@@ -14,8 +14,8 @@ defmodule Incant.Live.Rows do
 
   def page(%{repo: repo, schema: schema, data: nil} = resource, table_state, context)
       when not is_nil(repo) and not is_nil(schema) do
-    page = positive_integer(Map.get(table_state, :page), 1)
-    page_size = positive_integer(Map.get(table_state, :page_size), 25)
+    page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
+    page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
     total = query_count(resource, table_state, context)
     total_pages = max(ceil(total / page_size), 1)
     page = min(page, total_pages)
@@ -32,8 +32,8 @@ defmodule Incant.Live.Rows do
 
   def page(resource, table_state, context) do
     rows = all(resource, table_state, context)
-    page = positive_integer(Map.get(table_state, :page), 1)
-    page_size = positive_integer(Map.get(table_state, :page_size), 25)
+    page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
+    page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
     total = length(rows)
     total_pages = max(ceil(total / page_size), 1)
     page = min(page, total_pages)
@@ -262,8 +262,8 @@ defmodule Incant.Live.Rows do
   defp subquery_count(_repo, _queryable), do: nil
 
   defp paginate_query(queryable, %{page: page, page_size: page_size}) do
-    page = positive_integer(page, 1)
-    page_size = positive_integer(page_size, 25)
+    page = Incant.Params.positive_integer(page, 1)
+    page_size = Incant.Params.positive_integer(page_size, 25)
 
     queryable
     |> limit(^page_size)
@@ -332,24 +332,13 @@ defmodule Incant.Live.Rows do
   end
 
   defp paginate(rows, table_state) do
-    page = positive_integer(Map.get(table_state, :page), 1)
-    page_size = positive_integer(Map.get(table_state, :page_size), 25)
+    page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
+    page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
 
     rows
     |> Enum.drop((page - 1) * page_size)
     |> Enum.take(page_size)
   end
-
-  defp positive_integer(value, _default) when is_integer(value) and value > 0, do: value
-
-  defp positive_integer(value, default) when is_binary(value) do
-    case Integer.parse(value) do
-      {integer, ""} when integer > 0 -> integer
-      _other -> default
-    end
-  end
-
-  defp positive_integer(_value, default), do: default
 
   defp sort_parts("-" <> field), do: {:desc, field}
   defp sort_parts(field), do: {:asc, field}
