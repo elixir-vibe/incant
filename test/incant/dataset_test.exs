@@ -2,6 +2,16 @@ defmodule Incant.DatasetTest do
   use ExUnit.Case, async: true
 
   defmodule QuackSource do
+    use Incant.DataSource
+
+    @impl Incant.DataSource
+    def query(query) do
+      {:ok,
+       [
+         %{campaign: "brand", clicks: 10, cost: 12.5, cpa: 1.25, group_by: query.group_by},
+         %{campaign: "search", clicks: 5, cost: 20.0, cpa: 4.0, group_by: query.group_by}
+       ]}
+    end
   end
 
   defmodule CampaignPerformance do
@@ -70,5 +80,32 @@ defmodule Incant.DatasetTest do
 
   test "admin modules can register datasets" do
     assert Incant.metadata(Admin).datasets == [CampaignPerformance]
+  end
+
+  test "builds normalized dataset queries" do
+    query =
+      Incant.Dataset.query(CampaignPerformance,
+        filters: %{"range" => "7d"},
+        page: 2,
+        page_size: 50
+      )
+
+    assert query.source == QuackSource
+    assert query.from == "campaign_daily"
+    assert query.dimensions == [:date, :campaign, :keyword]
+    assert query.metrics == [:clicks, :cost, :cpa]
+    assert query.group_by == [:campaign]
+    assert query.columns == [:campaign, :clicks, :cost, :cpa]
+    assert query.sort == [cost: :desc]
+    assert query.filters == %{"range" => "7d"}
+    assert query.page == 2
+    assert query.page_size == 50
+  end
+
+  test "runs dataset queries through source modules" do
+    assert {:ok, result} = Incant.Dataset.run(CampaignPerformance)
+    assert Enum.sort(result.columns) == [:campaign, :clicks, :cost, :cpa, :group_by]
+    assert result.total_count == 2
+    assert [%{campaign: "brand", group_by: [:campaign]} | _] = result.rows
   end
 end

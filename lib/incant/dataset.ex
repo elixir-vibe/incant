@@ -8,6 +8,9 @@ defmodule Incant.Dataset do
   """
 
   alias Incant.Dataset.{Dimension, Drilldown, Metadata, Metric, Table}
+  alias Incant.Query
+  alias Incant.Result
+  alias Incant.Tabular
 
   defmacro __using__(opts \\ []) do
     quote bind_quoted: [opts: opts] do
@@ -171,4 +174,72 @@ defmodule Incant.Dataset do
   end
 
   def normalize_metric_definition(aggregate, opts), do: {aggregate, opts}
+
+  @doc """
+  Builds a normalized query request for a dataset.
+  """
+  def query(dataset_or_module, opts \\ []) do
+    dataset = metadata(dataset_or_module)
+    table = dataset.table
+
+    %Query{
+      source: dataset.source,
+      dataset: dataset,
+      from: dataset.from,
+      dimensions: names(dataset.dimensions),
+      metrics: names(dataset.metrics),
+      group_by: Keyword.get(opts, :group_by, table.group_by),
+      columns: Keyword.get(opts, :columns, table.columns),
+      drilldown: Keyword.get(opts, :drilldown),
+      filters: Keyword.get(opts, :filters, %{}),
+      sort: Keyword.get(opts, :sort, sort_keyword(table.sort)),
+      page: Keyword.get(opts, :page),
+      page_size: Keyword.get(opts, :page_size),
+      variables: Keyword.get(opts, :variables, %{}),
+      context: Keyword.get(opts, :context)
+    }
+  end
+
+  @doc """
+  Runs a dataset query through the configured data source.
+  """
+  def run(dataset_or_module, opts \\ []) do
+    dataset_or_module
+    |> query(opts)
+    |> run_query()
+  end
+
+  defp run_query(%Query{source: source} = query) when is_atom(source) and not is_nil(source) do
+    if function_exported?(source, :query, 1) do
+      source.query(query) |> normalize_source_result()
+    else
+      {:error, {:missing_query_callback, source}}
+    end
+  end
+
+  defp run_query(%Query{source: source}), do: {:error, {:invalid_source, source}}
+
+  defp normalize_source_result({:ok, %Result{} = result}), do: {:ok, result}
+  defp normalize_source_result({:ok, rows}), do: {:ok, result_from_tabular(rows)}
+  defp normalize_source_result({:error, reason}), do: {:error, reason}
+  defp normalize_source_result(%Result{} = result), do: {:ok, result}
+  defp normalize_source_result(rows), do: {:ok, result_from_tabular(rows)}
+
+  defp result_from_tabular(data) do
+    metadata = Tabular.metadata(data)
+
+    %Result{
+      rows: Tabular.to_rows(data),
+      columns: metadata.columns,
+      total_count: metadata.count
+    }
+  end
+
+  defp metadata(%Metadata{} = dataset), do: dataset
+  defp metadata(module) when is_atom(module), do: Incant.metadata(module)
+
+  defp names(records), do: Enum.map(records, & &1.name)
+  defp sort_keyword(nil), do: []
+  defp sort_keyword({field, direction}), do: [{field, direction}]
+  defp sort_keyword(sort), do: sort
 end

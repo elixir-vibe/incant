@@ -5,6 +5,13 @@ defmodule Incant.Query do
 
   @type t :: %__MODULE__{
           source: atom | module | nil,
+          dataset: struct | nil,
+          from: term,
+          dimensions: [atom],
+          metrics: [atom],
+          group_by: [atom],
+          columns: [atom],
+          drilldown: atom | nil,
           filters: map,
           sort: keyword,
           page: pos_integer | nil,
@@ -14,6 +21,13 @@ defmodule Incant.Query do
         }
 
   defstruct source: nil,
+            dataset: nil,
+            from: nil,
+            dimensions: [],
+            metrics: [],
+            group_by: [],
+            columns: [],
+            drilldown: nil,
             filters: %{},
             sort: [],
             page: nil,

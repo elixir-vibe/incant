@@ -51,4 +51,19 @@ defmodule MyApp.Admin do
 end
 ```
 
-Current dataset support compiles DSL metadata only. Rendering, query execution, chart binding, saved views, and drilldown routing are planned follow-up work.
+Build and run normalized dataset queries through the configured source:
+
+```elixir
+query =
+  Incant.Dataset.query(MyApp.Admin.Datasets.CampaignPerformance,
+    filters: %{"range" => "30d"},
+    page: 1,
+    page_size: 50
+  )
+
+{:ok, result} = Incant.Dataset.run(MyApp.Admin.Datasets.CampaignPerformance, filters: query.filters)
+```
+
+Data sources implement the `Incant.DataSource` query callback and receive `%Incant.Query{}` with `from`, dimensions, metrics, groupings, columns, filters, sort, pagination, variables, and context. Incant normalizes source rows into `%Incant.Result{}`.
+
+Rendering, chart binding, saved views, and drilldown routing are planned follow-up work.
