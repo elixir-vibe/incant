@@ -35,6 +35,18 @@ defmodule Incant.Resource do
       Module.register_attribute(__MODULE__, :incant_columns, accumulate: true, persist: false)
       Module.register_attribute(__MODULE__, :incant_filters, accumulate: true, persist: false)
       Module.register_attribute(__MODULE__, :incant_actions, accumulate: true, persist: false)
+
+      Module.register_attribute(__MODULE__, :incant_bulk_actions,
+        accumulate: true,
+        persist: false
+      )
+
+      Module.register_attribute(__MODULE__, :incant_page_actions,
+        accumulate: true,
+        persist: false
+      )
+
+      Module.register_attribute(__MODULE__, :incant_row_detail, persist: false)
       Module.register_attribute(__MODULE__, :incant_table_opts, persist: false)
       Module.register_attribute(__MODULE__, :incant_search, persist: false)
       Module.register_attribute(__MODULE__, :incant_query, persist: false)
@@ -59,6 +71,8 @@ defmodule Incant.Resource do
     columns = env.module |> Module.get_attribute(:incant_columns) |> Enum.reverse()
     filters = env.module |> Module.get_attribute(:incant_filters) |> Enum.reverse()
     actions = env.module |> Module.get_attribute(:incant_actions) |> Enum.reverse()
+    bulk_actions = env.module |> Module.get_attribute(:incant_bulk_actions) |> Enum.reverse()
+    page_actions = env.module |> Module.get_attribute(:incant_page_actions) |> Enum.reverse()
     form_fields = env.module |> Module.get_attribute(:incant_form_fields) |> Enum.reverse()
 
     form = %Form{
@@ -77,7 +91,18 @@ defmodule Incant.Resource do
           %Filter{name: name, type: type, opts: filter_opts, query: query}
         end),
       actions:
-        Enum.map(actions, fn {name, action_opts} -> %Action{name: name, opts: action_opts} end),
+        Enum.map(actions, fn {name, action_opts} ->
+          %Action{name: name, scope: :row, opts: action_opts}
+        end),
+      bulk_actions:
+        Enum.map(bulk_actions, fn {name, action_opts} ->
+          %Action{name: name, scope: :bulk, opts: action_opts}
+        end),
+      page_actions:
+        Enum.map(page_actions, fn {name, action_opts} ->
+          %Action{name: name, scope: :page, opts: action_opts}
+        end),
+      row_detail: Module.get_attribute(env.module, :incant_row_detail),
       search: Module.get_attribute(env.module, :incant_search),
       opts: Module.get_attribute(env.module, :incant_table_opts) || []
     }
@@ -124,6 +149,36 @@ defmodule Incant.Resource do
   defmacro action(name, opts \\ []) do
     quote bind_quoted: [name: name, opts: opts] do
       @incant_actions {name, opts}
+    end
+  end
+
+  defmacro actions(do: block) do
+    quote do
+      unquote(block)
+    end
+  end
+
+  defmacro row(name, opts \\ []) do
+    quote bind_quoted: [name: name, opts: opts] do
+      @incant_actions {name, opts}
+    end
+  end
+
+  defmacro bulk(name, opts \\ []) do
+    quote bind_quoted: [name: name, opts: opts] do
+      @incant_bulk_actions {name, opts}
+    end
+  end
+
+  defmacro page(name, opts \\ []) do
+    quote bind_quoted: [name: name, opts: opts] do
+      @incant_page_actions {name, opts}
+    end
+  end
+
+  defmacro row_detail(name, opts \\ []) do
+    quote bind_quoted: [name: name, opts: opts] do
+      @incant_row_detail {name, opts}
     end
   end
 

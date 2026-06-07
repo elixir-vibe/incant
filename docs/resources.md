@@ -101,9 +101,9 @@ end
 
 When no form fields are declared, `Incant.Forms.fields/1` can infer fields from Ecto-style `schema.__schema__/1`, excluding `:id`, `:inserted_at`, and `:updated_at`.
 
-## Row actions
+## Actions and row details
 
-Resource tables can declare row actions. Actions render in the table and detail view; provide a callback to execute behaviour from the LiveView.
+Resource tables can declare row, bulk, and page actions. Actions are semantic commands; adapters decide whether they render as inline buttons, menus, command palettes, drawers, or full pages.
 
 ```elixir
 table do
@@ -114,10 +114,27 @@ table do
     tone: :danger,
     confirm: true,
     callback: &MyApp.Admin.Actions.archive_product/2
+
+  row_detail :activity, label: "Activity"
+
+  actions do
+    bulk :export_selected,
+      label: "Export selected",
+      result: :download,
+      callback: &MyApp.Admin.Exports.products/2
+
+    page :sync_catalog,
+      label: "Sync catalog",
+      async: true,
+      result: :job,
+      callback: &MyApp.Admin.Actions.sync_catalog/1
+  end
 end
 ```
 
-Callbacks receive `%{action:, id:, row:, resource:}` and the LiveView assigns. Return `:ok`, a message string, `{:ok, message}`, or `{:error, message}`.
+`action/2` and `row/2` both declare row actions. `bulk/2` declares actions that operate on selected rows. `page/2` declares resource-level actions. Callback result types should stay semantic: refresh, navigate, download, toast, background job, open surface, or error.
+
+Callbacks receive action-specific context such as `%{action:, id:, row:, selected_ids:, resource:}` and the LiveView assigns. Return `:ok`, a message string, `{:ok, message}`, or `{:error, message}` while the action result contract is still experimental.
 
 ## Query-backed resources
 

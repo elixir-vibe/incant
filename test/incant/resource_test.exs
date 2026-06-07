@@ -28,6 +28,12 @@ defmodule Incant.ResourceTest do
 
       action(:edit)
       action(:archive, confirm: true)
+      row_detail(:activity, label: "Activity")
+
+      actions do
+        bulk(:export_selected, result: :download)
+        page(:sync, async: true, result: :job)
+      end
 
       transformer(:sales_performance, query: &__MODULE__.sales_performance/3)
 
@@ -67,7 +73,15 @@ defmodule Incant.ResourceTest do
     assert List.last(metadata.table.filters).type == :transformer
     assert List.last(metadata.table.filters).query == (&PostResource.sales_performance/3)
     assert Enum.map(metadata.table.actions, & &1.name) == [:edit, :archive]
+    assert Enum.map(metadata.table.actions, & &1.scope) == [:row, :row]
     assert List.last(metadata.table.actions).opts == [confirm: true]
+    assert Enum.map(metadata.table.bulk_actions, & &1.name) == [:export_selected]
+    assert hd(metadata.table.bulk_actions).scope == :bulk
+    assert hd(metadata.table.bulk_actions).opts == [result: :download]
+    assert Enum.map(metadata.table.page_actions, & &1.name) == [:sync]
+    assert hd(metadata.table.page_actions).scope == :page
+    assert hd(metadata.table.page_actions).opts == [async: true, result: :job]
+    assert metadata.table.row_detail == {:activity, [label: "Activity"]}
     assert hd(metadata.table.columns).opts == [link: true]
   end
 

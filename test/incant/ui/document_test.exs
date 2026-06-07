@@ -16,6 +16,13 @@ defmodule Incant.UI.DocumentTest do
       filter(:status, :select, options: [:draft, :active])
       filter(:inserted_at, :date_range)
       action(:archive, tone: :danger)
+      row_detail(:activity, label: "Activity")
+
+      actions do
+        bulk(:export_selected, result: :download)
+        page(:sync, async: true, result: :job)
+      end
+
       search([:name])
     end
 
@@ -59,6 +66,10 @@ defmodule Incant.UI.DocumentTest do
 
     assert Enum.map(document.surface.table.columns, & &1.id) == ["name", "status"]
     assert Enum.map(document.surface.table.row_actions, & &1.name) == [:archive]
+    assert Enum.map(document.surface.table.bulk_actions, & &1.name) == [:export_selected]
+    assert Enum.map(document.surface.table.page_actions, & &1.name) == [:sync]
+    assert document.surface.table.selection.enabled == true
+    assert document.surface.table.row_detail.id == "activity"
   end
 
   test "builds resource detail document" do

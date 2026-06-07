@@ -11,6 +11,9 @@ defmodule Incant.UI.Regions.Table do
     pagination: nil,
     row_actions: [],
     bulk_actions: [],
+    page_actions: [],
+    row_detail: nil,
+    selection: nil,
     empty_state: nil,
     loading: false,
     density: :compact
@@ -23,7 +26,17 @@ defmodule Incant.UI.Regions.Table do
 
   defmodule Row do
     @moduledoc false
-    defstruct [:id, cells: [], actions: [], event: nil, source: nil]
+    defstruct [:id, cells: [], actions: [], detail: nil, event: nil, source: nil]
+  end
+
+  defmodule RowDetail do
+    @moduledoc false
+    defstruct [:id, :label, :kind, :source]
+  end
+
+  defmodule Selection do
+    @moduledoc false
+    defstruct selected_ids: [], enabled: false
   end
 
   defmodule Cell do
@@ -44,6 +57,10 @@ defmodule Incant.UI.Regions.Table do
       sort: context.table_state.sort,
       pagination: context.pagination,
       row_actions: resource.table.actions,
+      bulk_actions: resource.table.bulk_actions,
+      page_actions: resource.table.page_actions,
+      row_detail: row_detail_from_metadata(resource.table.row_detail),
+      selection: selection_from_metadata(resource.table),
       empty_state: "No rows. Add a resource data callback or loosen the current filters.",
       density: resource.table.opts[:density] || :compact
     }
@@ -67,8 +84,24 @@ defmodule Incant.UI.Regions.Table do
       id: Incant.Live.Rows.id(record),
       cells: Enum.map(resource.table.columns, &cell_from_record(record, &1)),
       actions: resource.table.actions,
+      detail: row_detail_from_metadata(resource.table.row_detail),
       source: record
     }
+  end
+
+  defp row_detail_from_metadata(nil), do: nil
+
+  defp row_detail_from_metadata({name, opts}) do
+    %RowDetail{
+      id: to_string(name),
+      label: opts[:label] || humanize(name),
+      kind: opts[:kind] || opts[:type] || :panel,
+      source: {name, opts}
+    }
+  end
+
+  defp selection_from_metadata(table) do
+    %Selection{enabled: table.bulk_actions != []}
   end
 
   defp cell_from_record(record, column) do
