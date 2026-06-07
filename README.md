@@ -67,6 +67,7 @@ See [docs/README.md](docs/README.md) for the full docs index.
 - [Installation](docs/install.md)
 - [Resources, filters, forms, actions, and query-backed data](docs/resources.md)
 - [Dashboards and variables](docs/dashboards.md)
+- [Datasets and analytical tables](docs/datasets.md)
 - [Authorization and policy scoping](docs/authorization.md)
 - [Design tokens and themes](docs/design.md)
 - [Live component structure](docs/live-components.md)

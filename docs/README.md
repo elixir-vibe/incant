@@ -5,6 +5,7 @@ Incant is experimental. These guides cover installation, resources, dashboards, 
 - [Installation](install.md)
 - [Resources, filters, forms, actions, and query-backed data](resources.md)
 - [Dashboards and variables](dashboards.md)
+- [Datasets and analytical tables](datasets.md)
 - [Authorization and policy scoping](authorization.md)
 - [Design tokens and themes](design.md)
 - [LiveView adapter](live-components.md)

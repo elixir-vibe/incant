@@ -18,6 +18,7 @@ defmodule Incant do
     cond do
       function_exported?(module, :__incant_admin__, 0) -> module.__incant_admin__()
       function_exported?(module, :__incant_resource__, 0) -> module.__incant_resource__()
+      function_exported?(module, :__incant_dataset__, 0) -> module.__incant_dataset__()
       function_exported?(module, :__incant_dashboard__, 0) -> module.__incant_dashboard__()
       function_exported?(module, :__incant_theme__, 0) -> module.__incant_theme__()
       true -> raise ArgumentError, "#{inspect(module)} does not expose Incant metadata"

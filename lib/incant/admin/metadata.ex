@@ -7,9 +7,10 @@ defmodule Incant.Admin.Metadata do
           module: module,
           resources: [module],
           dashboards: [module],
+          datasets: [module],
           plugins: [module],
           opts: keyword
         }
 
-  defstruct [:module, resources: [], dashboards: [], plugins: [], opts: []]
+  defstruct [:module, resources: [], dashboards: [], datasets: [], plugins: [], opts: []]
 end

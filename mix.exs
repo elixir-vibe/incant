@@ -56,6 +56,7 @@ defmodule Incant.MixProject do
         "docs/install.md",
         "docs/resources.md",
         "docs/dashboards.md",
+        "docs/datasets.md",
         "docs/authorization.md",
         "docs/design.md",
         "docs/live-components.md",
