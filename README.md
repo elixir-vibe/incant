@@ -70,6 +70,7 @@ See [docs/README.md](docs/README.md) for the full docs index.
 - [Authorization and policy scoping](docs/authorization.md)
 - [Design tokens and themes](docs/design.md)
 - [Live component structure](docs/live-components.md)
+- [Unified platform admin roadmap](docs/platform-admin-roadmap.md)
 - [Architecture](docs/architecture.md)
 - [Release checklist](docs/release-checklist.md)
 

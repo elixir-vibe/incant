@@ -10,5 +10,6 @@ Incant is experimental. These guides cover installation, resources, dashboards, 
 - [LiveView adapter](live-components.md)
 - [LiveVue adapter prototype](live-vue-adapter.md)
 - [Visual regression captures](visual-regression.md)
+- [Unified platform admin roadmap](platform-admin-roadmap.md)
 - [Architecture](architecture.md)
 - [Release checklist](release-checklist.md)

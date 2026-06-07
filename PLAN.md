@@ -15,6 +15,24 @@ Incant is not a CRUD toy. It is a code-first framework for building serious inte
 
 The core rule: Incant describes admin intent; Ecto remains the language of data truth.
 
+## Unified platform admin target
+
+Incant should become the unified admin UI for a deeply integrated Elixir/Vibe platform, not just a CRUD generator. The planned integration targets are:
+
+1. Plausible-style deep web analytics loaded through QuackDB.
+2. Yandex Direct campaign exports and performance analysis in QuackDB.
+3. PhoenixReplay/Webvisor-like replayable sessions with session tables in QuackDB.
+4. LLMProxy usage, traces, messages, quotas, provider tokens, latency, and cost analytics.
+5. Exograph code search over definitions, references, fragments, and call graph facts.
+6. Vibe coding agent data: sessions, events, goals, memories, imports, subagent jobs, telemetry, and trajectories.
+7. Telemetry traces and application events captured through `:telemetry` and app-specific tracing.
+8. Built-in live chat/support inbox with human operators and Vibe-backed agent support.
+9. Generic application data such as orders, documents, edits, feedback, and replay sessions.
+
+The DSL should describe semantic operations surfaces for those domains: resources, analytical datasets, and custom tools. Adapters own the interaction mechanics and visual implementation.
+
+See [docs/platform-admin-roadmap.md](docs/platform-admin-roadmap.md) for the concrete table, action, filter, widget, chart, dataset, and tool DSL direction.
+
 ## Inspirations to study
 
 - Payload CMS: code-first config, generated admin, field hooks, access control, versions, drafts, autosave, live preview, custom components.
@@ -370,7 +388,7 @@ end
 First plugin targets:
 
 - `llm_proxy`: request stats, model/provider costs, latency, errors, traces.
-- `docgen_ex`: orders, visits, campaign attribution, marketing funnel analytics.
+- example application data: orders, visits, campaign attribution, marketing funnel analytics.
 
 First-party plugin ideas:
 
@@ -458,34 +476,71 @@ Principle: Kino for exploration. LiveView for production. Shared DSL for both.
 - custom select/preload support
 - batch virtual fields
 
-### Milestone 4: Real plugin vertical slice
+### Milestone 4: Operational actions and richer tables
 
-Build `llm_proxy` admin integration:
+- row, bulk, page, and contextual actions
+- semantic action results: refresh, navigate, download, toast, background job, open surface, error
+- row detail panels and expandable rows
+- selected-row state and bulk action lifecycle
+- semantic display formats: badge, money, duration, percent, relative time, JSON, code, diff, markdown
+- heatmap cells and conditional formatting
+- saved views and shareable URLs
+- exports for CSV, JSON, XLSX, and background exports
 
-- requests resource
-- provider/model filters
-- request detail
-- total requests widget
-- cost widget
-- latency widget
-- error-rate widget
-- requests-over-time chart
-- slow requests table
+### Milestone 5: Dataset and chart vertical slice
 
-### Milestone 5: Analytics vertical slice
+Build QuackDB-backed analytics for Plausible-style events and Yandex Direct campaign exports:
 
-Build `docgen_ex` marketing analytics:
-
-- orders resource
-- visits dataset
-- campaigns dataset
-- funnel dashboard
+- `Incant.Dataset` DSL
+- dimensions and metrics
+- computed metrics and rollups
 - dimensions/metrics table
-- date range and campaign filters
+- date range, campaign, source, and keyword filters
 - ROAS/CPA/conversion metrics
-- drilldowns
+- chart specs for line, area, bar, stacked bar, heatmap, histogram, funnel, cohort/retention, sankey, geo, waterfall, and timeline
+- drilldowns from chart to dataset table to resource records
+- background query jobs for expensive reports
 
-### Milestone 6: Content vertical slice
+### Milestone 6: LLM and replay vertical slices
+
+Build LLMProxy and PhoenixReplay integrations:
+
+- LLM traces, usage, messages, quotas, API keys, and provider token resources
+- total requests, cost, latency, error-rate, and requests-over-time widgets
+- slow requests table and trace inspector
+- replay session table
+- replay timeline tool surface
+- session/event filters and replay-to-application drilldowns
+
+### Milestone 7: Realtime, telemetry, and live operations
+
+- realtime surfaces for active visitors, active sessions, campaign state, queue state, provider health, and live app events
+- `:telemetry` trace source DSL
+- timeline, waterfall, event table, JSON payload inspector, and correlation IDs
+- live stream subscriptions with pause/resume, retention windows, and backpressure
+- drilldowns from telemetry traces to replay sessions, LLM traces, code locations, and agent actions
+
+### Milestone 8: Code and agent vertical slices
+
+Build Exograph and Vibe integrations:
+
+- code search tool surface
+- definitions, references, fragments, files, packages, and call graph resources
+- Vibe sessions, events, goals, memories, imports, subagent jobs, telemetry, and trajectory resources
+- agent operations dashboard
+- chat with data over resources, datasets, charts, traces, and selected rows
+- background monitoring agents with approval-gated control actions
+- cross-links between code facts, sessions, tool calls, generated changes, and production telemetry
+
+### Milestone 9: Built-in live chat/support vertical slice
+
+- live chat/support inbox tool surface
+- conversations, visitors, operators, messages, transcripts, tags, SLAs, and escalations as resources
+- realtime presence and active conversation streams
+- Vibe-backed support agents for summarization, suggested replies, classification, and handoff
+- shared audit trail for human and agent actions
+
+### Milestone 10: Application/content vertical slice
 
 - MDEx markdown field
 - Git-backed content resource

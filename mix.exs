@@ -61,6 +61,7 @@ defmodule Incant.MixProject do
         "docs/live-components.md",
         "docs/live-vue-adapter.md",
         "docs/visual-regression.md",
+        "docs/platform-admin-roadmap.md",
         "docs/architecture.md",
         "docs/release-checklist.md"
       ]
