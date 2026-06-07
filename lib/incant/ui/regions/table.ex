@@ -60,7 +60,7 @@ defmodule Incant.UI.Regions.Table do
       bulk_actions: resource.table.bulk_actions,
       page_actions: resource.table.page_actions,
       row_detail: row_detail_from_metadata(resource.table.row_detail),
-      selection: selection_from_metadata(resource.table),
+      selection: selection_from_metadata(resource.table, context.table_state.selected_ids),
       empty_state: "No rows. Add a resource data callback or loosen the current filters.",
       density: resource.table.opts[:density] || :compact
     }
@@ -100,8 +100,11 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
-  defp selection_from_metadata(table) do
-    %Selection{enabled: table.bulk_actions != []}
+  defp selection_from_metadata(table, selected_ids) do
+    %Selection{
+      enabled: table.bulk_actions != [],
+      selected_ids: Enum.map(selected_ids, &to_string/1)
+    }
   end
 
   defp cell_from_record(record, column) do

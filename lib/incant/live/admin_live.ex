@@ -79,19 +79,29 @@ defmodule Incant.Live.AdminLive do
 
   @impl Phoenix.LiveView
   def handle_event("incant:event", params, socket) do
-    event = Incant.UI.Event.parse(params)
-
-    case event.op do
-      :filter_commit -> filter_commit(event, socket)
-      :dashboard_variable_commit -> dashboard_variable_commit(event, socket)
-      :sort -> sort(event, socket)
-      :paginate -> paginate(event, socket)
-      :row_action -> row_action(event, socket)
-      :form_validate -> form_validate(event, socket)
-      :form_submit -> form_submit(event, socket)
-      _op -> {:noreply, socket}
-    end
+    params
+    |> Incant.UI.Event.parse()
+    |> handle_incant_event(socket)
   end
+
+  defp handle_incant_event(%{op: :filter_commit} = event, socket),
+    do: filter_commit(event, socket)
+
+  defp handle_incant_event(%{op: :dashboard_variable_commit} = event, socket),
+    do: dashboard_variable_commit(event, socket)
+
+  defp handle_incant_event(%{op: :sort} = event, socket), do: sort(event, socket)
+  defp handle_incant_event(%{op: :paginate} = event, socket), do: paginate(event, socket)
+  defp handle_incant_event(%{op: :row_select} = event, socket), do: row_select(event, socket)
+  defp handle_incant_event(%{op: :row_action} = event, socket), do: row_action(event, socket)
+  defp handle_incant_event(%{op: :bulk_action} = event, socket), do: bulk_action(event, socket)
+  defp handle_incant_event(%{op: :page_action} = event, socket), do: page_action(event, socket)
+
+  defp handle_incant_event(%{op: :form_validate} = event, socket),
+    do: form_validate(event, socket)
+
+  defp handle_incant_event(%{op: :form_submit} = event, socket), do: form_submit(event, socket)
+  defp handle_incant_event(_event, socket), do: {:noreply, socket}
 
   defp filter_commit(%{meta: %{"table" => table_params}}, socket) do
     resource = socket.assigns.context.resource
@@ -135,19 +145,62 @@ defmodule Incant.Live.AdminLive do
     {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
   end
 
+  defp row_select(%{value: id}, socket) do
+    selected_ids = toggle_selected(socket.assigns.context.table_state.selected_ids, id)
+
+    params =
+      socket.assigns.params
+      |> table_query_params()
+      |> Map.put("selected", Enum.join(selected_ids, ","))
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
+  end
+
   defp row_action(%{target: action, value: id}, socket) do
     context = socket.assigns.context
     row = Incant.Live.Rows.one(context.resource, id, context)
 
     with :ok <- authorize(context, :run_action, %{action: action, row: row}) do
-      case Incant.Live.Actions.run(context.resource, action, id, socket.assigns) do
-        {:ok, message} -> {:noreply, put_flash(socket, :info, message)}
-        {:error, message} -> {:noreply, put_flash(socket, :error, message)}
-      end
+      action_result(socket, Incant.Live.Actions.run(context.resource, action, id, socket.assigns))
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
   end
+
+  defp bulk_action(%{target: action}, socket) do
+    context = socket.assigns.context
+    selected_ids = context.table_state.selected_ids
+
+    with false <- selected_ids == [],
+         :ok <- authorize(context, :run_action, %{action: action, selected_ids: selected_ids}) do
+      action_result(
+        socket,
+        Incant.Live.Actions.run_bulk(context.resource, action, selected_ids, socket.assigns)
+      )
+    else
+      true -> {:noreply, put_flash(socket, :error, "Select rows before running a bulk action")}
+      {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
+    end
+  end
+
+  defp page_action(%{target: action}, socket) do
+    context = socket.assigns.context
+
+    with :ok <- authorize(context, :run_action, %{action: action}) do
+      action_result(
+        socket,
+        Incant.Live.Actions.run_page(context.resource, action, socket.assigns)
+      )
+    else
+      {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
+    end
+  end
+
+  defp action_result(socket, {:ok, message}), do: {:noreply, put_flash(socket, :info, message)}
+
+  defp action_result(socket, {:error, message}),
+    do: {:noreply, put_flash(socket, :error, message)}
 
   defp form_validate(%{meta: %{"resource" => attrs}}, socket) do
     context = socket.assigns.context
@@ -414,7 +467,8 @@ defmodule Incant.Live.AdminLive do
       filters: Map.get(params, "filter", %{}),
       sort: Map.get(params, "sort", ""),
       page: Map.get(params, "page", "1"),
-      page_size: Map.get(params, "page_size", "25")
+      page_size: Map.get(params, "page_size", "25"),
+      selected_ids: selected_ids(Map.get(params, "selected", ""))
     }
   end
 
@@ -432,7 +486,27 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp table_query_params(params),
-    do: Map.take(params, ["search", "filter", "sort", "page", "page_size"])
+    do: Map.take(params, ["search", "filter", "sort", "page", "page_size", "selected"])
+
+  defp toggle_selected(selected_ids, id) do
+    id = to_string(id)
+
+    if id in selected_ids do
+      Enum.reject(selected_ids, &(&1 == id))
+    else
+      selected_ids ++ [id]
+    end
+  end
+
+  defp selected_ids(nil), do: []
+  defp selected_ids(""), do: []
+  defp selected_ids(ids) when is_list(ids), do: Enum.map(ids, &to_string/1)
+
+  defp selected_ids(ids) when is_binary(ids) do
+    ids
+    |> String.split(",", trim: true)
+    |> Enum.uniq()
+  end
 
   defp next_sort(current_sort, column) do
     case current_sort do

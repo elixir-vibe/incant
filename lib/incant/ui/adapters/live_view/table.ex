@@ -15,10 +15,12 @@ defmodule Incant.UI.Adapters.LiveView.Table do
   def table(assigns) do
     ~H"""
     <div class={Theme.slot(:panel, :root, kind: :table)}>
+      <.table_toolbar table={@table} env={@env} />
       <div class={Theme.slot(:table, :viewport)}>
         <table class={Theme.slot(:table, :root)}>
         <thead class={Theme.slot(:table, :head)}>
           <tr>
+            <th :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}></th>
             <th :for={column <- @table.columns} class={Theme.slot(:table, :header_cell)}>
               <button type="button" phx-click="incant:event" phx-value-op="sort" phx-value-target={column.id} class={Theme.slot(:table, :sort_button)}>
                 {column.id}
@@ -30,9 +32,14 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         </thead>
         <tbody class={Theme.slot(:table, :body)}>
           <tr :if={@table.rows == []}>
-            <td colspan={length(@table.columns)} class={Theme.slot(:table, :empty)}>{@table.empty_state}</td>
+            <td colspan={empty_colspan(@table)} class={Theme.slot(:table, :empty)}>{@table.empty_state}</td>
           </tr>
           <tr :for={row <- @table.rows} class={Theme.slot(:table, :row)}>
+            <td :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}>
+              <button type="button" phx-click="incant:event" phx-value-op="row_select" phx-value-value={row.id} aria-pressed={selected?(@table, row.id)} class={Theme.slot(:table, :checkbox)}>
+                <span :if={selected?(@table, row.id)}>✓</span>
+              </button>
+            </td>
             <td :for={cell <- row.cells} class={cell_class(cell)}>
               <.table_cell cell={cell} row={row} env={@env} />
             </td>
@@ -44,6 +51,46 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         </table>
       </div>
       <.pagination pagination={@table.pagination} />
+    </div>
+    """
+  end
+
+  attr(:table, Table, required: true)
+  attr(:env, :map, required: true)
+
+  def table_toolbar(assigns) do
+    ~H"""
+    <div :if={@table.bulk_actions != [] || @table.page_actions != []} class={Theme.slot(:table, :toolbar)}>
+      <div class={Theme.slot(:table, :toolbar_group)}>
+        <span :if={@table.bulk_actions != []} class={Theme.slot(:table, :toolbar_hint)}>
+          {selected_count(@table)} selected
+        </span>
+        <button
+          :for={action <- @table.bulk_actions}
+          type="button"
+          class={Theme.slot(:button, :base, variant: :outline, size: :xs)}
+          phx-click="incant:event"
+          phx-value-op="bulk_action"
+          phx-value-target={action.name}
+          disabled={selected_count(@table) == 0}
+          data-confirm={action.opts[:confirm] && "Are you sure?"}
+        >
+          {action_label(action)}
+        </button>
+      </div>
+      <div class={Theme.slot(:table, :toolbar_group)}>
+        <button
+          :for={action <- @table.page_actions}
+          type="button"
+          class={Theme.slot(:button, :base, variant: :outline, size: :xs)}
+          phx-click="incant:event"
+          phx-value-op="page_action"
+          phx-value-target={action.name}
+          data-confirm={action.opts[:confirm] && "Are you sure?"}
+        >
+          {action_label(action)}
+        </button>
+      </div>
     </div>
     """
   end
@@ -103,4 +150,17 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     ~H"""
     """
   end
+
+  defp selected?(table, row_id), do: to_string(row_id) in table.selection.selected_ids
+  defp selected_count(table), do: length(table.selection.selected_ids)
+
+  defp empty_colspan(table) do
+    length(table.columns) + action_column_count(table) + selection_column_count(table)
+  end
+
+  defp action_column_count(%{row_actions: []}), do: 0
+  defp action_column_count(_table), do: 1
+
+  defp selection_column_count(%{selection: %{enabled: true}}), do: 1
+  defp selection_column_count(_table), do: 0
 end

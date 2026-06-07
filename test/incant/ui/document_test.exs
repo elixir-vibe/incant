@@ -172,7 +172,14 @@ defmodule Incant.UI.DocumentTest do
           form_record: nil,
           form_changeset: nil,
           selected_row: nil,
-          table_state: %{search: "", filters: %{}, sort: "", page: 1, page_size: 25},
+          table_state: %{
+            search: "",
+            filters: %{},
+            sort: "",
+            page: 1,
+            page_size: 25,
+            selected_ids: []
+          },
           rows: [],
           pagination: %{page: 1, page_size: 25, total: 0, total_pages: 1},
           dashboard_variables: %{},

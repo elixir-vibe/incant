@@ -201,6 +201,13 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
   def recipe(:table) do
     %Recipe{
       slots: %{
+        toolbar:
+          "flex items-center justify-between gap-3 border-b border-[var(--incant-border-muted)] px-3 py-2",
+        toolbar_group: "flex items-center gap-1.5",
+        toolbar_hint: "text-xs text-[var(--incant-text-muted)]",
+        checkbox_cell: "w-8 px-3 py-1.5",
+        checkbox:
+          "h-3.5 w-3.5 rounded border-[var(--incant-border)] text-[var(--incant-primary)] focus:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
         viewport: "overflow-x-auto",
         root: "min-w-full text-sm",
         head:

@@ -13,6 +13,7 @@ defmodule Incant.UI.Event do
           | :row_select
           | :row_action
           | :bulk_action
+          | :page_action
           | :form_validate
           | :form_submit
           | :form_cancel
@@ -50,6 +51,7 @@ defmodule Incant.UI.Event do
   def row_select(attrs \\ []), do: new(:row_select, attrs)
   def row_action(attrs \\ []), do: new(:row_action, attrs)
   def bulk_action(attrs \\ []), do: new(:bulk_action, attrs)
+  def page_action(attrs \\ []), do: new(:page_action, attrs)
   def form_validate(attrs \\ []), do: new(:form_validate, attrs)
   def form_submit(attrs \\ []), do: new(:form_submit, attrs)
   def form_cancel(attrs \\ []), do: new(:form_cancel, attrs)
@@ -103,6 +105,7 @@ defmodule Incant.UI.Event do
   defp parse_op("row_select"), do: :row_select
   defp parse_op("row_action"), do: :row_action
   defp parse_op("bulk_action"), do: :bulk_action
+  defp parse_op("page_action"), do: :page_action
   defp parse_op("form_validate"), do: :form_validate
   defp parse_op("form_submit"), do: :form_submit
   defp parse_op("form_cancel"), do: :form_cancel
