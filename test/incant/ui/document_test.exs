@@ -53,6 +53,10 @@ defmodule Incant.UI.DocumentTest do
       metric(:clicks, :sum)
     end
 
+    filters do
+      filter(:campaign, :select, options: ["brand", "search"])
+    end
+
     table do
       group_by([:campaign])
       columns([:campaign, :clicks])
@@ -171,6 +175,7 @@ defmodule Incant.UI.DocumentTest do
 
     assert %Incant.UI.Surfaces.DatasetIndex{} = document.surface
     assert document.nav.active_id == "dataset.#{CampaignDataset}"
+    assert [%Incant.UI.Controls.Select{name: "campaign"}] = document.surface.filter_bar.filters
     assert Enum.map(document.surface.table.columns, & &1.id) == ["campaign", "clicks"]
     assert [%{cells: cells}] = document.surface.table.rows
     assert Enum.map(cells, & &1.value) == ["brand", 12]

@@ -7,7 +7,7 @@ defmodule Incant.Dataset do
   metadata-first; data-source adapters own query execution.
   """
 
-  alias Incant.Dataset.{Dimension, Drilldown, Metadata, Metric, Table}
+  alias Incant.Dataset.{Dimension, Drilldown, Filter, Metadata, Metric, Table}
   alias Incant.Query
   alias Incant.Result
   alias Incant.Tabular
@@ -26,6 +26,11 @@ defmodule Incant.Dataset do
       )
 
       Module.register_attribute(__MODULE__, :incant_dataset_metrics,
+        accumulate: true,
+        persist: false
+      )
+
+      Module.register_attribute(__MODULE__, :incant_dataset_filters,
         accumulate: true,
         persist: false
       )
@@ -81,6 +86,13 @@ defmodule Incant.Dataset do
         |> Enum.map(fn {name, aggregate, expr, metric_opts} ->
           %Metric{name: name, aggregate: aggregate, expr: expr, opts: metric_opts}
         end),
+      filters:
+        env.module
+        |> Module.get_attribute(:incant_dataset_filters)
+        |> Enum.reverse()
+        |> Enum.map(fn {name, type, filter_opts, query} ->
+          %Filter{name: name, type: type, opts: filter_opts, query: query}
+        end),
       table: table,
       opts: opts
     }
@@ -129,6 +141,18 @@ defmodule Incant.Dataset do
 
       @incant_dataset_metrics {name, aggregate, Keyword.get(opts, :expr),
                                Keyword.delete(opts, :expr)}
+    end
+  end
+
+  defmacro filters(do: block) do
+    quote do
+      unquote(block)
+    end
+  end
+
+  defmacro filter(name, type \\ :auto, opts \\ []) do
+    quote bind_quoted: [name: name, type: type, opts: opts] do
+      @incant_dataset_filters {name, type, opts, Keyword.get(opts, :query)}
     end
   end
 

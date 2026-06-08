@@ -29,6 +29,11 @@ defmodule MyApp.Admin.Datasets.CampaignPerformance do
     metric :roas, expr: "revenue / nullif(cost, 0)", format: :number
   end
 
+  filters do
+    filter :date, :date_range
+    filter :campaign, :select, options: ["Brand", "Search"]
+  end
+
   table density: :compact do
     group_by [:campaign]
     columns [:campaign, :clicks, :cost, :orders, :revenue, :cpa, :roas]
@@ -65,5 +70,7 @@ query =
 ```
 
 Data sources implement the `Incant.DataSource` query callback and receive `%Incant.Query{}` with `from`, dimensions, metrics, groupings, columns, filters, sort, pagination, variables, and context. Incant normalizes source rows into `%Incant.Result{}`.
+
+Dataset filters use the same semantic controls as resource filters and are URL-persistent through `filter[...]` query params. The default LiveView adapter renders them in a right-side filter rail beside the dataset table.
 
 Rendering, chart binding, saved views, and drilldown routing are planned follow-up work.

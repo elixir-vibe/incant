@@ -116,8 +116,6 @@ defmodule Incant.Live.AdminLive do
   defp handle_incant_event(_event, socket), do: {:noreply, socket}
 
   defp filter_commit(%{meta: %{"table" => table_params}}, socket) do
-    resource = socket.assigns.context.resource
-
     params =
       socket.assigns.params
       |> table_query_params()
@@ -125,8 +123,7 @@ defmodule Incant.Live.AdminLive do
       |> Map.put("page", "1")
       |> reject_empty_values()
 
-    {:noreply,
-     push_patch(socket, to: resource_path(socket.assigns.context.base_path, resource, params))}
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
   end
 
   defp dashboard_variable_commit(%{meta: %{"var" => variables}}, socket) do

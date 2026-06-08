@@ -28,6 +28,16 @@ defmodule Incant.UI.Regions.FilterBar do
     %__MODULE__{id: "resource.filters", search: search, filters: filters}
   end
 
+  def from_dataset_context(%{dataset: dataset, table_state: table_state} = context) do
+    filters =
+      Enum.map(dataset.filters, fn filter ->
+        value = Map.get(table_state.filters, to_string(filter.name), "")
+        Incant.UI.Controls.from_table_filter(filter, value, context)
+      end)
+
+    %__MODULE__{id: "dataset.filters", filters: filters}
+  end
+
   def dashboard_variables(variables) do
     %__MODULE__{id: "dashboard.variables", filters: variables}
   end

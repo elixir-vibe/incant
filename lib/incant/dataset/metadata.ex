@@ -3,7 +3,7 @@ defmodule Incant.Dataset.Metadata do
   Compiled metadata for an Incant analytical dataset.
   """
 
-  alias Incant.Dataset.{Dimension, Metric, Table}
+  alias Incant.Dataset.{Dimension, Filter, Metric, Table}
 
   @type t :: %__MODULE__{
           module: module,
@@ -12,6 +12,7 @@ defmodule Incant.Dataset.Metadata do
           from: term,
           dimensions: [Dimension.t()],
           metrics: [Metric.t()],
+          filters: [Filter.t()],
           table: Table.t(),
           opts: keyword
         }
@@ -23,6 +24,7 @@ defmodule Incant.Dataset.Metadata do
     :from,
     dimensions: [],
     metrics: [],
+    filters: [],
     table: %Table{},
     opts: []
   ]

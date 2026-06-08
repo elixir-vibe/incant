@@ -32,6 +32,11 @@ defmodule Incant.DatasetTest do
       metric(:cpa, expr: "cost / nullif(orders, 0)", format: :money)
     end
 
+    filters do
+      filter(:range, :date_range)
+      filter(:campaign, :select, options: ["brand", "search"])
+    end
+
     table density: :compact do
       group_by([:campaign])
       columns([:campaign, :clicks, :cost, :cpa])
@@ -63,6 +68,10 @@ defmodule Incant.DatasetTest do
     assert Enum.map(metadata.metrics, & &1.aggregate) == [:sum, :sum, nil]
     assert List.last(metadata.metrics).expr == "cost / nullif(orders, 0)"
     assert List.last(metadata.metrics).opts == [format: :money]
+
+    assert Enum.map(metadata.filters, & &1.name) == [:range, :campaign]
+    assert Enum.map(metadata.filters, & &1.type) == [:date_range, :select]
+    assert List.last(metadata.filters).opts == [options: ["brand", "search"]]
 
     assert metadata.table.opts == [density: :compact]
     assert metadata.table.group_by == [:campaign]

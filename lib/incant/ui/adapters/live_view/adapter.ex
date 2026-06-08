@@ -154,7 +154,14 @@ defmodule Incant.UI.Adapters.LiveView do
     ~H"""
     <section class={Theme.slot(:surface, :stack)}>
       <.page_header title={@surface.title} eyebrow="Dataset" />
-      <.table table={@surface.table} env={@env} />
+      <div class={Theme.slot(:surface, :index)}>
+        <div class={Theme.slot(:surface, :primary)}>
+          <.table table={@surface.table} env={@env} />
+        </div>
+        <aside :if={@surface.filter_bar && @surface.filter_bar.filters != []} class={Theme.slot(:surface, :aside)}>
+          <.filter_bar filter_bar={@surface.filter_bar} env={@env} />
+        </aside>
+      </div>
     </section>
     """
   end
