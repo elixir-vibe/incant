@@ -154,6 +154,15 @@ defmodule Incant.UI.Adapters.LiveView do
     ~H"""
     <section class={Theme.slot(:surface, :stack)}>
       <.page_header title={@surface.title} eyebrow="Dataset" />
+      <div :if={@surface.drilldowns != []} class={Theme.slot(:dataset, :drilldowns)}>
+        <.link
+          :for={drilldown <- @surface.drilldowns}
+          patch={drilldown.path}
+          class={Theme.slot(:button, :base, variant: if(drilldown.active, do: :primary, else: :outline), size: :xs)}
+        >
+          {drilldown.label}
+        </.link>
+      </div>
       <div class={Theme.slot(:surface, :index)}>
         <div class={Theme.slot(:surface, :primary)}>
           <.table table={@surface.table} env={@env} />

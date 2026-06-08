@@ -40,8 +40,8 @@ defmodule MyApp.Admin.Datasets.CampaignPerformance do
     sort :cost, :desc
     heatmap [:cost, :orders, :roas]
 
-    drilldown :campaign, group_by: [:ad_group]
-    drilldown :ad_group, group_by: [:keyword]
+    drilldown :campaign, group_by: [:ad_group], columns: [:ad_group, :clicks, :cost, :cpa]
+    drilldown :ad_group, group_by: [:keyword], columns: [:keyword, :clicks, :cost, :cpa]
   end
 end
 ```
@@ -89,4 +89,16 @@ filter :campaign, :select, options: &MyApp.Admin.Options.campaigns/2
 
 Option callbacks receive `%{source: filter}` and the current context, and should return a list of values or `{label, value}` pairs.
 
-Rendering, chart binding, saved views, and drilldown routing are planned follow-up work.
+Drilldowns can switch grouping and columns through URL state:
+
+```elixir
+table do
+  group_by [:campaign]
+  columns [:campaign, :clicks, :cost]
+  drilldown :campaign, group_by: [:ad_group], columns: [:ad_group, :clicks, :cost]
+end
+```
+
+The default LiveView adapter renders available drilldowns above the dataset table and passes the selected drilldown into `%Incant.Query{}`.
+
+Chart binding, saved views, and deeper breadcrumb-style drilldown paths are planned follow-up work.

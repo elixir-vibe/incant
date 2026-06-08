@@ -61,6 +61,14 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:dataset) do
+    %Recipe{
+      slots: %{
+        drilldowns: "flex flex-wrap items-center gap-2"
+      }
+    }
+  end
+
   def recipe(:nav) do
     %Recipe{
       slots: %{

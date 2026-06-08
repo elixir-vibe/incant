@@ -62,6 +62,7 @@ defmodule Incant.UI.DocumentTest do
     table do
       group_by([:campaign])
       columns([:campaign, :clicks])
+      drilldown(:campaign, group_by: [:campaign])
     end
   end
 
@@ -182,6 +183,8 @@ defmodule Incant.UI.DocumentTest do
              document.surface.filter_bar.filters
 
     assert Enum.map(options, & &1.value) == ["brand", "search"]
+    assert [%{id: "campaign", active: false, path: path}] = document.surface.drilldowns
+    assert path == "/admin/datasets/campaign_dataset?drilldown=campaign&page_size=25"
     assert Enum.map(document.surface.table.columns, & &1.id) == ["campaign", "clicks"]
     assert [%{cells: cells}] = document.surface.table.rows
     assert Enum.map(cells, & &1.value) == ["brand", 12]

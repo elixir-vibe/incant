@@ -523,6 +523,7 @@ defmodule Incant.Live.AdminLive do
     %{
       search: Map.get(params, "search", ""),
       filters: Map.get(params, "filter", %{}),
+      drilldown: Map.get(params, "drilldown"),
       sort: Map.get(params, "sort", ""),
       page: Map.get(params, "page", "1"),
       page_size: Map.get(params, "page_size", "25"),
@@ -544,7 +545,8 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp table_query_params(params),
-    do: Map.take(params, ["search", "filter", "sort", "page", "page_size", "selected"])
+    do:
+      Map.take(params, ["search", "filter", "drilldown", "sort", "page", "page_size", "selected"])
 
   defp toggle_selected(selected_ids, id) do
     id = to_string(id)
@@ -584,6 +586,7 @@ defmodule Incant.Live.AdminLive do
   defp dataset_query_opts(context) do
     [
       filters: context.table_state.filters,
+      drilldown: context.table_state.drilldown,
       page: Incant.Params.positive_integer(context.table_state.page, 1),
       page_size: Incant.Params.positive_integer(context.table_state.page_size, 25),
       context: context

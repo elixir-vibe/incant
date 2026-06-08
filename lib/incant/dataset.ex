@@ -206,15 +206,17 @@ defmodule Incant.Dataset do
     dataset = metadata(dataset_or_module)
     table = dataset.table
 
+    drilldown = resolve_drilldown(dataset, Keyword.get(opts, :drilldown))
+
     %Query{
       source: dataset.source,
       dataset: dataset,
       from: dataset.from,
       dimensions: names(dataset.dimensions),
       metrics: names(dataset.metrics),
-      group_by: Keyword.get(opts, :group_by, table.group_by),
-      columns: Keyword.get(opts, :columns, table.columns),
-      drilldown: Keyword.get(opts, :drilldown),
+      group_by: Keyword.get(opts, :group_by, drilldown_group_by(table, drilldown)),
+      columns: Keyword.get(opts, :columns, drilldown_columns(table, drilldown)),
+      drilldown: drilldown && drilldown.dimension,
       filters: Keyword.get(opts, :filters, %{}),
       sort: Keyword.get(opts, :sort, sort_keyword(table.sort)),
       page: Keyword.get(opts, :page),
@@ -261,6 +263,21 @@ defmodule Incant.Dataset do
 
   defp metadata(%Metadata{} = dataset), do: dataset
   defp metadata(module) when is_atom(module), do: Incant.metadata(module)
+
+  defp resolve_drilldown(_dataset, nil), do: nil
+  defp resolve_drilldown(_dataset, ""), do: nil
+
+  defp resolve_drilldown(dataset, value) do
+    Enum.find(dataset.table.drilldowns, &(to_string(&1.dimension) == to_string(value)))
+  end
+
+  defp drilldown_group_by(table, nil), do: table.group_by
+
+  defp drilldown_group_by(_table, drilldown),
+    do: drilldown.opts[:group_by] || [drilldown.dimension]
+
+  defp drilldown_columns(table, nil), do: table.columns
+  defp drilldown_columns(table, drilldown), do: drilldown.opts[:columns] || table.columns
 
   defp names(records), do: Enum.map(records, & &1.name)
   defp sort_keyword(nil), do: []

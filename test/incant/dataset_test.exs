@@ -42,7 +42,7 @@ defmodule Incant.DatasetTest do
       columns([:campaign, :clicks, :cost, :cpa])
       sort(:cost, :desc)
       heatmap([:cost, :cpa])
-      drilldown(:campaign, group_by: [:keyword])
+      drilldown(:campaign, group_by: [:keyword], columns: [:keyword, :clicks])
     end
   end
 
@@ -79,8 +79,12 @@ defmodule Incant.DatasetTest do
     assert metadata.table.sort == {:cost, :desc}
     assert metadata.table.heatmap == [:cost, :cpa]
 
-    assert [%Incant.Dataset.Drilldown{dimension: :campaign, opts: [group_by: [:keyword]]}] =
-             metadata.table.drilldowns
+    assert [
+             %Incant.Dataset.Drilldown{
+               dimension: :campaign,
+               opts: [group_by: [:keyword], columns: [:keyword, :clicks]]
+             }
+           ] = metadata.table.drilldowns
   end
 
   test "Incant.metadata/1 returns dataset metadata" do
@@ -109,6 +113,14 @@ defmodule Incant.DatasetTest do
     assert query.filters == %{"range" => "7d"}
     assert query.page == 2
     assert query.page_size == 50
+  end
+
+  test "applies drilldowns to dataset queries" do
+    query = Incant.Dataset.query(CampaignPerformance, drilldown: "campaign")
+
+    assert query.drilldown == :campaign
+    assert query.group_by == [:keyword]
+    assert query.columns == [:keyword, :clicks]
   end
 
   test "runs dataset queries through source modules" do
