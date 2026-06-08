@@ -5,6 +5,9 @@ defmodule Incant.DashboardTest do
     def total_requests(_params, _context), do: 42
   end
 
+  defmodule CampaignDataset do
+  end
+
   defmodule LLMStatsDashboard do
     use Incant.Dashboard
 
@@ -19,6 +22,14 @@ defmodule Incant.DashboardTest do
       stat(:total_requests, span: 3, query: &Metrics.total_requests/2)
       timeseries(:requests_over_time, span: 9)
       table(:slow_requests, span: 12)
+
+      chart :campaign_clicks, :line, span: 8 do
+        dataset(CampaignDataset)
+        x(:timestamp, bucket: :hour)
+        y(:clicks)
+        series(:campaign)
+        drilldown(:campaign)
+      end
     end
   end
 
@@ -34,10 +45,19 @@ defmodule Incant.DashboardTest do
     assert Enum.map(metadata.widgets, & &1.id) == [
              :total_requests,
              :requests_over_time,
-             :slow_requests
+             :slow_requests,
+             :campaign_clicks
            ]
 
-    assert Enum.map(metadata.widgets, & &1.type) == [:stat, :timeseries, :table]
+    assert Enum.map(metadata.widgets, & &1.type) == [:stat, :timeseries, :table, :chart]
     assert hd(metadata.widgets).opts[:query] == (&Metrics.total_requests/2)
+
+    chart = List.last(metadata.widgets)
+    assert chart.opts[:chart_type] == :line
+    assert chart.opts[:dataset] == CampaignDataset
+    assert chart.opts[:x] == {:timestamp, [bucket: :hour]}
+    assert chart.opts[:y] == {:clicks, []}
+    assert chart.opts[:series] == {:campaign, []}
+    assert chart.opts[:drilldown] == {:campaign, []}
   end
 end

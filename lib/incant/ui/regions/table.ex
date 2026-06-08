@@ -166,7 +166,7 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
-  defp result_columns(dataset, %{columns: []}), do: dataset.table.columns
+  defp result_columns(%{table: %{columns: [_ | _] = columns}}, _result), do: columns
   defp result_columns(_dataset, %{columns: columns}), do: columns
 
   defp dataset_pagination(context, result) do

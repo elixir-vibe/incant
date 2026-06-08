@@ -7,7 +7,7 @@ defmodule Incant.UI.Regions.WidgetGrid do
 
   defmodule Widget do
     @moduledoc false
-    defstruct [:id, :type, :title, :value, :display, :span, :error, :loading, :source]
+    defstruct [:id, :type, :title, :value, :display, :span, :chart, :error, :loading, :source]
   end
 
   def from_context(context) do
@@ -32,11 +32,29 @@ defmodule Incant.UI.Regions.WidgetGrid do
       value: value,
       display: display_value(value, widget),
       span: widget.opts[:span],
+      chart: chart_from_metadata(widget, value),
       error: error,
       loading: not Map.has_key?(context.widget_values, widget.id),
       source: widget
     }
   end
+
+  defp chart_from_metadata(%{type: :chart} = widget, value) do
+    %Incant.UI.Regions.Chart{
+      id: widget.id,
+      type: widget.opts[:chart_type],
+      dataset: widget.opts[:dataset],
+      x: widget.opts[:x],
+      y: widget.opts[:y],
+      series: widget.opts[:series],
+      drilldown: widget.opts[:drilldown],
+      title: widget.opts[:label] || humanize(widget.id),
+      value: value,
+      opts: widget.opts
+    }
+  end
+
+  defp chart_from_metadata(_widget, _value), do: nil
 
   defp display_value({:error, _message}, _widget), do: nil
   defp display_value(value, _widget) when is_list(value) or is_map(value), do: value

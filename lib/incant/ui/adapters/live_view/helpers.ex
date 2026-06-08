@@ -120,6 +120,14 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     end
   end
 
+  def chart_axis_label(nil), do: "—"
+  def chart_axis_label({field, _opts}), do: to_string(field)
+  def chart_axis_label(field), do: to_string(field)
+
+  def short_chart_dataset(nil), do: nil
+  def short_chart_dataset(module) when is_atom(module), do: short_module(module)
+  def short_chart_dataset(dataset), do: to_string(dataset)
+
   def bar_height(point, points) do
     value = numeric_value(point)
     max_value = points |> Enum.map(&numeric_value/1) |> Enum.max(fn -> 1 end)

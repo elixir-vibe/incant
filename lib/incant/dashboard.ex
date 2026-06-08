@@ -39,6 +39,7 @@ defmodule Incant.Dashboard do
       )
 
       Module.register_attribute(__MODULE__, :incant_dashboard_grid, persist: false)
+      Module.register_attribute(__MODULE__, :incant_dashboard_chart_opts, persist: false)
 
       @incant_dashboard_opts opts
       @before_compile Incant.Dashboard
@@ -114,6 +115,79 @@ defmodule Incant.Dashboard do
   defmacro table(id, opts \\ []) do
     quote do
       widget(unquote(id), :table, unquote(opts))
+    end
+  end
+
+  defmacro chart(id, type, opts \\ []) do
+    quote do
+      widget(unquote(id), :chart, Keyword.put(unquote(opts), :chart_type, unquote(type)))
+    end
+  end
+
+  defmacro chart(id, type, opts, do: block) do
+    quote do
+      @incant_dashboard_chart_opts []
+      unquote(block)
+
+      widget(
+        unquote(id),
+        :chart,
+        unquote(opts)
+        |> Keyword.put(:chart_type, unquote(type))
+        |> Keyword.merge(@incant_dashboard_chart_opts || [])
+      )
+
+      @incant_dashboard_chart_opts nil
+    end
+  end
+
+  defmacro dataset(module) do
+    quote bind_quoted: [module: module] do
+      @incant_dashboard_chart_opts Keyword.put(
+                                     @incant_dashboard_chart_opts || [],
+                                     :dataset,
+                                     module
+                                   )
+    end
+  end
+
+  defmacro x(field, opts \\ []) do
+    quote bind_quoted: [field: field, opts: opts] do
+      @incant_dashboard_chart_opts Keyword.put(
+                                     @incant_dashboard_chart_opts || [],
+                                     :x,
+                                     {field, opts}
+                                   )
+    end
+  end
+
+  defmacro y(metric, opts \\ []) do
+    quote bind_quoted: [metric: metric, opts: opts] do
+      @incant_dashboard_chart_opts Keyword.put(
+                                     @incant_dashboard_chart_opts || [],
+                                     :y,
+                                     {metric, opts}
+                                   )
+    end
+  end
+
+  defmacro series(field, opts \\ []) do
+    quote bind_quoted: [field: field, opts: opts] do
+      @incant_dashboard_chart_opts Keyword.put(
+                                     @incant_dashboard_chart_opts || [],
+                                     :series,
+                                     {field, opts}
+                                   )
+    end
+  end
+
+  defmacro drilldown(target, opts \\ []) do
+    quote bind_quoted: [target: target, opts: opts] do
+      @incant_dashboard_chart_opts Keyword.put(
+                                     @incant_dashboard_chart_opts || [],
+                                     :drilldown,
+                                     {target, opts}
+                                   )
     end
   end
 end

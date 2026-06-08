@@ -19,6 +19,14 @@ defmodule MyApp.Admin.Dashboards.LLMStats do
     stat :total_cost, span: 3, query: &MyApp.Admin.Metrics.LLM.total_cost/2
     timeseries :requests_over_time, span: 8
     table :slow_requests, span: 4
+
+    chart :cost_over_time, :line, span: 8 do
+      dataset MyApp.Admin.Datasets.LLMUsage
+      x :timestamp, bucket: :hour
+      y :cost_usd
+      series :provider
+      drilldown :provider
+    end
   end
 end
 ```

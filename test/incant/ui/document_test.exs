@@ -78,6 +78,12 @@ defmodule Incant.UI.DocumentTest do
 
     grid columns: 12, row_height: 8 do
       stat(:total_requests, span: 3)
+
+      chart :campaign_clicks, :line, span: 8 do
+        dataset(CampaignDataset)
+        x(:timestamp, bucket: :hour)
+        y(:clicks)
+      end
     end
   end
 
@@ -205,8 +211,19 @@ defmodule Incant.UI.DocumentTest do
              Incant.UI.Controls.Select
            ]
 
-    assert [%Incant.UI.Regions.WidgetGrid.Widget{id: :total_requests, type: :stat}] =
-             document.surface.widgets
+    assert [
+             %Incant.UI.Regions.WidgetGrid.Widget{id: :total_requests, type: :stat},
+             %Incant.UI.Regions.WidgetGrid.Widget{
+               id: :campaign_clicks,
+               type: :chart,
+               chart: chart
+             }
+           ] = document.surface.widgets
+
+    assert chart.type == :line
+    assert chart.dataset == CampaignDataset
+    assert chart.x == {:timestamp, [bucket: :hour]}
+    assert chart.y == {:clicks, []}
   end
 
   defp context(overrides) do

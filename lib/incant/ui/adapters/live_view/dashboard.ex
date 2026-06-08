@@ -52,6 +52,29 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
     """
   end
 
+  def widget(%{widget: %{type: :chart}} = assigns) do
+    ~H"""
+    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)}>
+      <div class={Theme.slot(:widget, :title_row)}>
+        <div>
+          <p class={Theme.slot(:widget, :eyebrow)}>{@widget.chart.type || "Chart"}</p>
+          <h3 class={Theme.slot(:widget, :title)}>{@widget.title}</h3>
+        </div>
+        <span :if={@widget.chart.dataset} class={Theme.slot(:badge, :base)}>{short_chart_dataset(@widget.chart.dataset)}</span>
+      </div>
+      <div class={Theme.slot(:widget, :chart)}>
+        <div class={Theme.slot(:widget, :chart_placeholder)}>
+          <div class={Theme.slot(:widget, :chart_line)}></div>
+          <div class={Theme.slot(:widget, :chart_axis)}>
+            <span>{chart_axis_label(@widget.chart.x)}</span>
+            <span>{chart_axis_label(@widget.chart.y)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   def widget(%{widget: %{type: :table}} = assigns) do
     ~H"""
     <div class={Theme.slot(:widget, :framed)} style={widget_style(@widget)}>
