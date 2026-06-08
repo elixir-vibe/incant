@@ -37,6 +37,8 @@ defmodule Incant.UI.DocumentTest do
 
     @impl Incant.DataSource
     def query(_query), do: {:ok, [%{campaign: "brand", clicks: 12}]}
+
+    def campaign_options(_params, _context), do: ["brand", "search"]
   end
 
   defmodule CampaignDataset do
@@ -54,7 +56,7 @@ defmodule Incant.UI.DocumentTest do
     end
 
     filters do
-      filter(:campaign, :select, options: ["brand", "search"])
+      filter(:campaign, :select, options: &AnalyticsSource.campaign_options/2)
     end
 
     table do
@@ -175,7 +177,11 @@ defmodule Incant.UI.DocumentTest do
 
     assert %Incant.UI.Surfaces.DatasetIndex{} = document.surface
     assert document.nav.active_id == "dataset.#{CampaignDataset}"
-    assert [%Incant.UI.Controls.Select{name: "campaign"}] = document.surface.filter_bar.filters
+
+    assert [%Incant.UI.Controls.Select{name: "campaign", options: options}] =
+             document.surface.filter_bar.filters
+
+    assert Enum.map(options, & &1.value) == ["brand", "search"]
     assert Enum.map(document.surface.table.columns, & &1.id) == ["campaign", "clicks"]
     assert [%{cells: cells}] = document.surface.table.rows
     assert Enum.map(cells, & &1.value) == ["brand", 12]

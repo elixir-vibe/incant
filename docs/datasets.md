@@ -31,7 +31,7 @@ defmodule MyApp.Admin.Datasets.CampaignPerformance do
 
   filters do
     filter :date, :date_range
-    filter :campaign, :select, options: ["Brand", "Search"]
+    filter :campaign, :select, options: &MyApp.Admin.Options.campaigns/2
   end
 
   table density: :compact do
@@ -72,5 +72,21 @@ query =
 Data sources implement the `Incant.DataSource` query callback and receive `%Incant.Query{}` with `from`, dimensions, metrics, groupings, columns, filters, sort, pagination, variables, and context. Incant normalizes source rows into `%Incant.Result{}`.
 
 Dataset filters use the same semantic controls as resource filters and are URL-persistent through `filter[...]` query params. The default LiveView adapter renders them in a right-side filter rail beside the dataset table.
+
+Use atoms for closed app-owned enums and strings for external analytical values. UTM values, campaign names, referrers, provider model names, and other imported dimensions should stay strings; do not convert arbitrary external data to atoms.
+
+Static options are fine for closed sets:
+
+```elixir
+filter :status, :select, options: [:draft, :active, :archived]
+```
+
+Analytical options can be dynamic:
+
+```elixir
+filter :campaign, :select, options: &MyApp.Admin.Options.campaigns/2
+```
+
+Option callbacks receive `%{source: filter}` and the current context, and should return a list of values or `{label, value}` pairs.
 
 Rendering, chart binding, saved views, and drilldown routing are planned follow-up work.

@@ -17,14 +17,14 @@ defmodule Incant.UI.Controls do
     }
   end
 
-  def from_table_filter(%{type: :select} = filter, value, _context) do
+  def from_table_filter(%{type: :select} = filter, value, context) do
     %Incant.UI.Controls.Select{
       id: "filters.#{filter.name}",
       name: to_string(filter.name),
       label: filter.opts[:label] || humanize(filter.name),
       role: :filter,
       value: value,
-      options: options(filter.opts[:options] || []),
+      options: options(filter.opts[:options] || [], filter, context),
       clearable: true,
       source: filter
     }
@@ -101,8 +101,8 @@ defmodule Incant.UI.Controls do
     |> struct!(control_attrs(field, base))
   end
 
-  defp control_attrs(%{type: :select, opts: opts}, base),
-    do: Map.put(base, :options, options(opts[:options] || []))
+  defp control_attrs(%{type: :select, opts: opts} = field, base),
+    do: Map.put(base, :options, options(opts[:options] || [], field, %{form: base}))
 
   defp control_attrs(_field, base), do: base
 
@@ -113,11 +113,21 @@ defmodule Incant.UI.Controls do
   defp control_module(%{type: :date}), do: Incant.UI.Controls.Date
   defp control_module(_field), do: Incant.UI.Controls.Text
 
-  defp options(options) do
-    Enum.map(options, fn
+  defp options(options, source, context) do
+    options
+    |> resolve_options(source, context)
+    |> Enum.map(fn
       {label, value} -> %{label: to_string(label), value: value}
       value -> %{label: humanize(value), value: value}
     end)
+  end
+
+  defp resolve_options(nil, _source, _context), do: []
+  defp resolve_options(options, _source, _context) when is_list(options), do: options
+
+  defp resolve_options(options, source, context)
+       when is_function(options) or is_tuple(options) do
+    Incant.Callback.call(options, %{source: source}, context) || []
   end
 
   defp variable_attrs(variable, context, opts) do
@@ -132,7 +142,7 @@ defmodule Incant.UI.Controls do
     }
 
     if opts[:options],
-      do: Map.put(attrs, :options, options(variable.opts[:options] || [])),
+      do: Map.put(attrs, :options, options(variable.opts[:options] || [], variable, context)),
       else: attrs
   end
 
