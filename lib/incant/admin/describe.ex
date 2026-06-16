@@ -13,7 +13,7 @@ defmodule Incant.Admin.Describe do
       module: inspect(admin.module),
       service: service,
       version: Map.get(opts, :version),
-      resources: Enum.map(admin.resources, &describe_resource/1),
+      resources: describe_resources(admin),
       dashboards: Enum.map(admin.dashboards, &describe_dashboard/1),
       datasets: Enum.map(admin.datasets, &describe_dataset/1),
       plugins: Enum.map(admin.plugins, &inspect/1),
@@ -24,9 +24,21 @@ defmodule Incant.Admin.Describe do
   defp metadata(%Incant.Admin.Metadata{} = metadata), do: metadata
   defp metadata(module) when is_atom(module), do: Incant.metadata(module)
 
-  defp describe_resource(module) do
-    resource = Incant.metadata(module)
+  defp describe_resources(admin) do
+    explicit =
+      Enum.map(admin.resources, &(&1 |> Incant.metadata() |> describe_resource_metadata()))
 
+    exposed =
+      Enum.map(admin.exposed, fn {schema, opts} ->
+        admin
+        |> Incant.Admin.Exposure.resolve(schema, opts)
+        |> describe_resource_metadata()
+      end)
+
+    explicit ++ exposed
+  end
+
+  defp describe_resource_metadata(resource) do
     %{
       id: surface_id(resource.module),
       kind: :resource,

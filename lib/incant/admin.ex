@@ -33,6 +33,11 @@ defmodule Incant.Admin do
         persist: false
       )
 
+      Module.register_attribute(__MODULE__, :incant_admin_exposed,
+        accumulate: true,
+        persist: false
+      )
+
       Module.register_attribute(__MODULE__, :incant_admin_dashboards,
         accumulate: true,
         persist: false
@@ -57,6 +62,7 @@ defmodule Incant.Admin do
     metadata = %Metadata{
       module: env.module,
       resources: env.module |> Module.get_attribute(:incant_admin_resources) |> Enum.reverse(),
+      exposed: env.module |> Module.get_attribute(:incant_admin_exposed) |> Enum.reverse(),
       dashboards: env.module |> Module.get_attribute(:incant_admin_dashboards) |> Enum.reverse(),
       datasets: env.module |> Module.get_attribute(:incant_admin_datasets) |> Enum.reverse(),
       plugins: env.module |> Module.get_attribute(:incant_admin_plugins) |> Enum.reverse(),
@@ -74,6 +80,12 @@ defmodule Incant.Admin do
   defmacro resource(module) do
     quote bind_quoted: [module: module] do
       @incant_admin_resources module
+    end
+  end
+
+  defmacro expose(schema, opts \\ []) do
+    quote bind_quoted: [schema: schema, opts: opts] do
+      @incant_admin_exposed {schema, opts}
     end
   end
 

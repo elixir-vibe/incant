@@ -6,11 +6,20 @@ defmodule Incant.Admin.Metadata do
   @type t :: %__MODULE__{
           module: module,
           resources: [module],
+          exposed: [{module, keyword}],
           dashboards: [module],
           datasets: [module],
           plugins: [module],
           opts: keyword
         }
 
-  defstruct [:module, resources: [], dashboards: [], datasets: [], plugins: [], opts: []]
+  defstruct [
+    :module,
+    resources: [],
+    exposed: [],
+    dashboards: [],
+    datasets: [],
+    plugins: [],
+    opts: []
+  ]
 end

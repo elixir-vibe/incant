@@ -8,15 +8,39 @@ Each service declares the admin surface it exposes in its own application namesp
 defmodule Billing.Admin do
   use Incant.Admin,
     service: :billing,
-    version: "1"
+    version: "1",
+    repo: Billing.Repo
 
-  resource Billing.Admin.Resources.Invoice
+  expose Billing.Invoices.Invoice
+  expose Billing.Customers.Customer
+
   dashboard Billing.Admin.Dashboards.Operations
   dataset Billing.Admin.Datasets.Revenue
 end
 ```
 
 This mirrors how Mix tasks live in project namespaces: the framework defines the behaviour and conventions, while applications define their own modules.
+
+`expose/2` is convention-first. By default, Incant infers a resource from the Ecto schema and configured repo. If the application defines a conventional resource module, Incant uses it automatically without changing the admin root:
+
+```elixir
+defmodule Billing.Admin.Resources.Invoice do
+  use Incant.Resource,
+    schema: Billing.Invoices.Invoice
+
+  table do
+    column :number, link: true
+    column :status, as: :badge
+    action :refund, confirm: true
+  end
+end
+```
+
+Resolution order:
+
+1. explicit `resource MyResourceModule` entries;
+2. conventional override modules for `expose Schema`, such as `Billing.Admin.Resources.Invoice`;
+3. inferred Ecto resources from `Schema.__schema__/1`.
 
 ## Local authoring, portable description
 
