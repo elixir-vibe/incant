@@ -6,7 +6,7 @@ defmodule Incant.Admin.RPC do
     version = Keyword.get(opts, :version)
 
     quote do
-      use SafeRPC, service: unquote(service), version: unquote(version), surface: :control
+      use SafeRPC, service: unquote(service), version: unquote(version)
 
       @behaviour Incant.Service
 

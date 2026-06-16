@@ -37,8 +37,9 @@ defmodule Incant.Admin.RPCTest do
 
     assert %SafeRPC.Descriptor{service: :accounts, version: "1"} = descriptor
 
-    assert %{incant_describe: describe, incant_index: index, incant_read: read} =
-             descriptor.surfaces.control.ops
+    assert %{ops: ops} = Map.fetch!(descriptor.modules, Admin)
+
+    assert %{incant_describe: describe, incant_index: index, incant_read: read} = ops
 
     assert describe.docs == "Describe this Incant admin surface."
     assert index.spec != nil
