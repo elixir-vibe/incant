@@ -29,7 +29,15 @@ defmodule Incant.Live.Rows do
       total_pages: total_pages
     }
   rescue
-    error -> error_page(error, table_state)
+    error in [
+      ArgumentError,
+      Ecto.QueryError,
+      FunctionClauseError,
+      Protocol.UndefinedError,
+      RuntimeError,
+      UndefinedFunctionError
+    ] ->
+      error_page(error, table_state)
   end
 
   def page(resource, table_state, context) do
@@ -48,7 +56,14 @@ defmodule Incant.Live.Rows do
       total_pages: total_pages
     }
   rescue
-    error -> error_page(error, table_state)
+    error in [
+      ArgumentError,
+      FunctionClauseError,
+      Protocol.UndefinedError,
+      RuntimeError,
+      UndefinedFunctionError
+    ] ->
+      error_page(error, table_state)
   end
 
   defp all(resource, table_state, context) do

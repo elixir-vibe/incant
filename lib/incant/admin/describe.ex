@@ -131,39 +131,17 @@ defmodule Incant.Admin.Describe do
     %{id: to_string(name), name: public_value(name), opts: public_opts(opts, :named)}
   end
 
-  defp describe_typed_opts(%{name: name, type: type, opts: opts}) do
-    %{
-      id: to_string(name),
-      name: public_value(name),
-      type: public_value(type),
-      opts: public_opts(opts, :typed)
-    }
-  end
+  defp describe_typed_opts(opts), do: describe_named_typed_opts(opts, :typed)
+  defp describe_field(field), do: describe_named_typed_opts(field, :field)
+  defp describe_resource_filter(filter), do: describe_named_typed_opts(filter, :filter)
+  defp describe_dataset_filter(filter), do: describe_named_typed_opts(filter, :filter)
 
-  defp describe_field(%{name: name, type: type, opts: opts}) do
+  defp describe_named_typed_opts(%{name: name, type: type, opts: opts}, kind) do
     %{
       id: to_string(name),
       name: public_value(name),
       type: public_value(type),
-      opts: public_opts(opts, :field)
-    }
-  end
-
-  defp describe_resource_filter(%{name: name, type: type, opts: opts}) do
-    %{
-      id: to_string(name),
-      name: public_value(name),
-      type: public_value(type),
-      opts: public_opts(opts, :filter)
-    }
-  end
-
-  defp describe_dataset_filter(%{name: name, type: type, opts: opts}) do
-    %{
-      id: to_string(name),
-      name: public_value(name),
-      type: public_value(type),
-      opts: public_opts(opts, :filter)
+      opts: public_opts(opts, kind)
     }
   end
 

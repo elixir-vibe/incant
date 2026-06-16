@@ -77,41 +77,68 @@ The important split is:
 
 ## SafeRPC transport
 
-SafeRPC should expose a small standard Incant operation set. The operations are transport verbs, not user-defined remote MFAs.
-
-Initial operation shape:
+A service opts into SafeRPC by enabling RPC on its ordinary admin module:
 
 ```elixir
-:incant_describe
-:incant_resource_query
-:incant_resource_get
-:incant_resource_action
-:incant_dataset_query
-:incant_dashboard_widget
-```
+defmodule Billing.Admin do
+  use Incant.Admin,
+    service: :billing,
+    version: "1",
+    repo: Billing.Repo,
+    rpc: true
 
-A service adapter can be configured with the service's admin module:
-
-```elixir
-defmodule Billing.AdminRPC do
-  use Incant.SafeRPC.Service,
-    admin: Billing.Admin
+  expose Billing.Invoices.Invoice
 end
 ```
 
-Internally, the adapter dispatches to Incant runtime functions:
+That module still implements the local `Incant.Service` behaviour:
 
 ```elixir
-Incant.Admin.describe(Billing.Admin)
-Incant.Admin.query_resource(Billing.Admin, "invoices", params, context)
-Incant.Admin.run_action(Billing.Admin, "invoices", "refund", payload, context)
+Billing.Admin.describe(context)
+Billing.Admin.index("invoice", params, context)
+Billing.Admin.read("invoice", id, context)
+Billing.Admin.run_action("invoice", "refund", payload, context)
 ```
 
-The central control plane calls standard SafeRPC operations, but the service controls what those operations mean by exposing its own `Billing.Admin` module.
+With `rpc: true`, those same service functions are exposed through SafeRPC as explicit module/function operations:
+
+```elixir
+{Billing.Admin, :describe}
+{Billing.Admin, :index}
+{Billing.Admin, :read}
+{Billing.Admin, :run_action}
+```
+
+Central control-plane code should not repeat those operation tuples directly. It should discover Incant service modules from HostKit/SafeRPC bindings and build `%Incant.Service.Client{}` handles:
+
+```elixir
+{:ok, clients} = Incant.Service.discover(bindings)
+
+for client <- clients do
+  {:ok, contract} = Incant.Service.describe(client)
+  # render the contract and dispatch later user actions through the same client
+end
+```
+
+For a known binding/module pair, callers can construct a client explicitly:
+
+```elixir
+client = Incant.Service.client(binding, module: Billing.Admin)
+
+Incant.Service.index(client, %Incant.Service.Index{surface_id: "invoice", params: %{page: 1}})
+Incant.Service.read(client, %Incant.Service.Read{surface_id: "invoice", id: "123"})
+Incant.Service.run_action(client, %Incant.Service.RunAction{
+  surface_id: "invoice",
+  action_id: "refund",
+  payload: %{id: "123"}
+})
+```
+
+SafeRPC moves request structs and responses. The service-local admin module still owns callbacks, repos, policies, and side effects.
 
 ## Design constraints
 
-- Do not expose remote MFA over the wire.
+- Do not expose arbitrary remote MFA over the wire; only explicitly generated module/function operations are callable.
 - Do not serialize local callbacks or repo/schema modules as the public contract.
 - Keep action/resource identifiers stable and string-safe for URLs and RPC payloads.
 - Keep authorization service-local; the central UI can pass actor/context claims, but the service decides.
@@ -125,5 +152,5 @@ The next Incant layer should introduce explicit modules for this boundary:
 - `Incant.Admin.describe/1` — local metadata to portable contract.
 - `Incant.Admin.Contract` — transport-safe admin contract struct/schema.
 - `Incant.Admin.Executor` — service-local resource/dataset/action execution.
-- `Incant.SafeRPC.Service` — SafeRPC adapter for a configured admin module.
-- `Incant.RemoteAdmin` or similar — central-side client/data source for remote admin surfaces.
+- `use Incant.Admin, rpc: true` — SafeRPC exposure for the admin module's standard service functions.
+- `Incant.Service.Client` — central-side client handle for remote admin surfaces.
