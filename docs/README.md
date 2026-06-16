@@ -13,4 +13,5 @@ Incant is experimental. These guides cover installation, resources, dashboards, 
 - [Visual regression captures](visual-regression.md)
 - [Unified platform admin roadmap](platform-admin-roadmap.md)
 - [Architecture](architecture.md)
+- [Service admin interfaces](service-interfaces.md)
 - [Release checklist](release-checklist.md)

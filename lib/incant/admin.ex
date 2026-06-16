@@ -16,7 +16,11 @@ defmodule Incant.Admin do
       end
   """
 
-  alias Incant.Admin.Metadata
+  alias Incant.Admin.{Contract, Metadata}
+
+  @doc "Returns a transport-safe contract for an admin module or metadata struct."
+  @spec describe(module | Metadata.t()) :: Contract.t()
+  def describe(admin_or_metadata), do: Incant.Admin.Describe.describe(admin_or_metadata)
 
   defmacro __using__(opts \\ []) do
     quote bind_quoted: [opts: opts] do

@@ -64,6 +64,7 @@ defmodule Incant.MixProject do
         "docs/visual-regression.md",
         "docs/platform-admin-roadmap.md",
         "docs/architecture.md",
+        "docs/service-interfaces.md",
         "docs/release-checklist.md"
       ]
     ]
