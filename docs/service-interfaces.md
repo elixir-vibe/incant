@@ -163,6 +163,17 @@ Incant.Service.run_action(client, %Incant.Service.RunAction{
 })
 ```
 
+UI/control-plane code should usually wrap registry entries in `Incant.Service.Session` so rendering does not know about request structs:
+
+```elixir
+session = Incant.Service.Session.new(entry, context: %{actor: actor})
+
+Incant.Service.Session.list_surfaces(session, kind: :resource)
+Incant.Service.Session.index(session, "invoice", %{page: 1})
+Incant.Service.Session.read(session, "invoice", "123")
+Incant.Service.Session.run_action(session, "invoice", "refund", %{id: "123"})
+```
+
 SafeRPC moves request structs and responses. The service-local admin module still owns callbacks, repos, policies, and side effects.
 
 ## Design constraints

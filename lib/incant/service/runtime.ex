@@ -77,7 +77,7 @@ defmodule Incant.Service.Runtime do
   defp service_context(admin, surface, context) do
     context
     |> context_map()
-    |> Map.put_new(:admin, admin)
+    |> Map.put_new(:admin, Incant.metadata(admin))
     |> Map.put_new(:surface, surface)
     |> Map.put_new(:resource, surface.spec)
   end
