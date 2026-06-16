@@ -117,3 +117,7 @@ defmodule Incant.Service.Session do
     Map.merge(base, override)
   end
 end
+
+defimpl Incant.Session, for: Incant.Service.Session do
+  use Incant.Session.Delegate, to: Incant.Service.Session
+end
