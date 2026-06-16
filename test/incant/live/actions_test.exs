@@ -15,7 +15,7 @@ defmodule Incant.Live.ActionsTest do
 
   test "reports missing row" do
     resource = %Metadata{
-      data: fn _params -> [] end,
+      index: fn _params -> [] end,
       table: %Table{actions: [%Action{name: :archive}]}
     }
 
@@ -26,7 +26,7 @@ defmodule Incant.Live.ActionsTest do
     callback = fn %{row: row}, _assigns -> {:ok, "Archived #{row.name}"} end
 
     resource = %Metadata{
-      data: fn _params -> [%{id: 1, name: "Incant Pro"}] end,
+      index: fn _params -> [%{id: 1, name: "Incant Pro"}] end,
       table: %Table{actions: [%Action{name: :archive, opts: [callback: callback]}]}
     }
 
@@ -36,7 +36,7 @@ defmodule Incant.Live.ActionsTest do
 
   test "normalizes missing callbacks to semantic errors" do
     resource = %Metadata{
-      data: fn _params -> [%{id: 1, name: "Incant Pro"}] end,
+      index: fn _params -> [%{id: 1, name: "Incant Pro"}] end,
       table: %Table{actions: [%Action{name: :archive, scope: :row}]}
     }
 
@@ -50,7 +50,7 @@ defmodule Incant.Live.ActionsTest do
     end
 
     resource = %Metadata{
-      data: fn _params -> [%{id: 1, name: "One"}, %{id: 2, name: "Two"}] end,
+      index: fn _params -> [%{id: 1, name: "One"}, %{id: 2, name: "Two"}] end,
       table: %Table{
         bulk_actions: [%Action{name: :export, scope: :bulk, opts: [callback: callback]}]
       }

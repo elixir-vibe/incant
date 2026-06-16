@@ -61,7 +61,7 @@ defmodule Incant.UI.Regions.Table do
       page_actions: resource.table.page_actions,
       row_detail: row_detail_from_metadata(resource.table.row_detail),
       selection: selection_from_metadata(resource.table, context.table_state.selected_ids),
-      empty_state: "No rows. Add a resource data callback or loosen the current filters.",
+      empty_state: "No rows. Add a resource index callback or loosen the current filters.",
       density: resource.table.opts[:density] || :compact
     }
   end

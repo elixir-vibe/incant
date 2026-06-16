@@ -12,7 +12,7 @@ defmodule Incant.Live.Rows do
   def page(resource, table_state, context \\ %{})
   def page(nil, table_state, context), do: page([], table_state, context)
 
-  def page(%{repo: repo, schema: schema, data: nil} = resource, table_state, context)
+  def page(%{repo: repo, schema: schema, index: nil} = resource, table_state, context)
       when not is_nil(repo) and not is_nil(schema) do
     page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
     page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
@@ -60,6 +60,20 @@ defmodule Incant.Live.Rows do
   def one(resource, id, context \\ %{})
   def one(_resource, nil, _context), do: nil
 
+  def one(%{read: read} = resource, id, context) when not is_nil(read) do
+    read
+    |> Incant.Callback.call(id, context)
+    |> normalize_one()
+  rescue
+    _error in [
+      ArgumentError,
+      FunctionClauseError,
+      Protocol.UndefinedError,
+      UndefinedFunctionError
+    ] ->
+      one_from_rows(resource, id, context)
+  end
+
   def one(%{repo: repo, schema: schema} = resource, id, context)
       when not is_nil(repo) and not is_nil(schema) do
     queryable =
@@ -96,8 +110,8 @@ defmodule Incant.Live.Rows do
   def raw(resource, table_state \\ %{}, opts \\ [], context \\ %{})
   def raw(nil, _table_state, _opts, _context), do: []
 
-  def raw(%{data: data} = resource, table_state, _opts, context) when not is_nil(data) do
-    data
+  def raw(%{index: index} = resource, table_state, _opts, context) when not is_nil(index) do
+    index
     |> Incant.Callback.call(%{table: table_state}, [])
     |> Incant.Tabular.to_rows()
     |> scope_rows(resource, context)

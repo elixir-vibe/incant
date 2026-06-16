@@ -7,7 +7,7 @@ defmodule Incant.Live.PaginationTest do
 
   test "paginates in-memory rows" do
     rows = for id <- 1..30, do: %{id: id, name: "Row #{id}"}
-    resource = %Metadata{data: fn _params -> rows end, table: %Table{}}
+    resource = %Metadata{index: fn _params -> rows end, table: %Table{}}
 
     page = Rows.page(resource, %{search: "", filters: %{}, sort: "", page: "2", page_size: "10"})
 

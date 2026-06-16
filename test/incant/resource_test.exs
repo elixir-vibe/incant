@@ -11,7 +11,7 @@ defmodule Incant.ResourceTest do
     use Incant.Resource, schema: Post, repo: Repo
 
     query(&__MODULE__.index_query/2)
-    data(&__MODULE__.rows/1)
+    index(&__MODULE__.rows/1)
     changeset(&__MODULE__.changeset/2)
 
     form do
@@ -54,7 +54,7 @@ defmodule Incant.ResourceTest do
     assert metadata.schema == Post
     assert metadata.repo == Repo
     assert metadata.query == (&PostResource.index_query/2)
-    assert metadata.data == (&PostResource.rows/1)
+    assert metadata.index == (&PostResource.rows/1)
     assert metadata.changeset == (&PostResource.changeset/2)
     assert metadata.form.opts == []
     assert Enum.map(metadata.form.fields, & &1.name) == [:title, :status]
@@ -86,7 +86,42 @@ defmodule Incant.ResourceTest do
     assert hd(metadata.table.columns).opts == [link: true]
   end
 
+  defmodule AtomCallbackResource do
+    use Incant.Resource, schema: Post
+
+    index(:index)
+    read(:read)
+
+    def index(_params, _context), do: [%{id: "1", title: "Atom"}]
+    def read(id, _context), do: %{id: id, title: "Fetched"}
+  end
+
+  defmodule ConventionCallbackResource do
+    use Incant.Resource, schema: Post
+
+    def index(_params, _context), do: [%{id: "2", title: "Convention"}]
+    def read(id, _context), do: %{id: id, title: "Convention fetched"}
+  end
+
   test "Incant.metadata/1 returns resource metadata" do
     assert Incant.metadata(PostResource) == PostResource.__incant_resource__()
+  end
+
+  test "resource callbacks can be declared by atom" do
+    metadata = Incant.metadata(AtomCallbackResource)
+
+    assert metadata.index == {AtomCallbackResource, :index}
+    assert metadata.read == {AtomCallbackResource, :read}
+    assert Incant.Live.Rows.raw(metadata, %{}, [], %{}) == [%{id: "1", title: "Atom"}]
+    assert Incant.Live.Rows.one(metadata, "9", %{}) == %{id: "9", title: "Fetched"}
+  end
+
+  test "resource callbacks use conventional index/2 and read/2 when defined" do
+    metadata = Incant.metadata(ConventionCallbackResource)
+
+    assert metadata.index == {ConventionCallbackResource, :index}
+    assert metadata.read == {ConventionCallbackResource, :read}
+    assert Incant.Live.Rows.raw(metadata, %{}, [], %{}) == [%{id: "2", title: "Convention"}]
+    assert Incant.Live.Rows.one(metadata, "9", %{}) == %{id: "9", title: "Convention fetched"}
   end
 end

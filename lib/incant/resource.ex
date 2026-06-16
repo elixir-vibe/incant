@@ -50,7 +50,8 @@ defmodule Incant.Resource do
       Module.register_attribute(__MODULE__, :incant_table_opts, persist: false)
       Module.register_attribute(__MODULE__, :incant_search, persist: false)
       Module.register_attribute(__MODULE__, :incant_query, persist: false)
-      Module.register_attribute(__MODULE__, :incant_data, persist: false)
+      Module.register_attribute(__MODULE__, :incant_index, persist: false)
+      Module.register_attribute(__MODULE__, :incant_read, persist: false)
       Module.register_attribute(__MODULE__, :incant_changeset, persist: false)
       Module.register_attribute(__MODULE__, :incant_form_opts, persist: false)
 
@@ -113,7 +114,8 @@ defmodule Incant.Resource do
       schema: Keyword.get(opts, :schema),
       repo: Keyword.get(opts, :repo),
       query: Module.get_attribute(env.module, :incant_query),
-      data: Module.get_attribute(env.module, :incant_data),
+      index: index_callback(env.module, Module.get_attribute(env.module, :incant_index)),
+      read: read_callback(env.module, Module.get_attribute(env.module, :incant_read)),
       changeset: Module.get_attribute(env.module, :incant_changeset),
       form: form,
       table: table,
@@ -129,6 +131,21 @@ defmodule Incant.Resource do
   end
 
   def resource_id(module, opts \\ []), do: Incant.Surface.id(module, opts)
+
+  def index_callback(module, nil) do
+    if Module.defines?(module, {:index, 2}), do: {module, :index}, else: nil
+  end
+
+  def index_callback(module, callback), do: normalize_callback(module, callback)
+
+  def read_callback(module, nil) do
+    if Module.defines?(module, {:read, 2}), do: {module, :read}, else: nil
+  end
+
+  def read_callback(module, callback), do: normalize_callback(module, callback)
+
+  def normalize_callback(module, callback) when is_atom(callback), do: {module, callback}
+  def normalize_callback(_module, callback), do: callback
 
   defmacro table(opts \\ [], do: block) do
     quote do
@@ -236,9 +253,15 @@ defmodule Incant.Resource do
     end
   end
 
-  defmacro data(callback) do
+  defmacro index(callback) do
     quote bind_quoted: [callback: callback] do
-      @incant_data callback
+      @incant_index callback
+    end
+  end
+
+  defmacro read(callback) do
+    quote bind_quoted: [callback: callback] do
+      @incant_read callback
     end
   end
 end

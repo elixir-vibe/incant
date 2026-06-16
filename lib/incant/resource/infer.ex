@@ -21,7 +21,8 @@ defmodule Incant.Resource.Infer do
       module: schema,
       schema: schema,
       repo: Keyword.get(opts, :repo),
-      data: Keyword.get(opts, :data) || Keyword.get(opts, :list),
+      index: Keyword.get(opts, :index),
+      read: Keyword.get(opts, :read),
       changeset: Keyword.get(opts, :changeset),
       form: %Form{fields: form_fields(schema, fields, primary_key, readonly?), opts: []},
       table: %Table{

@@ -70,8 +70,8 @@ defmodule Incant.Live.RowsTest do
     end
   end
 
-  test "loads rows from data callbacks" do
-    resource = %Metadata{data: fn _params -> [%{id: 1, name: "Incant Pro"}] end, table: %Table{}}
+  test "loads rows from index callbacks" do
+    resource = %Metadata{index: fn _params -> [%{id: 1, name: "Incant Pro"}] end, table: %Table{}}
 
     assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}) == [
              %{id: 1, name: "Incant Pro"}
@@ -100,9 +100,9 @@ defmodule Incant.Live.RowsTest do
     assert page.total_pages == 5
   end
 
-  test "scopes data rows with policy scope_rows callback" do
+  test "scopes index rows with policy scope_rows callback" do
     resource = %Metadata{
-      data: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
+      index: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
       table: %Table{}
     }
 
@@ -124,7 +124,7 @@ defmodule Incant.Live.RowsTest do
 
   test "resource policy overrides admin policy for row scoping" do
     resource = %Metadata{
-      data: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
+      index: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
       table: %Table{},
       opts: [policy: ResourcePolicy]
     }
@@ -138,7 +138,7 @@ defmodule Incant.Live.RowsTest do
 
   test "scopes detail row lookup" do
     resource = %Metadata{
-      data: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
+      index: fn _params -> [%{id: 1, owner_id: 1}, %{id: 2, owner_id: 2}] end,
       table: %Table{}
     }
 

@@ -10,7 +10,8 @@ defmodule MyApp.Admin.Resources.Order do
     repo: MyApp.Repo
 
   query &MyApp.Admin.Queries.orders_index/2
-  data &MyApp.Admin.Data.orders/1
+  index &MyApp.Admin.Data.orders/2
+  read &MyApp.Admin.Data.order/2
 
   table density: :compact do
     column :number, link: true
@@ -148,24 +149,44 @@ Incant.ActionResult.error("Cannot archive this row")
 
 Shorthand returns are normalized for convenience: `:ok`, a message string, `{:ok, message}`, and `{:error, message}`.
 
-## Query-backed resources
+## Application-side query resources
 
-If a resource does not define `data/1`, Incant can load rows from `repo` and `schema`:
+Use `index/2` for the resource collection and `read/2` for one record. These callbacks live in the application namespace, so Ecto queries, storage facades, authorization scoping, pagination, and transactions remain application responsibility.
 
 ```elixir
 defmodule MyApp.Admin.Resources.Product do
-  use Incant.Resource, schema: MyApp.Catalog.Product, repo: MyApp.Repo
+  use Incant.Resource, schema: MyApp.Catalog.Product
 
-  query &__MODULE__.base_query/2
+  import Ecto.Query
 
   table do
     column :name, link: true
-    filter :status, :select, query: &__MODULE__.status_filter/3
+    filter :status, :select
   end
 
-  def base_query(schema, _context), do: schema
-  def status_filter(query, status, _context), do: query
+  def index(params, context) do
+    MyApp.Catalog.Product
+    |> where(account_id: ^context.actor.account_id)
+    |> maybe_filter_status(params)
+    |> order_by(desc: :inserted_at)
+    |> MyApp.Repo.all()
+  end
+
+  def read(id, context) do
+    MyApp.Repo.get_by(MyApp.Catalog.Product,
+      id: id,
+      account_id: context.actor.account_id
+    )
+  end
 end
 ```
 
-Custom filter query callbacks run before `repo.all/1`. Built-in filters apply Ecto `where` clauses for query-backed resources and bind values cast through the schema field type.
+The DSL also accepts explicit callback declarations when the function names differ:
+
+```elixir
+index &MyApp.Admin.Products.index/2
+read &MyApp.Admin.Products.read/2
+# or local atom shorthand
+index :search
+read :lookup
+```
