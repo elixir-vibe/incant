@@ -13,19 +13,19 @@ defmodule Incant.Live.RoutesTest do
   end
 
   test "builds underscored dashboard paths" do
-    dashboard = %{module: LLM}
+    dashboard = dashboard()
 
     assert Routes.dashboard_path("/admin", dashboard) == "/admin/dashboards/llm"
   end
 
   test "builds underscored dataset paths" do
-    dataset = %{module: LLM}
+    dataset = dataset()
 
     assert Routes.dataset_path("/admin", dataset) == "/admin/datasets/llm"
   end
 
   test "builds underscored resource paths" do
-    resource = %{module: LLMRequest}
+    resource = resource(LLMRequest)
 
     assert Routes.resource_path("/admin", resource) == "/admin/resources/llm_request"
     assert Routes.resource_new_path("/admin", resource) == "/admin/resources/llm_request/new"
@@ -38,14 +38,14 @@ defmodule Incant.Live.RoutesTest do
   end
 
   test "preserves table query params on resource paths" do
-    resource = %{module: Product}
+    resource = resource(Product)
 
     assert Routes.resource_path("/admin", resource, %{"search" => "wand", "sort" => "-price"}) ==
              "/admin/resources/product?search=wand&sort=-price"
   end
 
   test "preserves dashboard variable params" do
-    dashboard = %{module: LLM}
+    dashboard = dashboard()
 
     assert Routes.dashboard_path("/admin", dashboard, %{
              "var" => %{"range" => "7d", "team" => "core"}
@@ -54,7 +54,7 @@ defmodule Incant.Live.RoutesTest do
   end
 
   test "preserves dashboard multi-select params" do
-    dashboard = %{module: LLM}
+    dashboard = dashboard()
 
     assert Routes.dashboard_path("/admin", dashboard, %{
              "var" => %{"provider" => ["openai", "anthropic"]}
@@ -63,14 +63,14 @@ defmodule Incant.Live.RoutesTest do
   end
 
   test "drops empty query values" do
-    dashboard = %{module: LLM}
+    dashboard = dashboard()
 
     assert Routes.dashboard_path("/admin", dashboard, %{"var" => %{}, "search" => ""}) ==
              "/admin/dashboards/llm"
   end
 
   test "builds current dashboard path from context" do
-    dashboard = %{module: LLM}
+    dashboard = dashboard()
     context = %{section: "dashboard", dashboard: dashboard, base_path: "/admin"}
 
     assert Routes.current_path(%{context: context, params: %{}}, %{"var" => %{"range" => "30d"}}) ==
@@ -78,7 +78,7 @@ defmodule Incant.Live.RoutesTest do
   end
 
   test "builds current dataset path from context" do
-    dataset = %{module: LLM}
+    dataset = dataset()
     context = %{section: "dataset", dataset: dataset, base_path: "/admin"}
 
     assert Routes.current_path(%{context: context, params: %{}}, %{"page" => "2"}) ==
@@ -86,7 +86,7 @@ defmodule Incant.Live.RoutesTest do
   end
 
   test "builds current resource edit path from context" do
-    resource = %{module: Product}
+    resource = resource(Product)
 
     context = %{
       section: "resource",
@@ -98,5 +98,12 @@ defmodule Incant.Live.RoutesTest do
 
     assert Routes.current_path(%{context: context, params: %{"id" => "1"}}, %{"tab" => "activity"}) ==
              "/admin/resources/product/1/edit?tab=activity"
+  end
+
+  defp dashboard, do: %Incant.Dashboard.Metadata{module: LLM}
+  defp dataset, do: %Incant.Dataset.Metadata{module: LLM}
+
+  defp resource(module) do
+    %Incant.Resource.Metadata{id: Incant.Surface.id(module), module: module}
   end
 end

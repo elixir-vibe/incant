@@ -22,6 +22,19 @@ defmodule Incant.Admin do
   @spec describe(module | Metadata.t()) :: Contract.t()
   def describe(admin_or_metadata), do: Incant.Admin.Describe.describe(admin_or_metadata)
 
+  @doc "Returns all resolved admin surfaces in declaration order."
+  def surfaces(admin_or_metadata), do: Incant.Admin.SurfaceResolver.surfaces(admin_or_metadata)
+
+  @doc "Returns resolved resource surfaces."
+  def resources(admin_or_metadata), do: Incant.Admin.SurfaceResolver.resources(admin_or_metadata)
+
+  @doc "Returns resolved dashboard surfaces."
+  def dashboards(admin_or_metadata),
+    do: Incant.Admin.SurfaceResolver.dashboards(admin_or_metadata)
+
+  @doc "Returns resolved dataset surfaces."
+  def datasets(admin_or_metadata), do: Incant.Admin.SurfaceResolver.datasets(admin_or_metadata)
+
   defmacro __using__(opts \\ []) do
     quote bind_quoted: [opts: opts] do
       import Incant.Admin

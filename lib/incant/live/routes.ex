@@ -2,27 +2,27 @@ defmodule Incant.Live.Routes do
   @moduledoc false
 
   def dashboard_path(base_path, dashboard, query_params \\ %{}) do
-    path([base_path, "dashboards", module_slug(dashboard.module)], query_params)
+    path([base_path, "dashboards", surface_id(dashboard)], query_params)
   end
 
   def dataset_path(base_path, dataset, query_params \\ %{}) do
-    path([base_path, "datasets", module_slug(dataset.module)], query_params)
+    path([base_path, "datasets", surface_id(dataset)], query_params)
   end
 
   def resource_path(base_path, resource, query_params \\ %{}) do
-    path([base_path, "resources", module_slug(resource.module)], query_params)
+    path([base_path, "resources", surface_id(resource)], query_params)
   end
 
   def resource_new_path(base_path, resource, query_params \\ %{}) do
-    path([base_path, "resources", module_slug(resource.module), "new"], query_params)
+    path([base_path, "resources", surface_id(resource), "new"], query_params)
   end
 
   def resource_detail_path(base_path, resource, id, query_params \\ %{}) do
-    path([base_path, "resources", module_slug(resource.module), id], query_params)
+    path([base_path, "resources", surface_id(resource), id], query_params)
   end
 
   def resource_edit_path(base_path, resource, id, query_params \\ %{}) do
-    path([base_path, "resources", module_slug(resource.module), id, "edit"], query_params)
+    path([base_path, "resources", surface_id(resource), id, "edit"], query_params)
   end
 
   def current_path(%{context: context, params: params}, query_params) do
@@ -50,12 +50,15 @@ defmodule Incant.Live.Routes do
     dataset_path(context.base_path, context.dataset, query_params)
   end
 
-  def module_slug(module) do
-    module
-    |> Module.split()
-    |> List.last()
-    |> Macro.underscore()
-  end
+  def surface_id(%Incant.Resource.Metadata{id: id}), do: id
+
+  def surface_id(%Incant.Dashboard.Metadata{} = dashboard),
+    do: Incant.Surface.id(dashboard.module, dashboard.opts)
+
+  def surface_id(%Incant.Dataset.Metadata{} = dataset),
+    do: Incant.Surface.id(dataset.module, dataset.opts)
+
+  def surface_id(%Incant.Surface{id: id}), do: id
 
   defp path([base_path | segments], query_params) do
     suffix =

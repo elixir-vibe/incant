@@ -128,9 +128,7 @@ defmodule Incant.Resource do
     end
   end
 
-  def resource_id(module, opts \\ []) do
-    opts[:id] || opts[:as] || module |> Module.split() |> List.last() |> Macro.underscore()
-  end
+  def resource_id(module, opts \\ []), do: Incant.Surface.id(module, opts)
 
   defmacro table(opts \\ [], do: block) do
     quote do

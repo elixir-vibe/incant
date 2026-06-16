@@ -96,7 +96,7 @@ defmodule Incant.UI.DocumentTest do
 
     assert document.title == "Product"
     assert %Incant.UI.Surfaces.ResourceIndex{} = document.surface
-    assert document.nav.active_id == "resource.#{ProductResource}"
+    assert document.nav.active_id == "resource.product_resource"
     assert document.surface.filter_bar.search.role == :search
 
     assert Enum.map(document.surface.filter_bar.filters, & &1.__struct__) == [
@@ -183,7 +183,7 @@ defmodule Incant.UI.DocumentTest do
       |> Incant.UI.Document.from_context(page_title: "Campaigns")
 
     assert %Incant.UI.Surfaces.DatasetIndex{} = document.surface
-    assert document.nav.active_id == "dataset.#{CampaignDataset}"
+    assert document.nav.active_id == "dataset.campaign_dataset"
 
     assert [%Incant.UI.Controls.Select{name: "campaign", options: options}] =
              document.surface.filter_bar.filters
@@ -204,7 +204,7 @@ defmodule Incant.UI.DocumentTest do
       |> Incant.UI.Document.from_context(page_title: "Operations")
 
     assert %Incant.UI.Surfaces.Dashboard{} = document.surface
-    assert document.nav.active_id == "dashboard.#{OperationsDashboard}"
+    assert document.nav.active_id == "dashboard.operations_dashboard"
 
     assert Enum.map(document.surface.variables, & &1.__struct__) == [
              Incant.UI.Controls.DateRange,

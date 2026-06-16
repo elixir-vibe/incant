@@ -61,6 +61,22 @@ defmodule Incant.Admin.ExposeTest do
     end
   end
 
+  defmodule MismatchedAdmin do
+    use Incant.Admin
+
+    expose(AuditEntry, as: :invoice)
+  end
+
+  defmodule MismatchedAdmin.Resources.Invoice do
+    use Incant.Resource, schema: Incant.Admin.ExposeTest.Invoice
+  end
+
+  test "expose validates conventional resource module schema" do
+    assert_raise ArgumentError, ~r/expected Incant.Admin.ExposeTest.AuditEntry/, fn ->
+      Incant.Admin.describe(MismatchedAdmin)
+    end
+  end
+
   test "expose uses conventional resource module when present" do
     contract = Incant.Admin.describe(Admin)
 

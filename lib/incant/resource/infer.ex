@@ -101,9 +101,7 @@ defmodule Incant.Resource.Infer do
   defp display_opts(:naive_datetime), do: [format: :datetime]
   defp display_opts(_type), do: []
 
-  defp inferred_id(schema, opts) do
-    opts[:id] || opts[:as] || schema |> Module.split() |> List.last() |> Macro.underscore()
-  end
+  defp inferred_id(schema, opts), do: Incant.Surface.id(schema, opts)
 
   defp inferred_title(schema) do
     schema

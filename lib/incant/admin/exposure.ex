@@ -5,8 +5,14 @@ defmodule Incant.Admin.Exposure do
 
   def resolve(admin, schema, opts \\ []) when is_atom(schema) and is_list(opts) do
     case conventional_resource(admin.module, schema, opts) do
-      {:ok, module} -> merge_exposure_opts(Incant.metadata(module), opts)
-      :error -> Infer.from_schema(schema, Keyword.merge(admin.opts, opts))
+      {:ok, module} ->
+        module
+        |> Incant.metadata()
+        |> validate_override_schema!(schema)
+        |> merge_exposure_opts(opts)
+
+      :error ->
+        Infer.from_schema(schema, Keyword.merge(admin.opts, opts))
     end
   end
 
@@ -37,6 +43,13 @@ defmodule Incant.Admin.Exposure do
     ]
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
+  end
+
+  defp validate_override_schema!(%{schema: schema} = metadata, schema), do: metadata
+
+  defp validate_override_schema!(metadata, exposed_schema) do
+    raise ArgumentError,
+          "conventional Incant resource #{inspect(metadata.module)} has schema #{inspect(metadata.schema)}, expected #{inspect(exposed_schema)}"
   end
 
   defp merge_exposure_opts(metadata, []), do: metadata

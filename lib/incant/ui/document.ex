@@ -59,12 +59,10 @@ defmodule Incant.UI.Document do
   defp document_id(%{section: section}) when is_binary(section), do: section
   defp document_id(_context), do: "admin"
 
-  defp surface_title(%{resource: %{module: module}}) when not is_nil(module),
-    do: short_module(module)
+  defp surface_title(%{resource: %{module: module, opts: opts}}) when not is_nil(module),
+    do: Incant.Surface.title(module, opts)
 
   defp surface_title(%{dashboard: %{title: title}}) when is_binary(title), do: title
   defp surface_title(%{dataset: %{title: title}}) when is_binary(title), do: title
   defp surface_title(_context), do: "Admin"
-
-  defp short_module(module), do: module |> Module.split() |> List.last()
 end

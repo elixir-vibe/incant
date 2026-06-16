@@ -44,6 +44,20 @@ Resolution order:
 
 ## Local authoring, portable description
 
+Top-level admin concepts are normalized as surfaces. A surface is a common envelope around kind-specific metadata:
+
+```elixir
+%Incant.Surface{
+  kind: :resource,
+  id: "invoice",
+  module: Billing.Admin.Resources.Invoice,
+  title: "Invoices",
+  spec: %Incant.Resource.Metadata{}
+}
+```
+
+The envelope owns identity for routes, navigation, public contracts, and remote transports. The `spec` owns resource/dashboard/dataset-specific semantics.
+
 The service-local module remains the source of truth:
 
 ```elixir

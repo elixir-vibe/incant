@@ -18,7 +18,7 @@ defmodule Incant.Live.AdminLive do
       socket
       |> assign(:base_path, Map.get(session, "base_path", "/admin"))
       |> assign(:admin, admin)
-      |> assign(:resources, Enum.map(admin.resources, &Incant.metadata/1))
+      |> assign(:resources, admin |> Incant.Admin.resources() |> Enum.map(& &1.spec))
       |> assign(:dashboards, Enum.map(admin.dashboards, &Incant.metadata/1))
       |> assign(:datasets, Enum.map(admin.datasets, &Incant.metadata/1))
       |> assign(:theme, theme_metadata(admin))
@@ -43,13 +43,13 @@ defmodule Incant.Live.AdminLive do
       filter_authorized(datasets, socket.assigns.admin, socket.assigns.actor, :view_dataset)
 
     selected_resource =
-      select_by_module(resources, params["resource"]) || List.first(visible_resources)
+      select_by_id(resources, params["resource"]) || List.first(visible_resources)
 
     selected_dashboard =
-      select_by_module(dashboards, params["dashboard"]) || List.first(visible_dashboards)
+      select_by_id(dashboards, params["dashboard"]) || List.first(visible_dashboards)
 
     selected_dataset =
-      select_by_module(datasets, params["dataset"]) || List.first(visible_datasets)
+      select_by_id(datasets, params["dataset"]) || List.first(visible_datasets)
 
     section =
       section(socket.assigns.live_action, selected_dashboard, selected_resource, selected_dataset)
@@ -593,10 +593,10 @@ defmodule Incant.Live.AdminLive do
     ]
   end
 
-  defp select_by_module(collection, nil), do: List.first(collection)
+  defp select_by_id(collection, nil), do: List.first(collection)
 
-  defp select_by_module(collection, module_id) do
-    Enum.find(collection, &(module_slug(&1.module) == module_id))
+  defp select_by_id(collection, id) do
+    Enum.find(collection, &(selected_id(&1) == id))
   end
 
   defp section(action, _dashboard, _resource, _dataset)
@@ -647,6 +647,14 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp page_title(_assigns), do: "Incant"
+
+  defp selected_id(%Incant.Resource.Metadata{id: id}), do: id
+
+  defp selected_id(%Incant.Dashboard.Metadata{} = dashboard),
+    do: Incant.Surface.id(dashboard.module, dashboard.opts)
+
+  defp selected_id(%Incant.Dataset.Metadata{} = dataset),
+    do: Incant.Surface.id(dataset.module, dataset.opts)
 
   defp short_module(module) do
     module
