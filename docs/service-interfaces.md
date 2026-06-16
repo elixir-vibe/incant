@@ -109,15 +109,31 @@ With `rpc: true`, those same service functions are exposed through SafeRPC as ex
 {Billing.Admin, :run_action}
 ```
 
-Central control-plane code should not repeat those operation tuples directly. It should discover Incant service modules from HostKit/SafeRPC bindings and build `%Incant.Service.Client{}` handles:
+Central control-plane code should not repeat those operation tuples directly. In a HostKit deployment it should load the runtime registry from the binding file path injected as `HOSTKIT_RPC_BINDINGS`:
+
+```elixir
+{:ok, registry} = Incant.Service.Registry.load()
+
+for %Incant.Service.Entry{client: client, contract: contract} <- registry.entries do
+  # render the contract and dispatch later user actions through the same client
+end
+```
+
+The registry decodes the ETF binding term safely:
+
+```elixir
+bindings =
+  path
+  |> File.read!()
+  |> :erlang.binary_to_term([:safe])
+```
+
+Then it calls `SafeRPC.describe/1`, selects modules exposing the Incant service shape, and loads each contract through `Incant.Service.describe/1`.
+
+For lower-level callers, Incant can also discover service clients directly from decoded bindings:
 
 ```elixir
 {:ok, clients} = Incant.Service.discover(bindings)
-
-for client <- clients do
-  {:ok, contract} = Incant.Service.describe(client)
-  # render the contract and dispatch later user actions through the same client
-end
 ```
 
 For a known binding/module pair, callers can construct a client explicitly:
