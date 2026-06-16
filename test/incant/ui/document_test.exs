@@ -151,9 +151,13 @@ defmodule Incant.UI.DocumentTest do
       |> Incant.UI.Document.from_context(page_title: "prod")
 
     assert %Incant.UI.Surfaces.ResourceIndex{table: table, detail: detail} = document.surface
-    assert [%{cells: cells}] = table.rows
+    assert [%{cells: cells, source: table_source}] = table.rows
     assert Enum.map(cells, & &1.value) == ["prod", "[redacted]", "[redacted]"]
+    assert table_source.api_key == "[redacted]"
+    assert table_source.prompt == "[redacted]"
     assert Enum.map(detail.fields, & &1.value) == ["prod", "[redacted]", "[redacted]"]
+    assert detail.source.api_key == "[redacted]"
+    assert detail.source.prompt == "[redacted]"
   end
 
   test "builds new form document" do

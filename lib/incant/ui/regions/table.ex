@@ -101,7 +101,7 @@ defmodule Incant.UI.Regions.Table do
       cells: Enum.map(resource.table.columns, &cell_from_record(record, &1)),
       actions: resource.table.actions,
       detail: row_detail_from_metadata(resource.table.row_detail),
-      source: record
+      source: Incant.Sensitive.redact_row(record, resource)
     }
   end
 

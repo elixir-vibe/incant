@@ -25,5 +25,30 @@ defmodule Incant.Sensitive do
     if sensitive?(opts), do: redact(value), else: value
   end
 
+  @doc "Redacts sensitive fields from a row according to resource column metadata."
+  def redact_row(row, %{table: %{columns: columns}}) when is_map(row) do
+    Enum.reduce(columns, row, fn column, acc ->
+      if sensitive?(column.opts) do
+        redact_field(acc, column.name)
+      else
+        acc
+      end
+    end)
+  end
+
+  def redact_row(row, _resource), do: row
+
+  defp redact_field(%_struct{} = row, field), do: Map.put(row, field, @redacted)
+
+  defp redact_field(row, field) when is_map(row) do
+    row
+    |> maybe_put_redacted(field)
+    |> maybe_put_redacted(to_string(field))
+  end
+
+  defp maybe_put_redacted(row, field) do
+    if Map.has_key?(row, field), do: Map.put(row, field, @redacted), else: row
+  end
+
   defp truthy?(value), do: value not in [nil, false]
 end

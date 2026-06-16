@@ -14,7 +14,7 @@ defmodule Incant.UI.Regions.Inspector do
       title: Incant.Live.Rows.title(context.selected_row, context.resource),
       fields: fields(context.selected_row, context.resource),
       actions: context.resource.table.actions,
-      source: context.selected_row
+      source: Incant.Sensitive.redact_row(context.selected_row, context.resource)
     }
   end
 
