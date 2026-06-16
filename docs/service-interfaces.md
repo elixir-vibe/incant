@@ -149,6 +149,22 @@ config :incant,
 
 Standalone mode starts `Incant.Service.RegistryServer` and `Incant.Web.Endpoint`, then uses the same `incant` router macro internally. Library/embedded mode remains the default and starts no Incant children.
 
+Build the standalone release with:
+
+```sh
+MIX_ENV=prod mix release incant
+```
+
+Runtime configuration uses standard Mix release config:
+
+```text
+INCANT_SERVE=true
+INCANT_HTTP_IP=127.0.0.1
+INCANT_HTTP_PORT=4000
+INCANT_SECRET_KEY_BASE=...
+HOSTKIT_RPC_BINDINGS=/run/example/admin/rpc.etf
+```
+
 The macro owns the private Phoenix LiveView session shape. `Incant.Live.Admin` consumes a selected `Incant.Session` through the same protocol used for local admin modules; it does not branch on local vs remote transport.
 
 The registry decodes the ETF binding term safely:

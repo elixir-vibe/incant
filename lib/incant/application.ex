@@ -20,7 +20,7 @@ defmodule Incant.Application do
   end
 
   defp registry_child do
-    opts = Application.get_env(:incant, :registry, [])
+    opts = Application.get_env(:incant, :registry, env: "HOSTKIT_RPC_BINDINGS")
 
     {Incant.Service.RegistryServer,
      opts

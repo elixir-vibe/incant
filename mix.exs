@@ -11,6 +11,7 @@ defmodule Incant.MixProject do
       package: package(),
       docs: docs(),
       dialyzer: [plt_add_apps: [:mix]],
+      releases: releases(),
       deps: deps(),
       aliases: aliases()
     ]
@@ -67,6 +68,14 @@ defmodule Incant.MixProject do
         "docs/architecture.md",
         "docs/service-interfaces.md",
         "docs/release-checklist.md"
+      ]
+    ]
+  end
+
+  defp releases do
+    [
+      incant: [
+        applications: [incant: :permanent]
       ]
     ]
   end
