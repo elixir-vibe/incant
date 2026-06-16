@@ -19,6 +19,7 @@ defmodule Incant.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {Incant.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -82,7 +83,8 @@ defmodule Incant.MixProject do
       {:igniter, "~> 0.6", runtime: false},
       {:safe_rpc, git: "git@github.com:elixir-vibe/safe_rpc.git", branch: "master"},
       {:ecto, "~> 3.13"},
-      {:phoenix_live_view, "~> 1.1"}
+      {:phoenix_live_view, "~> 1.1"},
+      {:plug_cowboy, "~> 2.7"}
     ]
   end
 

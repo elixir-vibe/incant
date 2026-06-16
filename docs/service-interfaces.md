@@ -139,6 +139,16 @@ incant "/admin", MyApp.Admin
 incant "/admin", registry: MyApp.IncantRegistry
 ```
 
+Incant can also run as a standalone app when configured with `serve?: true`:
+
+```elixir
+config :incant,
+  serve?: true,
+  registry: [env: "HOSTKIT_RPC_BINDINGS"]
+```
+
+Standalone mode starts `Incant.Service.RegistryServer` and `Incant.Web.Endpoint`, then uses the same `incant` router macro internally. Library/embedded mode remains the default and starts no Incant children.
+
 The macro owns the private Phoenix LiveView session shape. `Incant.Live.Admin` consumes a selected `Incant.Session` through the same protocol used for local admin modules; it does not branch on local vs remote transport.
 
 The registry decodes the ETF binding term safely:
