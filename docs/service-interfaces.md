@@ -119,6 +119,19 @@ for %Incant.Service.Entry{client: client, contract: contract} <- registry.entrie
 end
 ```
 
+Long-running admin applications can supervise a registry server instead:
+
+```elixir
+children = [
+  {Incant.Service.RegistryServer, name: MyApp.IncantRegistry}
+]
+
+Supervisor.start_link(children, strategy: :one_for_one)
+
+entries = Incant.Service.RegistryServer.list_entries(MyApp.IncantRegistry)
+{:ok, registry} = Incant.Service.RegistryServer.refresh(MyApp.IncantRegistry)
+```
+
 The registry decodes the ETF binding term safely:
 
 ```elixir
