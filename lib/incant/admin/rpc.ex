@@ -1,0 +1,87 @@
+defmodule Incant.Admin.RPC do
+  @moduledoc false
+
+  defmacro __using__(opts) do
+    service = Keyword.fetch!(opts, :service)
+    version = Keyword.get(opts, :version)
+
+    quote do
+      use SafeRPC, service: unquote(service), version: unquote(version), surface: :control
+
+      @behaviour Incant.Service
+
+      @impl Incant.Service
+      def describe(context) do
+        Incant.Service.Runtime.describe(__MODULE__, context)
+      end
+
+      @impl Incant.Service
+      def index(surface_id, params, context) do
+        Incant.Service.Runtime.index(__MODULE__, surface_id, params, context)
+      end
+
+      @impl Incant.Service
+      def read(surface_id, id, context) do
+        Incant.Service.Runtime.read(__MODULE__, surface_id, id, context)
+      end
+
+      @impl Incant.Service
+      def run_action(surface_id, action_id, payload, context) do
+        Incant.Service.Runtime.run_action(__MODULE__, surface_id, action_id, payload, context)
+      end
+
+      @rpc true
+      @doc "Describe this Incant admin surface."
+      @spec incant_describe(Incant.Service.Describe.t(), map(), term()) ::
+              {:ok, Incant.Admin.Contract.t()} | {:error, term()}
+      def incant_describe(%Incant.Service.Describe{context: context}, meta, state) do
+        describe(__incant_rpc_context__(context, meta, state))
+      end
+
+      @rpc true
+      @doc "Index an Incant surface."
+      @spec incant_index(Incant.Service.Index.t(), map(), term()) ::
+              {:ok, map()} | {:error, term()}
+      def incant_index(%Incant.Service.Index{} = request, meta, state) do
+        index(
+          request.surface_id,
+          request.params,
+          __incant_rpc_context__(request.context, meta, state)
+        )
+      end
+
+      @rpc true
+      @doc "Read one item from an Incant surface."
+      @spec incant_read(Incant.Service.Read.t(), map(), term()) ::
+              {:ok, term()} | {:error, term()}
+      def incant_read(%Incant.Service.Read{} = request, meta, state) do
+        read(
+          request.surface_id,
+          request.id,
+          __incant_rpc_context__(request.context, meta, state)
+        )
+      end
+
+      @rpc true
+      @doc "Run an Incant surface action."
+      @spec incant_run_action(Incant.Service.RunAction.t(), map(), term()) ::
+              {:ok, Incant.ActionResult.t()} | {:error, term()}
+      def incant_run_action(%Incant.Service.RunAction{} = request, meta, state) do
+        run_action(
+          request.surface_id,
+          request.action_id,
+          request.payload,
+          __incant_rpc_context__(request.context, meta, state)
+        )
+      end
+
+      defp __incant_rpc_context__(context, meta, state) when is_map(context) do
+        context
+        |> Map.put_new(:rpc_meta, meta)
+        |> Map.put_new(:rpc_state, state)
+      end
+
+      defoverridable Incant.Service
+    end
+  end
+end

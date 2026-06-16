@@ -80,6 +80,7 @@ defmodule Incant.MixProject do
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       {:vibe_kit, "~> 0.1"},
       {:igniter, "~> 0.6", runtime: false},
+      {:safe_rpc, git: "git@github.com:elixir-vibe/safe_rpc.git", branch: "master"},
       {:ecto, "~> 3.13"},
       {:phoenix_live_view, "~> 1.1"}
     ]

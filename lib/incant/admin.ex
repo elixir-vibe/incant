@@ -36,8 +36,12 @@ defmodule Incant.Admin do
   def datasets(admin_or_metadata), do: Incant.Admin.SurfaceResolver.datasets(admin_or_metadata)
 
   defmacro __using__(opts \\ []) do
-    quote bind_quoted: [opts: opts] do
-      import Incant.Admin
+    rpc_ast = rpc_ast(opts)
+
+    quote bind_quoted: [opts: opts], unquote: true do
+      import Incant.Admin, except: [describe: 1]
+
+      unquote(rpc_ast)
 
       Module.register_attribute(__MODULE__, :incant_admin_opts, persist: false)
 
@@ -87,6 +91,16 @@ defmodule Incant.Admin do
     quote do
       @doc false
       def __incant_admin__, do: unquote(escaped)
+    end
+  end
+
+  defp rpc_ast(opts) do
+    if Keyword.get(opts, :rpc, false) do
+      quote do
+        use Incant.Admin.RPC, unquote(opts)
+      end
+    else
+      quote(do: :ok)
     end
   end
 

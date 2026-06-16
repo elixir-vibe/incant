@@ -9,38 +9,54 @@ defmodule Incant.ActionResult do
 
   defmodule Toast do
     @moduledoc "A user-visible notification."
+    @type t :: %__MODULE__{message: String.t() | nil, level: atom()}
     defstruct [:message, level: :info]
   end
 
   defmodule Error do
     @moduledoc "A user-visible action error."
+    @type t :: %__MODULE__{message: String.t() | nil}
     defstruct [:message]
   end
 
   defmodule Refresh do
     @moduledoc "Refresh one or more semantic targets."
+    @type t :: %__MODULE__{targets: [atom()]}
     defstruct targets: [:surface]
   end
 
   defmodule Navigate do
     @moduledoc "Navigate to a route."
+    @type t :: %__MODULE__{to: String.t() | nil, mode: atom()}
     defstruct [:to, mode: :patch]
   end
 
   defmodule Download do
     @moduledoc "Expose a prepared download."
+    @type t :: %__MODULE__{id: term(), label: String.t() | nil, meta: map()}
     defstruct [:id, :label, meta: %{}]
   end
 
   defmodule Job do
     @moduledoc "Expose a background job created by an action."
+    @type t :: %__MODULE__{id: term(), label: String.t() | nil, meta: map()}
     defstruct [:id, :label, meta: %{}]
   end
 
   defmodule OpenSurface do
     @moduledoc "Open another semantic Incant surface."
+    @type t :: %__MODULE__{surface: term(), meta: map()}
     defstruct [:surface, meta: %{}]
   end
+
+  @type t ::
+          Toast.t()
+          | Error.t()
+          | Refresh.t()
+          | Navigate.t()
+          | Download.t()
+          | Job.t()
+          | OpenSurface.t()
 
   def normalize(result, opts \\ [])
   def normalize(%Toast{} = result, _opts), do: result
