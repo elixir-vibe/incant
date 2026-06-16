@@ -40,7 +40,7 @@ defmodule Incant.Admin.Describe do
 
   defp describe_resource_metadata(resource) do
     %{
-      id: resource_id(resource) || surface_id(resource.module),
+      id: resource_id!(resource),
       kind: :resource,
       module: inspect(resource.module),
       title: title(resource.module, resource.opts),
@@ -203,14 +203,13 @@ defmodule Incant.Admin.Describe do
 
   defp title(module, opts), do: opts[:title] || module |> Module.split() |> List.last()
 
-  defp resource_id(%{opts: opts}) when is_list(opts) do
-    case Keyword.get(opts, :as) do
-      nil -> nil
-      value -> to_string(value)
-    end
-  end
+  defp resource_id!(%{id: id}) when is_binary(id), do: id
+  defp resource_id!(%{id: id}) when is_atom(id), do: to_string(id)
 
-  defp resource_id(_resource), do: nil
+  defp resource_id!(resource) do
+    raise ArgumentError,
+          "Incant resource metadata must include an explicit id, got: #{inspect(resource)}"
+  end
 
   defp surface_id(module) do
     module

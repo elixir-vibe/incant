@@ -108,6 +108,7 @@ defmodule Incant.Resource do
     }
 
     metadata = %Metadata{
+      id: resource_id(env.module, opts),
       module: env.module,
       schema: Keyword.get(opts, :schema),
       repo: Keyword.get(opts, :repo),
@@ -125,6 +126,10 @@ defmodule Incant.Resource do
       @doc false
       def __incant_resource__, do: unquote(escaped)
     end
+  end
+
+  def resource_id(module, opts \\ []) do
+    opts[:id] || opts[:as] || module |> Module.split() |> List.last() |> Macro.underscore()
   end
 
   defmacro table(opts \\ [], do: block) do

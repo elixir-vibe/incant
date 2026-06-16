@@ -49,6 +49,7 @@ defmodule Incant.ResourceTest do
   test "compiles resource metadata" do
     metadata = PostResource.__incant_resource__()
 
+    assert metadata.id == "post_resource"
     assert metadata.module == PostResource
     assert metadata.schema == Post
     assert metadata.repo == Repo

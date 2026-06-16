@@ -17,6 +17,7 @@ defmodule Incant.Resource.Infer do
     readonly? = Keyword.get(opts, :readonly, false)
 
     %Metadata{
+      id: inferred_id(schema, opts),
       module: schema,
       schema: schema,
       repo: Keyword.get(opts, :repo),
@@ -99,6 +100,10 @@ defmodule Incant.Resource.Infer do
   defp display_opts(:utc_datetime), do: [format: :datetime]
   defp display_opts(:naive_datetime), do: [format: :datetime]
   defp display_opts(_type), do: []
+
+  defp inferred_id(schema, opts) do
+    opts[:id] || opts[:as] || schema |> Module.split() |> List.last() |> Macro.underscore()
+  end
 
   defp inferred_title(schema) do
     schema

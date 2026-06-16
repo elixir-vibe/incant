@@ -6,6 +6,7 @@ defmodule Incant.Resource.Metadata do
   alias Incant.{Form, Table}
 
   @type t :: %__MODULE__{
+          id: String.t(),
           module: module,
           schema: module | nil,
           repo: module | nil,
@@ -18,6 +19,7 @@ defmodule Incant.Resource.Metadata do
         }
 
   defstruct [
+    :id,
     :module,
     :schema,
     :repo,

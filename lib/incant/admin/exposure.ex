@@ -41,8 +41,10 @@ defmodule Incant.Admin.Exposure do
 
   defp merge_exposure_opts(metadata, []), do: metadata
 
-  defp merge_exposure_opts(%{opts: resource_opts} = metadata, opts),
-    do: %{metadata | opts: Keyword.merge(opts, resource_opts)}
+  defp merge_exposure_opts(%{opts: resource_opts} = metadata, opts) do
+    opts = Keyword.merge(opts, resource_opts)
+    %{metadata | id: opts[:id] || opts[:as] || metadata.id, opts: opts}
+  end
 
   defp resource_module?(module) do
     Code.ensure_loaded?(module) and function_exported?(module, :__incant_resource__, 0)
