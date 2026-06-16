@@ -15,16 +15,20 @@ defmodule Incant.Admin.RPC do
         Incant.Service.Runtime.describe(__MODULE__, context)
       end
 
+      @spec index(String.t(), map(), map()) :: {:ok, map()} | {:error, term()}
       @impl Incant.Service
       def index(surface_id, params, context) when is_binary(surface_id) do
         Incant.Service.Runtime.index(__MODULE__, surface_id, params, context)
       end
 
+      @spec read(String.t(), term(), map()) :: {:ok, term()} | {:error, term()}
       @impl Incant.Service
       def read(surface_id, id, context) when is_binary(surface_id) do
         Incant.Service.Runtime.read(__MODULE__, surface_id, id, context)
       end
 
+      @spec run_action(String.t(), String.t(), map(), map()) ::
+              {:ok, Incant.ActionResult.t()} | {:error, term()}
       @impl Incant.Service
       def run_action(surface_id, action_id, payload, context)
           when is_binary(surface_id) and is_binary(action_id) do
