@@ -21,12 +21,13 @@ defmodule Incant.UI.Regions.Inspector do
   defp fields(row, resource) do
     Enum.map(resource.table.columns, fn column ->
       value = Incant.Live.Rows.field(row, column.name)
+      display_value = Incant.Sensitive.redact(value, column.opts)
 
       %{
         id: to_string(column.name),
         label: column.opts[:label] || humanize(column.name),
-        value: value,
-        display: Incant.Live.Format.value(value, column.opts[:format]),
+        value: display_value,
+        display: Incant.Live.Format.value(display_value, column.opts[:format]),
         format: column.opts[:as] || column.opts[:format]
       }
     end)

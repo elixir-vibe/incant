@@ -16,6 +16,7 @@ defmodule MyApp.Admin.Resources.Order do
   table density: :compact do
     column :number, link: true
     column :customer, value: & &1.customer.email
+    column :api_key, secret: true
     column :total, format: :money
     column :status, as: :badge
 
@@ -32,6 +33,22 @@ end
 ```
 
 See also [Authorization](authorization.md) for policy scoping and [Design and theming](design.md) for table styling.
+
+Use `secret: true`, `sensitive: true`, or `redacted: true` on columns and form fields that must not expose raw values through table/detail models or portable contracts:
+
+```elixir
+table do
+  column :provider
+  column :token, secret: true
+  column :user_message, sensitive: true
+end
+
+form do
+  field :token, :password, redacted: true
+end
+```
+
+These flags are presentation and transport-safety hints. They do not replace authorization policies for deciding who may reach a surface or action.
 
 ## Filters
 

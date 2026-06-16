@@ -32,6 +32,16 @@ defmodule Incant.UI.DocumentTest do
     end
   end
 
+  defmodule SecretResource do
+    use Incant.Resource
+
+    table do
+      column(:name, link: true)
+      column(:api_key, secret: true)
+      column(:prompt, sensitive: true)
+    end
+  end
+
   defmodule AnalyticsSource do
     use Incant.DataSource
 
@@ -126,6 +136,24 @@ defmodule Incant.UI.DocumentTest do
     assert %Incant.UI.Surfaces.ResourceIndex{detail: detail, form: nil} = document.surface
     assert detail.title == "Notebook"
     assert Enum.map(detail.fields, & &1.id) == ["name", "status"]
+  end
+
+  test "redacts sensitive resource values in table and detail models" do
+    resource = Incant.metadata(SecretResource)
+
+    document =
+      context(
+        resource: resource,
+        resources: [resource],
+        rows: [%{id: 1, name: "prod", api_key: "sk-secret", prompt: "private prompt"}],
+        selected_row: %{id: 1, name: "prod", api_key: "sk-secret", prompt: "private prompt"}
+      )
+      |> Incant.UI.Document.from_context(page_title: "prod")
+
+    assert %Incant.UI.Surfaces.ResourceIndex{table: table, detail: detail} = document.surface
+    assert [%{cells: cells}] = table.rows
+    assert Enum.map(cells, & &1.value) == ["prod", "[redacted]", "[redacted]"]
+    assert Enum.map(detail.fields, & &1.value) == ["prod", "[redacted]", "[redacted]"]
   end
 
   test "builds new form document" do

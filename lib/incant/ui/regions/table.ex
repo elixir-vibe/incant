@@ -125,11 +125,12 @@ defmodule Incant.UI.Regions.Table do
 
   defp cell_from_record(record, column) do
     value = Incant.Live.Rows.field(record, column.name)
+    display_value = Incant.Sensitive.redact(value, column.opts)
 
     %Cell{
       column: to_string(column.name),
-      value: value,
-      display: Incant.Live.Format.value(value, column.opts[:format]),
+      value: display_value,
+      display: Incant.Live.Format.value(display_value, column.opts[:format]),
       tone: column.opts[:tone],
       format: column.opts[:as] || column.opts[:format],
       source: column

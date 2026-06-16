@@ -29,6 +29,26 @@ defmodule Incant.Admin.ContractTest do
     resource(ModuleOptionResource)
   end
 
+  defmodule SensitiveResource do
+    use Incant.Resource, title: "Sensitive"
+
+    table do
+      column(:name)
+      column(:api_key, secret: true)
+      column(:prompt, sensitive: true)
+    end
+
+    form do
+      field(:api_key, :password, redacted: true)
+    end
+  end
+
+  defmodule SensitiveAdmin do
+    use Incant.Admin
+
+    resource(SensitiveResource)
+  end
+
   test "contract descriptions omit unknown local options" do
     contract = Incant.Admin.describe(BadOptionAdmin)
     assert [%{table: %{columns: [%{opts: %{label: "Name"}}]}}] = contract.resources
@@ -38,5 +58,14 @@ defmodule Incant.Admin.ContractTest do
     assert_raise ArgumentError, ~r/module atoms are not portable/, fn ->
       Incant.Admin.describe(ModuleOptionAdmin)
     end
+  end
+
+  test "contract descriptions include portable sensitive field hints" do
+    contract = Incant.Admin.describe(SensitiveAdmin)
+
+    assert [resource] = contract.resources
+    assert %{opts: %{secret: true}} = Enum.find(resource.table.columns, &(&1.id == "api_key"))
+    assert %{opts: %{sensitive: true}} = Enum.find(resource.table.columns, &(&1.id == "prompt"))
+    assert [%{opts: %{redacted: true}}] = resource.form.fields
   end
 end
