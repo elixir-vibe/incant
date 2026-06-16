@@ -98,6 +98,9 @@ defmodule Incant.Admin.DescribeTest do
     assert contract.module == inspect(Admin)
 
     assert [%{id: "product_resource", title: "Products"} = resource] = contract.resources
+    assert resource.opts == %{title: "Products"}
+    refute Map.has_key?(resource.opts, :schema)
+    refute Map.has_key?(resource.opts, :repo)
 
     assert resource.table.columns == [
              %{id: "name", name: :name, opts: %{link: true}},
@@ -113,6 +116,7 @@ defmodule Incant.Admin.DescribeTest do
     refute Map.has_key?(hd(dashboard.widgets).opts, :query)
 
     assert [%{id: "usage_dataset", title: "Usage"} = dataset] = contract.datasets
+    refute Map.has_key?(dataset.opts, :source)
     assert dataset.from == "usage_logs"
     assert dataset.table.group_by == [:model]
   end

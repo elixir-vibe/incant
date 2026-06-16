@@ -163,7 +163,7 @@ defmodule Incant.Admin.Describe do
 
   defp public_opts(opts) when is_list(opts) do
     opts
-    |> Enum.reject(fn {_key, value} -> executable?(value) end)
+    |> Enum.reject(fn {key, value} -> key in [:repo, :schema, :source] or executable?(value) end)
     |> Map.new(fn {key, value} -> {key, public_value(value)} end)
   end
 
