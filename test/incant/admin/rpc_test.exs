@@ -39,7 +39,7 @@ defmodule Incant.Admin.RPCTest do
 
     assert %{ops: ops} = Map.fetch!(descriptor.modules, Admin)
 
-    assert %{incant_describe: describe, incant_index: index, incant_read: read} = ops
+    assert %{describe: describe, index: index, read: read} = ops
 
     assert describe.docs == "Describe this Incant admin surface."
     assert index.spec != nil
@@ -51,13 +51,13 @@ defmodule Incant.Admin.RPCTest do
     {:ok, server} = Server.start_link(socket: socket)
 
     assert {:ok, %Incant.Admin.Contract{service: :accounts}} =
-             SafeRPC.call(socket, :incant_describe, %Incant.Service.Describe{})
+             SafeRPC.call(socket, {Admin, :describe}, %Incant.Service.Describe{})
 
     assert {:ok, %{rows: [%{name: "Ada"}, %{name: "Grace"}]}} =
-             SafeRPC.call(socket, :incant_index, %Incant.Service.Index{surface_id: "user"})
+             SafeRPC.call(socket, {Admin, :index}, %Incant.Service.Index{surface_id: "user"})
 
     assert {:ok, %{id: 1, name: "Ada"}} =
-             SafeRPC.call(socket, :incant_read, %Incant.Service.Read{surface_id: "user", id: 1})
+             SafeRPC.call(socket, {Admin, :read}, %Incant.Service.Read{surface_id: "user", id: 1})
 
     GenServer.stop(server)
   end
