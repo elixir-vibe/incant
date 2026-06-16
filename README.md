@@ -1,6 +1,6 @@
 # Incant
 
-Incant is an Elixir/Phoenix-native control plane for serious admin, content, analytics, dashboards, and operations work.
+Incant is an Elixir/Phoenix-native admin framework for serious admin, content, analytics, dashboards, and operations work.
 
 Incant is experimental. The package provides compile-time DSLs that produce inspectable metadata for resources, dashboards, themes, admin roots, and data sources, plus a semantic UI document layer and default LiveView adapter for tables, details, forms, filters, dashboards, and row actions.
 

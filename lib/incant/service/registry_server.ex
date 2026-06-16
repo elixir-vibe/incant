@@ -3,7 +3,7 @@ defmodule Incant.Service.RegistryServer do
   Supervised process for a central Incant service registry.
 
   The server owns the runtime copy of `%Incant.Service.Registry{}` for a central
-  admin/control-plane application. By default it loads from `HOSTKIT_RPC_BINDINGS`
+  Incant admin application. By default it loads from `HOSTKIT_RPC_BINDINGS`
   through `Incant.Service.Registry.load/1`, but tests and embedding apps may pass
   already decoded `:bindings` or a `:path`.
   """

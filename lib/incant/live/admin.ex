@@ -10,14 +10,14 @@ defmodule Incant.Live.Admin do
   alias Incant.Live.Authorization
 
   @impl Phoenix.LiveView
-  def mount(_params, session, socket) do
-    incant_session = Incant.Live.SessionProvider.fetch!(session)
+  def mount(params, session, socket) do
+    incant_session = Incant.Live.SessionProvider.fetch!(session, params)
     contract = Incant.Session.contract(incant_session)
     admin = Incant.Live.SessionProvider.local_admin(session)
 
     socket =
       socket
-      |> assign(:base_path, Map.get(session, "base_path", "/admin"))
+      |> assign(:base_path, Incant.Live.SessionProvider.base_path(session, params))
       |> assign(:incant_session, incant_session)
       |> assign(:admin, admin)
       |> assign(:contract, contract)

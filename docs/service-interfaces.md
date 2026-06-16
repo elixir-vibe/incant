@@ -2,7 +2,7 @@
 
 Incant's distributed admin model is service-owned.
 
-Each service declares the admin surface it exposes in its own application namespace, using ordinary Incant DSL modules. A central admin/control-plane application should discover, render, and dispatch those surfaces; it should not own the service's resource/action definitions.
+Each service declares the admin surface it exposes in its own application namespace, using ordinary Incant DSL modules. A central Incant admin can discover, render, and dispatch those surfaces; it should not own the service's resource/action definitions.
 
 ```elixir
 defmodule Billing.Admin do
@@ -109,7 +109,7 @@ With `rpc: true`, those same service functions are exposed through SafeRPC as ex
 {Billing.Admin, :run_action}
 ```
 
-Central control-plane code should not repeat those operation tuples directly. In a HostKit deployment it should load the runtime registry from the binding file path injected as `HOSTKIT_RPC_BINDINGS`:
+Central Incant admin code should not repeat those operation tuples directly. In a HostKit deployment it should load the runtime registry from the binding file path injected as `HOSTKIT_RPC_BINDINGS`:
 
 ```elixir
 {:ok, registry} = Incant.Service.Registry.load()
@@ -132,16 +132,14 @@ entries = Incant.Service.RegistryServer.list_entries(MyApp.IncantRegistry)
 {:ok, registry} = Incant.Service.RegistryServer.refresh(MyApp.IncantRegistry)
 ```
 
-A minimal central control-plane app can use `Incant.ControlPlane` to build the registry child spec and LiveView session data:
+A Phoenix app mounts local or service-backed Incant admin through the same router macro:
 
 ```elixir
-children = Incant.ControlPlane.children(registry: [name: MyApp.IncantRegistry])
-
-[entry | _] = Incant.ControlPlane.entries(MyApp.IncantRegistry)
-live_session = Incant.ControlPlane.live_session(entry, base_path: "/admin/services/billing")
+incant "/admin", MyApp.Admin
+incant "/admin", registry: MyApp.IncantRegistry
 ```
 
-`Incant.Live.Admin` consumes that session through the same `Incant.Session` protocol used for local admin modules; it does not branch on local vs remote transport.
+The macro owns the private Phoenix LiveView session shape. `Incant.Live.Admin` consumes a selected `Incant.Session` through the same protocol used for local admin modules; it does not branch on local vs remote transport.
 
 The registry decodes the ETF binding term safely:
 
@@ -174,7 +172,7 @@ Incant.Service.run_action(client, %Incant.Service.RunAction{
 })
 ```
 
-UI/control-plane code should usually wrap registry entries in `Incant.Service.Session` so rendering does not know about request structs:
+UI code should usually wrap registry entries in `Incant.Service.Session` so rendering does not know about request structs:
 
 ```elixir
 session = Incant.Service.Session.new(entry, context: %{actor: actor})

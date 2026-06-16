@@ -35,7 +35,7 @@ defmodule Incant.Install.TaskTest do
     )
 
     assert_content(applied, "lib/incant_web/router.ex", "use Incant.Router")
-    assert_content(applied, "lib/incant_web/router.ex", ~S|incant_admin("/admin", Incant.Admin)|)
+    assert_content(applied, "lib/incant_web/router.ex", ~S|incant("/admin", Incant.Admin)|)
     assert_content(applied, "assets/css/app.css", ~S|@source "../deps/incant/lib";|)
   end
 

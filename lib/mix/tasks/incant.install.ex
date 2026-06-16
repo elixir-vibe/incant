@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Incant.Install do
     * `lib/my_app/admin/themes/default.ex`
 
   When it can detect standard Phoenix files, it also adds `use Incant.Router`,
-  mounts `incant_admin "/admin", MyApp.Admin`, and adds the Incant Tailwind
+  mounts `incant "/admin", MyApp.Admin`, and adds the Incant Tailwind
   source to `assets/css/app.css`.
 
   Use Igniter's regular options such as `--dry-run` and `--yes` to preview or
@@ -112,7 +112,7 @@ defmodule Mix.Tasks.Incant.Install do
 
         scope "/" do
           pipe_through :browser
-          incant_admin "/admin", #{namespace}.Admin
+          incant "/admin", #{namespace}.Admin
         end
     """
   end

@@ -1,6 +1,6 @@
 defmodule Incant.Service.Session do
   @moduledoc """
-  UI/control-plane session for one discovered Incant service entry.
+  Admin UI session for one discovered Incant service entry.
 
   A session wraps `%Incant.Service.Entry{}` and exposes admin-shaped operations
   without leaking SafeRPC operation tuples or Incant service request structs into

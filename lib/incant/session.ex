@@ -2,7 +2,7 @@ defprotocol Incant.Session do
   @moduledoc """
   Unified Incant admin session interface.
 
-  LiveView and other UI/control-plane code should depend on this protocol rather
+  LiveView and other admin UI code should depend on this protocol rather
   than knowing whether an admin surface is backed by local BEAM metadata or a
   SafeRPC-discovered service entry.
   """

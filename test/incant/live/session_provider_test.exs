@@ -25,18 +25,23 @@ defmodule Incant.Live.SessionProviderTest do
     use SafeRPC.Adapter.Server, service: Admin
   end
 
-  test "builds local sessions from admin modules" do
-    session = Incant.Live.SessionProvider.fetch!(%{"admin" => Admin})
+  test "builds local sessions from private LiveView session data" do
+    phoenix_session = %{
+      "__incant__" => %Incant.Live.Session{source: {:local, Admin}, base_path: "/admin"}
+    }
+
+    session = Incant.Live.SessionProvider.fetch!(phoenix_session, %{})
 
     assert %Incant.Session.Local{} = session
 
     assert %Incant.Admin.Metadata{module: Admin} =
-             Incant.Live.SessionProvider.local_admin(%{"admin" => Admin})
+             Incant.Live.SessionProvider.local_admin(phoenix_session)
 
+    assert Incant.Live.SessionProvider.base_path(phoenix_session, %{}) == "/admin"
     assert %Incant.Admin.Contract{service: :accounts} = Incant.Session.contract(session)
   end
 
-  test "builds service sessions from registry entries" do
+  test "builds service sessions from private entry data" do
     socket = socket_path("entry")
     {:ok, server} = Server.start_link(socket: socket)
 
@@ -45,12 +50,36 @@ defmodule Incant.Live.SessionProviderTest do
                accounts: %{socket: socket, modules: [Admin]}
              })
 
-    session = Incant.Live.SessionProvider.fetch!(%{"incant_entry" => entry})
+    phoenix_session = %{"__incant__" => %Incant.Live.Session{source: {:entry, entry}}}
+    session = Incant.Live.SessionProvider.fetch!(phoenix_session, %{})
 
     assert %Incant.Service.Session{} = session
-    assert is_nil(Incant.Live.SessionProvider.local_admin(%{"incant_entry" => entry}))
+    assert is_nil(Incant.Live.SessionProvider.local_admin(phoenix_session))
     assert [%{id: "user"}] = Incant.Session.list_surfaces(session, kind: :resource)
 
+    GenServer.stop(server)
+  end
+
+  test "selects service sessions from a registry and route params" do
+    socket = socket_path("registry")
+    {:ok, server} = Server.start_link(socket: socket)
+    bindings = %{accounts: %{socket: socket, modules: [Admin]}}
+    {:ok, registry} = Incant.Service.RegistryServer.start_link(bindings: bindings)
+
+    phoenix_session = %{
+      "__incant__" => %Incant.Live.Session{source: {:registry, registry}, base_path: "/admin"}
+    }
+
+    session = Incant.Live.SessionProvider.fetch!(phoenix_session, %{"service" => "accounts"})
+
+    assert %Incant.Service.Session{} = session
+
+    assert Incant.Live.SessionProvider.base_path(phoenix_session, %{"service" => "accounts"}) ==
+             "/admin/accounts"
+
+    assert [%{id: "user"}] = Incant.Session.list_surfaces(session, kind: :resource)
+
+    GenServer.stop(registry)
     GenServer.stop(server)
   end
 

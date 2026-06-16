@@ -10,10 +10,10 @@ defmodule Incant.Install.Patcher do
   end
 
   def ensure_admin_route(content, namespace) do
-    route = "incant_admin \"/admin\", #{namespace}.Admin"
+    route = "incant \"/admin\", #{namespace}.Admin"
 
     cond do
-      incant_admin_route?(content) ->
+      incant_route?(content) ->
         content
 
       ast = ast_insert_admin_route(content, namespace) ->
@@ -52,7 +52,7 @@ defmodule Incant.Install.Patcher do
 
   defp ast_insert_admin_route(content, namespace) do
     with {:ok, ast} <- Sourceror.parse_string(content) do
-      route = quoted!(~s(incant_admin "/admin", #{namespace}.Admin))
+      route = quoted!(~s(incant "/admin", #{namespace}.Admin))
 
       ast
       |> Macro.prewalk(fn
@@ -169,10 +169,11 @@ defmodule Incant.Install.Patcher do
     end)
   end
 
-  defp incant_admin_route?(content) do
+  defp incant_route?(content) do
     content
     |> parse_router()
     |> ast_contains?(fn
+      {:incant, _meta, _args} -> true
       {:incant_admin, _meta, _args} -> true
       _node -> false
     end)

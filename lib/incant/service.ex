@@ -1,12 +1,12 @@
 defmodule Incant.Service do
   @moduledoc """
-  Behaviour for service-owned Incant admin/control-plane surfaces.
+  Behaviour for service-owned Incant admin surfaces.
 
   `use Incant.Admin, rpc: true` implements this behaviour and exposes it through
   SafeRPC. Application modules should usually use the Incant admin DSL instead
   of implementing this behaviour by hand.
 
-  Central control-plane applications can discover Incant service modules from a
+  Central Incant admin applications can discover Incant service modules from a
   HostKit/SafeRPC binding term, then use `%Incant.Service.Client{}` handles to
   call the standard Incant service verbs without repeating SafeRPC operation
   tuples at every call site.

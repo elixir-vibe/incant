@@ -9,7 +9,7 @@ defmodule Incant.Service.Registry do
     * SafeRPC descriptors identify modules exposing the Incant service shape.
     * Incant calls `describe` for each service and stores the resulting contract.
 
-  No service-specific modules are hardcoded by the central control plane.
+  No service-specific modules are hardcoded by the central Incant admin.
   """
 
   alias Incant.Service

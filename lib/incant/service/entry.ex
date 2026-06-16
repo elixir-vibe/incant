@@ -2,7 +2,7 @@ defmodule Incant.Service.Entry do
   @moduledoc """
   A discovered Incant service endpoint and its loaded admin contract.
 
-  Central control-plane processes can keep entries in memory and route UI
+  Central Incant admin processes can keep entries in memory and route UI
   events back through `client` while rendering from `contract`.
   """
 

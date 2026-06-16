@@ -28,7 +28,7 @@ defmodule MyAppWeb.Router do
   scope "/", MyAppWeb do
     pipe_through :browser
 
-    incant_admin "/admin", MyApp.Admin
+    incant "/admin", MyApp.Admin
   end
 end
 ```
