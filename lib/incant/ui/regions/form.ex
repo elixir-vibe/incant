@@ -16,6 +16,7 @@ defmodule Incant.UI.Regions.Form do
   ]
 
   def from_context(%{form_mode: nil}), do: nil
+  def from_context(%{resource: %{kind: :resource}}), do: nil
 
   def from_context(context) do
     %__MODULE__{

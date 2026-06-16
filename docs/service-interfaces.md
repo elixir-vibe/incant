@@ -132,6 +132,17 @@ entries = Incant.Service.RegistryServer.list_entries(MyApp.IncantRegistry)
 {:ok, registry} = Incant.Service.RegistryServer.refresh(MyApp.IncantRegistry)
 ```
 
+A minimal central control-plane app can use `Incant.ControlPlane` to build the registry child spec and LiveView session data:
+
+```elixir
+children = Incant.ControlPlane.children(registry: [name: MyApp.IncantRegistry])
+
+[entry | _] = Incant.ControlPlane.entries(MyApp.IncantRegistry)
+live_session = Incant.ControlPlane.live_session(entry, base_path: "/admin/services/billing")
+```
+
+`Incant.Live.AdminLive` consumes that session through the same `Incant.Session` protocol used for local admin modules; it does not branch on local vs remote transport.
+
 The registry decodes the ETF binding term safely:
 
 ```elixir

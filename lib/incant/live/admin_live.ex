@@ -11,18 +11,21 @@ defmodule Incant.Live.AdminLive do
 
   @impl Phoenix.LiveView
   def mount(_params, session, socket) do
-    admin_module = Map.fetch!(session, "admin")
-    admin = Incant.metadata(admin_module)
+    incant_session = Incant.Live.SessionProvider.fetch!(session)
+    contract = Incant.Session.contract(incant_session)
+    admin = Incant.Live.SessionProvider.local_admin(session)
 
     socket =
       socket
       |> assign(:base_path, Map.get(session, "base_path", "/admin"))
+      |> assign(:incant_session, incant_session)
       |> assign(:admin, admin)
-      |> assign(:resources, admin |> Incant.Admin.resources() |> Enum.map(& &1.spec))
-      |> assign(:dashboards, Enum.map(admin.dashboards, &Incant.metadata/1))
-      |> assign(:datasets, Enum.map(admin.datasets, &Incant.metadata/1))
+      |> assign(:contract, contract)
+      |> assign(:resources, Incant.Session.list_surfaces(incant_session, kind: :resource))
+      |> assign(:dashboards, Incant.Session.list_surfaces(incant_session, kind: :dashboard))
+      |> assign(:datasets, Incant.Session.list_surfaces(incant_session, kind: :dataset))
       |> assign(:theme, theme_metadata(admin))
-      |> assign(:actor, Authorization.actor(socket.assigns, admin))
+      |> assign(:actor, actor(socket.assigns, admin))
 
     {:ok, socket}
   end
@@ -63,6 +66,7 @@ defmodule Incant.Live.AdminLive do
     context =
       %Incant.Live.Context{
         admin: socket.assigns.admin,
+        session: socket.assigns.incant_session,
         base_path: socket.assigns.base_path,
         resources: visible_resources,
         dashboards: visible_dashboards,
@@ -168,12 +172,19 @@ defmodule Incant.Live.AdminLive do
 
   defp row_action(%{target: action, value: id}, socket) do
     context = socket.assigns.context
-    row = Incant.Live.Rows.one(context.resource, id, context)
+    row = session_read(context, id)
 
     with :ok <- authorize(context, :run_action, %{action: action, row: row}) do
       action_result(
         socket,
-        Incant.Live.Actions.run(context.resource, action, id, socket.assigns, context)
+        Incant.Session.run_action(
+          context.session,
+          selected_id(context.resource),
+          action,
+          %{id: id},
+          %{},
+          []
+        )
       )
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
@@ -189,12 +200,13 @@ defmodule Incant.Live.AdminLive do
            authorize(context, :run_bulk_action, %{action: action, selected_ids: selected_ids}) do
       action_result(
         socket,
-        Incant.Live.Actions.run_bulk(
-          context.resource,
+        Incant.Session.run_action(
+          context.session,
+          selected_id(context.resource),
           action,
-          selected_ids,
-          socket.assigns,
-          context
+          %{selected_ids: selected_ids},
+          %{},
+          []
         )
       )
     else
@@ -209,12 +221,24 @@ defmodule Incant.Live.AdminLive do
     with :ok <- authorize(context, :run_page_action, %{action: action}) do
       action_result(
         socket,
-        Incant.Live.Actions.run_page(context.resource, action, socket.assigns, context)
+        Incant.Session.run_action(
+          context.session,
+          selected_id(context.resource),
+          action,
+          %{},
+          %{},
+          []
+        )
       )
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
   end
+
+  defp action_result(socket, {:ok, result}), do: action_result(socket, result)
+
+  defp action_result(socket, {:error, reason}),
+    do: {:noreply, put_flash(socket, :error, authorization_message(reason))}
 
   defp action_result(socket, %Incant.ActionResult.Toast{level: level, message: message}) do
     {:noreply, put_flash(socket, flash_level(level), message)}
@@ -247,9 +271,6 @@ defmodule Incant.Live.AdminLive do
   defp action_result(socket, %Incant.ActionResult.OpenSurface{}) do
     {:noreply, put_flash(socket, :info, "Action surface is ready")}
   end
-
-  defp action_result(socket, {:error, message}),
-    do: {:noreply, put_flash(socket, :error, message)}
 
   defp flash_level(level) when level in [:info, :error], do: level
   defp flash_level(:warning), do: :error
@@ -319,6 +340,11 @@ defmodule Incant.Live.AdminLive do
     """
   end
 
+  defp actor(assigns, nil), do: Authorization.actor(assigns, %{opts: []})
+  defp actor(assigns, admin), do: Authorization.actor(assigns, admin)
+
+  defp filter_authorized(items, nil, _actor, _action), do: items
+
   defp filter_authorized(items, admin, actor, action) do
     Enum.filter(items, fn item ->
       context = authorization_item_context(action, item)
@@ -333,6 +359,8 @@ defmodule Incant.Live.AdminLive do
   defp assign_context(socket, key, value) do
     assign(socket, :context, Map.put(socket.assigns.context, key, value))
   end
+
+  defp authorize_surface(context, nil), do: %{context | authorization: :ok}
 
   defp authorize_surface(context, admin) do
     authorization =
@@ -352,8 +380,8 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp load_authorized_context(%{authorization: :ok, section: "resource"} = context) do
-    resource_page = Incant.Live.Rows.page(context.resource, context.table_state, context)
-    selected_row = Incant.Live.Rows.one(context.resource, context.detail_id, context)
+    resource_page = session_index(context)
+    selected_row = session_read(context, context.detail_id)
     form_record = form_record(context.resource, context.detail_id, context.form_mode, context)
     form_changeset = form_changeset(context.resource, form_record, context.form_mode)
 
@@ -394,6 +422,31 @@ defmodule Incant.Live.AdminLive do
 
   defp load_authorized_context(context), do: context
 
+  defp session_index(context) do
+    case Incant.Session.index(
+           context.session,
+           selected_id(context.resource),
+           context.table_state,
+           %{},
+           []
+         ) do
+      {:ok, page} ->
+        page
+
+      {:error, reason} ->
+        %{rows: [], page: 1, page_size: 25, total: 0, total_pages: 1, error: reason}
+    end
+  end
+
+  defp session_read(_context, nil), do: nil
+
+  defp session_read(context, id) do
+    case Incant.Session.read(context.session, selected_id(context.resource), id, %{}, []) do
+      {:ok, row} -> row
+      {:error, _reason} -> nil
+    end
+  end
+
   defp authorize_loaded_context(%{authorization: :ok} = context, admin) do
     authorization =
       with :ok <- authorize_row_navigation(admin, context),
@@ -406,6 +459,8 @@ defmodule Incant.Live.AdminLive do
 
   defp authorize_loaded_context(context, _admin), do: context
 
+  defp authorize(%{admin: nil}, _action, _extra), do: :ok
+
   defp authorize(context, action, extra) do
     Authorization.authorize(
       context.admin,
@@ -416,6 +471,7 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp authorize_row_navigation(_admin, %{detail_id: nil}), do: :ok
+  defp authorize_row_navigation(nil, _context), do: :ok
 
   defp authorize_row_navigation(admin, %{section: "resource"} = context) do
     case Authorization.authorize(admin, :view_row, context.actor, Map.from_struct(context)) do
@@ -427,6 +483,7 @@ defmodule Incant.Live.AdminLive do
   defp authorize_row_navigation(_admin, _context), do: :ok
 
   defp authorize_form_navigation(_admin, %{form_mode: nil}), do: :ok
+  defp authorize_form_navigation(nil, _context), do: :ok
 
   defp authorize_form_navigation(admin, context) do
     Authorization.authorize(
@@ -436,6 +493,8 @@ defmodule Incant.Live.AdminLive do
       form_context(context, %{})
     )
   end
+
+  defp authorize_form(%{admin: nil}, _attrs), do: :ok
 
   defp authorize_form(context, attrs) do
     Authorization.authorize(
@@ -586,6 +645,8 @@ defmodule Incant.Live.AdminLive do
     end
   end
 
+  defp theme_metadata(nil), do: nil
+
   defp theme_metadata(admin) do
     case admin.opts[:theme] do
       nil -> nil
@@ -631,19 +692,21 @@ defmodule Incant.Live.AdminLive do
   end
 
   defp form_record(_resource, _id, nil, _context), do: nil
+  defp form_record(%{kind: :resource}, _id, _mode, _context), do: nil
   defp form_record(resource, _id, :new, _context), do: Incant.Forms.new_record(resource)
 
   defp form_record(resource, id, :edit, context),
     do: Incant.Live.Rows.one(resource, id, context) || %{}
 
   defp form_changeset(_resource, _record, nil), do: nil
+  defp form_changeset(%{kind: :resource}, _record, _mode), do: nil
 
   defp form_changeset(resource, record, _mode),
     do: Incant.Live.FormState.changeset(resource, record)
 
   defp page_title(%{section: "resource", resource: resource})
        when not is_nil(resource) do
-    short_module(resource.module)
+    surface_title(resource)
   end
 
   defp page_title(%{section: "dashboard", dashboard: dashboard})
@@ -666,9 +729,16 @@ defmodule Incant.Live.AdminLive do
   defp selected_id(%Incant.Dataset.Metadata{} = dataset),
     do: Incant.Surface.id(dataset.module, dataset.opts)
 
-  defp short_module(module) do
+  defp selected_id(%{id: id}), do: id
+
+  defp surface_title(%{title: title}) when not is_nil(title), do: title
+  defp surface_title(surface), do: short_module(surface.module)
+
+  defp short_module(module) when is_atom(module) do
     module
     |> Module.split()
     |> List.last()
   end
+
+  defp short_module(module), do: module |> to_string() |> String.split(".") |> List.last()
 end

@@ -35,7 +35,7 @@ defmodule Incant.UI.Regions.Nav do
   end
 
   defp dashboard_item(dashboard, context) do
-    id = "dashboard.#{Incant.Surface.id(dashboard.module, dashboard.opts)}"
+    id = "dashboard.#{surface_id(dashboard)}"
 
     %Item{
       id: id,
@@ -48,7 +48,7 @@ defmodule Incant.UI.Regions.Nav do
   end
 
   defp dataset_item(dataset, context) do
-    id = "dataset.#{Incant.Surface.id(dataset.module, dataset.opts)}"
+    id = "dataset.#{surface_id(dataset)}"
 
     %Item{
       id: id,
@@ -65,7 +65,7 @@ defmodule Incant.UI.Regions.Nav do
 
     %Item{
       id: id,
-      label: Incant.Surface.title(resource.module, resource.opts),
+      label: surface_title(resource),
       kind: :resource,
       group: :resources,
       event: %Event{op: :navigate, surface: "resource", target: id},
@@ -74,13 +74,19 @@ defmodule Incant.UI.Regions.Nav do
   end
 
   defp active_id(%{section: "dashboard", dashboard: dashboard}),
-    do: "dashboard.#{Incant.Surface.id(dashboard.module, dashboard.opts)}"
+    do: "dashboard.#{surface_id(dashboard)}"
 
-  defp active_id(%{section: "dataset", dataset: dataset}),
-    do: "dataset.#{Incant.Surface.id(dataset.module, dataset.opts)}"
+  defp active_id(%{section: "dataset", dataset: dataset}), do: "dataset.#{surface_id(dataset)}"
 
   defp active_id(%{section: "resource", resource: resource}), do: "resource.#{resource.id}"
   defp active_id(_context), do: nil
 
-  defp short_module(module), do: module |> Module.split() |> List.last()
+  defp surface_id(%{id: id}), do: id
+  defp surface_id(surface), do: Incant.Surface.id(surface.module, surface.opts)
+
+  defp surface_title(%{title: title}) when not is_nil(title), do: title
+  defp surface_title(surface), do: Incant.Surface.title(surface.module, surface.opts)
+
+  defp short_module(module) when is_atom(module), do: module |> Module.split() |> List.last()
+  defp short_module(module), do: module |> to_string() |> String.split(".") |> List.last()
 end

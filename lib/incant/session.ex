@@ -7,6 +7,8 @@ defprotocol Incant.Session do
   SafeRPC-discovered service entry.
   """
 
+  @type t :: term()
+
   @doc "Returns the loaded transport-safe admin contract."
   def contract(session)
 

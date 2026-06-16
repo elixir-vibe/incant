@@ -3,6 +3,7 @@ defmodule Incant.Live.Context do
 
   defstruct [
     :admin,
+    :session,
     :base_path,
     :resources,
     :dashboards,

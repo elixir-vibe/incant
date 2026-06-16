@@ -59,6 +59,7 @@ defmodule Incant.Live.Routes do
     do: Incant.Surface.id(dataset.module, dataset.opts)
 
   def surface_id(%Incant.Surface{id: id}), do: id
+  def surface_id(%{id: id}), do: id
 
   defp path([base_path | segments], query_params) do
     suffix =
