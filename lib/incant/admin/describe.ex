@@ -40,7 +40,7 @@ defmodule Incant.Admin.Describe do
 
   defp describe_resource_metadata(resource) do
     %{
-      id: surface_id(resource.module),
+      id: resource_id(resource) || surface_id(resource.module),
       kind: :resource,
       module: inspect(resource.module),
       title: title(resource.module, resource.opts),
@@ -202,6 +202,15 @@ defmodule Incant.Admin.Describe do
   defp executable?(value), do: is_function(value)
 
   defp title(module, opts), do: opts[:title] || module |> Module.split() |> List.last()
+
+  defp resource_id(%{opts: opts}) when is_list(opts) do
+    case Keyword.get(opts, :as) do
+      nil -> nil
+      value -> to_string(value)
+    end
+  end
+
+  defp resource_id(_resource), do: nil
 
   defp surface_id(module) do
     module
