@@ -171,7 +171,10 @@ defmodule Incant.Live.AdminLive do
     row = Incant.Live.Rows.one(context.resource, id, context)
 
     with :ok <- authorize(context, :run_action, %{action: action, row: row}) do
-      action_result(socket, Incant.Live.Actions.run(context.resource, action, id, socket.assigns))
+      action_result(
+        socket,
+        Incant.Live.Actions.run(context.resource, action, id, socket.assigns, context)
+      )
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
     end
@@ -182,10 +185,17 @@ defmodule Incant.Live.AdminLive do
     selected_ids = context.table_state.selected_ids
 
     with false <- selected_ids == [],
-         :ok <- authorize(context, :run_action, %{action: action, selected_ids: selected_ids}) do
+         :ok <-
+           authorize(context, :run_bulk_action, %{action: action, selected_ids: selected_ids}) do
       action_result(
         socket,
-        Incant.Live.Actions.run_bulk(context.resource, action, selected_ids, socket.assigns)
+        Incant.Live.Actions.run_bulk(
+          context.resource,
+          action,
+          selected_ids,
+          socket.assigns,
+          context
+        )
       )
     else
       true -> {:noreply, put_flash(socket, :error, "Select rows before running a bulk action")}
@@ -196,10 +206,10 @@ defmodule Incant.Live.AdminLive do
   defp page_action(%{target: action}, socket) do
     context = socket.assigns.context
 
-    with :ok <- authorize(context, :run_action, %{action: action}) do
+    with :ok <- authorize(context, :run_page_action, %{action: action}) do
       action_result(
         socket,
-        Incant.Live.Actions.run_page(context.resource, action, socket.assigns)
+        Incant.Live.Actions.run_page(context.resource, action, socket.assigns, context)
       )
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}

@@ -78,6 +78,31 @@ defmodule Incant.Live.RowsTest do
            ]
   end
 
+  test "passes context to index callbacks" do
+    resource = %Metadata{
+      index: fn _params, context -> [%{id: context.actor.id}] end,
+      table: %Table{}
+    }
+
+    assert Rows.list(resource, %{search: "", filters: %{}, sort: ""}, %{actor: %{id: 42}}) == [
+             %{id: 42}
+           ]
+  end
+
+  test "returns safe page errors instead of swallowing row load failures" do
+    resource = %Metadata{
+      index: fn _params -> raise ArgumentError, "bad query" end,
+      table: %Table{}
+    }
+
+    page = Rows.page(resource, %{search: "", filters: %{}, sort: "", page: "2", page_size: "10"})
+
+    assert page.rows == []
+    assert page.error == "bad query"
+    assert page.page == 2
+    assert page.page_size == 10
+  end
+
   test "loads rows from repo-backed resources" do
     resource = %Metadata{repo: Repo, schema: Product, table: %Table{}}
 

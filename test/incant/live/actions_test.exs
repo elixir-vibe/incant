@@ -7,6 +7,14 @@ defmodule Incant.Live.ActionsTest do
   alias Incant.Table
   alias Incant.Table.Action
 
+  defmodule DenyPolicy do
+    use Incant.Policy
+
+    def authorize(:run_action, _actor, _context), do: {:error, :no_row_actions}
+    def authorize(:run_bulk_action, _actor, _context), do: {:error, :no_bulk_actions}
+    def authorize(:run_page_action, _actor, _context), do: {:error, :no_page_actions}
+  end
+
   test "reports missing action" do
     resource = %Metadata{table: %Table{actions: []}}
 
@@ -58,6 +66,25 @@ defmodule Incant.Live.ActionsTest do
 
     assert %ActionResult.Toast{message: "Exported 2 ids and 2 rows"} =
              Actions.run_bulk(resource, "export", ["1", "2"], %{})
+  end
+
+  test "authorizes row, bulk, and page actions with explicit policy actions" do
+    callback = fn _params, _assigns -> :ok end
+
+    resource = %Metadata{
+      index: fn _params -> [%{id: 1, name: "Incant Pro"}] end,
+      table: %Table{
+        actions: [%Action{name: :archive, opts: [callback: callback]}],
+        bulk_actions: [%Action{name: :export, scope: :bulk, opts: [callback: callback]}],
+        page_actions: [%Action{name: :sync, scope: :page, opts: [callback: callback]}]
+      }
+    }
+
+    context = %{admin: %{opts: [policy: DenyPolicy]}, actor: %{id: 1}, resource: resource}
+
+    assert Actions.run(resource, "archive", "1", %{}, context) == {:error, :no_row_actions}
+    assert Actions.run_bulk(resource, "export", ["1"], %{}, context) == {:error, :no_bulk_actions}
+    assert Actions.run_page(resource, "sync", %{}, context) == {:error, :no_page_actions}
   end
 
   test "runs page action callbacks" do

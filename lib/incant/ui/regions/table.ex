@@ -61,7 +61,7 @@ defmodule Incant.UI.Regions.Table do
       page_actions: resource.table.page_actions,
       row_detail: row_detail_from_metadata(resource.table.row_detail),
       selection: selection_from_metadata(resource.table, context.table_state.selected_ids),
-      empty_state: "No rows. Add a resource index callback or loosen the current filters.",
+      empty_state: empty_state(context.pagination),
       density: resource.table.opts[:density] || :compact
     }
   end
@@ -181,6 +181,12 @@ defmodule Incant.UI.Regions.Table do
       total_pages: max(ceil(total / page_size), 1)
     }
   end
+
+  defp empty_state(%{error: error}) when is_binary(error),
+    do: "Resource query failed: #{error}"
+
+  defp empty_state(_pagination),
+    do: "No rows. Add a resource index callback or loosen the current filters."
 
   defp dataset_empty_state(%{meta: %{error: reason}}),
     do: "Dataset query failed: #{inspect(reason)}"

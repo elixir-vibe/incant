@@ -15,6 +15,8 @@ defmodule Incant.Policy do
     * `:create` - `%{resource: resource, attrs: attrs}` during submit
     * `:edit` - `%{resource: resource, row: row, attrs: attrs}` during submit
     * `:run_action` - `%{resource: resource, action: action, row: row}`
+    * `:run_bulk_action` - `%{resource: resource, action: action, selected_ids: ids}`
+    * `:run_page_action` - `%{resource: resource, action: action}`
 
   `scope_query/4` and `scope_rows/4` are optional hooks used by resource row
   loading before table/detail rendering.

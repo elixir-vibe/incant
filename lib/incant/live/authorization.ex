@@ -29,7 +29,15 @@ defmodule Incant.Live.Authorization do
   defp local_policy(:view_dashboard, %{dashboard: %{opts: opts}}), do: opts[:policy]
 
   defp local_policy(action, %{resource: %{opts: opts}})
-       when action in [:view_resource, :view_row, :create, :edit, :run_action],
+       when action in [
+              :view_resource,
+              :view_row,
+              :create,
+              :edit,
+              :run_action,
+              :run_bulk_action,
+              :run_page_action
+            ],
        do: opts[:policy]
 
   defp local_policy(_action, _context), do: nil

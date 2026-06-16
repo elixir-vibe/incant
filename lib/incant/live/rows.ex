@@ -28,6 +28,8 @@ defmodule Incant.Live.Rows do
       total: total,
       total_pages: total_pages
     }
+  rescue
+    error -> error_page(error, table_state)
   end
 
   def page(resource, table_state, context) do
@@ -45,6 +47,8 @@ defmodule Incant.Live.Rows do
       total: total,
       total_pages: total_pages
     }
+  rescue
+    error -> error_page(error, table_state)
   end
 
   defp all(resource, table_state, context) do
@@ -53,8 +57,6 @@ defmodule Incant.Live.Rows do
     |> search(resource.table.search, table_state.search)
     |> filter(resource.table.filters, table_state.filters)
     |> sort(table_state.sort)
-  rescue
-    _error in [ArgumentError, FunctionClauseError, Protocol.UndefinedError] -> []
   end
 
   def one(resource, id, context \\ %{})
@@ -107,12 +109,26 @@ defmodule Incant.Live.Rows do
   defp normalize_one(nil), do: nil
   defp normalize_one(row), do: row
 
+  defp error_page(error, table_state) do
+    page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
+    page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
+
+    %{
+      rows: [],
+      page: page,
+      page_size: page_size,
+      total: 0,
+      total_pages: 1,
+      error: Exception.message(error)
+    }
+  end
+
   def raw(resource, table_state \\ %{}, opts \\ [], context \\ %{})
   def raw(nil, _table_state, _opts, _context), do: []
 
   def raw(%{index: index} = resource, table_state, _opts, context) when not is_nil(index) do
     index
-    |> Incant.Callback.call(%{table: table_state}, [])
+    |> Incant.Callback.call(%{table: table_state}, context)
     |> Incant.Tabular.to_rows()
     |> scope_rows(resource, context)
   end

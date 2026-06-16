@@ -43,6 +43,8 @@ defmodule MyApp.Admin.Policy do
   def authorize(:create, actor, %{resource: resource, attrs: attrs}), do: can_create?(actor, resource, attrs)
   def authorize(:edit, actor, %{resource: resource, row: row, attrs: attrs}), do: can_edit?(actor, resource, row, attrs)
   def authorize(:run_action, actor, %{action: action, row: row}), do: can_run?(actor, action, row)
+  def authorize(:run_bulk_action, actor, %{action: action, selected_ids: ids}), do: can_run_bulk?(actor, action, ids)
+  def authorize(:run_page_action, actor, %{action: action}), do: can_run_page?(actor, action)
 end
 ```
 
@@ -100,6 +102,8 @@ defmodule MyApp.Admin.Policy do
   def authorize(:create, %{user: user}, %{attrs: attrs}), do: user.role == :admin and attrs["account_id"] == to_string(user.account_id)
   def authorize(:edit, scope, %{row: row}), do: row.account_id == scope.user.account_id
   def authorize(:run_action, scope, %{row: row}), do: row.account_id == scope.user.account_id
+  def authorize(:run_bulk_action, %{user: user}, _context), do: user.role == :admin
+  def authorize(:run_page_action, %{user: user}, _context), do: user.role in [:admin, :operator]
 
   def scope_query(scope, _resource, queryable, _context) do
     where(queryable, [row], field(row, :account_id) == ^scope.user.account_id)
