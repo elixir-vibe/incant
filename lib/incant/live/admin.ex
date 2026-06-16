@@ -1,4 +1,4 @@
-defmodule Incant.Live.AdminLive do
+defmodule Incant.Live.Admin do
   @moduledoc """
   Generic LiveView renderer for an Incant admin surface.
   """

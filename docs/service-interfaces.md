@@ -141,7 +141,7 @@ children = Incant.ControlPlane.children(registry: [name: MyApp.IncantRegistry])
 live_session = Incant.ControlPlane.live_session(entry, base_path: "/admin/services/billing")
 ```
 
-`Incant.Live.AdminLive` consumes that session through the same `Incant.Session` protocol used for local admin modules; it does not branch on local vs remote transport.
+`Incant.Live.Admin` consumes that session through the same `Incant.Session` protocol used for local admin modules; it does not branch on local vs remote transport.
 
 The registry decodes the ETF binding term safely:
 

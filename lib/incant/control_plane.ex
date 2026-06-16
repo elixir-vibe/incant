@@ -3,7 +3,7 @@ defmodule Incant.ControlPlane do
   Helpers for central Incant admin/control-plane applications.
 
   A central app can supervise `Incant.Service.RegistryServer`, list entries, and
-  pass one entry into `Incant.Live.AdminLive` as ordinary LiveView session data.
+  pass one entry into `Incant.Live.Admin` as ordinary LiveView session data.
   The LiveView then renders through the unified `Incant.Session` protocol.
   """
 
