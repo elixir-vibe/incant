@@ -38,7 +38,7 @@ defmodule Incant.MixProject do
     [
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/dannote/incant"
+        "GitHub" => "https://github.com/elixir-vibe/incant"
       },
       files: ~w(lib mix.exs README.md CHANGELOG.md CONVENTIONS.md PLAN.md REFERENCES.md docs)
     ]
