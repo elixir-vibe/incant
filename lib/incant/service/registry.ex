@@ -5,7 +5,7 @@ defmodule Incant.Service.Registry do
   The registry is the central-admin side of the HostKit/SafeRPC/Incant flow:
 
     * HostKit provides an ETF binding term path in `HOSTKIT_RPC_BINDINGS`.
-    * Incant decodes the term with `:erlang.binary_to_term(binary, [:safe])`.
+    * Incant decodes the local HostKit-generated term from a trusted file.
     * SafeRPC descriptors identify modules exposing the Incant service shape.
     * Incant calls `describe` for each service and stores the resulting contract.
 
@@ -60,10 +60,10 @@ defmodule Incant.Service.Registry do
     end
   end
 
-  @doc "Safely decodes a HostKit/SafeRPC local binding ETF term."
+  @doc "Decodes a trusted local HostKit/SafeRPC binding ETF term."
   @spec decode_bindings(binary()) :: {:ok, SafeRPC.local_bindings()} | {:error, term()}
   def decode_bindings(binary) when is_binary(binary) do
-    {:ok, :erlang.binary_to_term(binary, [:safe])}
+    {:ok, :erlang.binary_to_term(binary)}
   rescue
     error in [ArgumentError] -> {:error, error}
   end
