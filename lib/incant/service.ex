@@ -106,6 +106,8 @@ defmodule Incant.Service do
   end
 
   defp discover_binding(%{socket: socket} = binding, opts) do
+    preload_binding_modules(binding)
+
     with {:ok, descriptor} <- SafeRPC.describe(socket, opts) do
       modules = Map.get(binding, :modules, Map.keys(descriptor.modules))
 
@@ -128,6 +130,12 @@ defmodule Incant.Service do
   end
 
   defp discover_binding(binding, _opts), do: {:error, {:missing_socket, binding}}
+
+  defp preload_binding_modules(%{modules: modules}) when is_list(modules) do
+    Enum.each(modules, &Code.ensure_loaded?/1)
+  end
+
+  defp preload_binding_modules(_binding), do: :ok
 
   defp incant_service_module?(%SafeRPC.Descriptor{modules: modules}, module) do
     case Map.fetch(modules, module) do
