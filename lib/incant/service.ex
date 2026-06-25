@@ -106,6 +106,7 @@ defmodule Incant.Service do
   end
 
   defp discover_binding(%{socket: socket} = binding, opts) do
+    ensure_application_loaded(:incant)
     preload_binding_modules(binding)
 
     with {:ok, descriptor} <- SafeRPC.describe(socket, opts) do
@@ -136,6 +137,14 @@ defmodule Incant.Service do
   end
 
   defp preload_binding_modules(_binding), do: :ok
+
+  defp ensure_application_loaded(app) do
+    case Application.load(app) do
+      :ok -> :ok
+      {:error, {:already_loaded, ^app}} -> :ok
+      _other -> :ok
+    end
+  end
 
   defp incant_service_module?(%SafeRPC.Descriptor{modules: modules}, module) do
     case Map.fetch(modules, module) do
