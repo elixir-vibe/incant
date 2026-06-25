@@ -101,7 +101,8 @@ defmodule Incant.Service do
     call(client, :run_action, request, opts)
   end
 
-  defp call(%Client{endpoint: endpoint, module: module}, function, request, opts) do
+  defp call(%Client{endpoint: endpoint, module: module} = client, function, request, opts) do
+    preload_application_modules(client.service)
     SafeRPC.call(endpoint, {module, function}, request, opts)
   end
 
@@ -145,6 +146,17 @@ defmodule Incant.Service do
       _other -> :ok
     end
   end
+
+  defp preload_application_modules(app) when is_atom(app) do
+    ensure_application_loaded(app)
+
+    case Application.spec(app, :modules) do
+      modules when is_list(modules) -> Enum.each(modules, &Code.ensure_loaded?/1)
+      _other -> :ok
+    end
+  end
+
+  defp preload_application_modules(_app), do: :ok
 
   defp incant_service_module?(%SafeRPC.Descriptor{modules: modules}, module) do
     case Map.fetch(modules, module) do
