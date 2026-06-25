@@ -102,12 +102,13 @@ defmodule Incant.Service do
   end
 
   defp call(%Client{endpoint: endpoint, module: module} = client, function, request, opts) do
+    preload_application_modules(:incant)
     preload_application_modules(client.service)
     SafeRPC.call(endpoint, {module, function}, request, opts)
   end
 
   defp discover_binding(%{socket: socket} = binding, opts) do
-    ensure_application_loaded(:incant)
+    preload_application_modules(:incant)
     preload_binding_modules(binding)
 
     with {:ok, descriptor} <- SafeRPC.describe(socket, opts) do
