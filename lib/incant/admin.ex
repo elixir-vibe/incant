@@ -87,10 +87,13 @@ defmodule Incant.Admin do
     }
 
     escaped = Macro.escape(metadata)
+    rpc_ast = rpc_definitions(metadata)
 
     quote do
       @doc false
       def __incant_admin__, do: unquote(escaped)
+
+      unquote(rpc_ast)
     end
   end
 
@@ -98,6 +101,81 @@ defmodule Incant.Admin do
     if Keyword.get(opts, :rpc, false) do
       quote do
         use Incant.Admin.RPC, unquote(opts)
+      end
+    else
+      quote(do: :ok)
+    end
+  end
+
+  defp rpc_definitions(%Metadata{opts: opts} = metadata) do
+    if Keyword.get(opts, :rpc, false) do
+      contract = Incant.Admin.Describe.describe(metadata)
+
+      quote do
+        @rpc true
+        @doc "Describe this Incant admin surface."
+        @spec describe(Incant.Service.Describe.t(), map(), term()) ::
+                {:ok, Incant.Admin.Contract.t()} | {:error, term()}
+        def describe(%Incant.Service.Describe{context: context}, meta, state) do
+          _safe_rpc_boundary_contract = unquote(Macro.escape(contract))
+          describe(__incant_rpc_context__(context, meta, state))
+        end
+
+        @rpc true
+        @doc "Index an Incant surface."
+        @spec index(Incant.Service.Index.t(), map(), term()) :: {:ok, map()} | {:error, term()}
+        def index(%Incant.Service.Index{} = request, meta, state) do
+          _safe_rpc_boundary_page = %{
+            rows: [],
+            page: 1,
+            page_size: 25,
+            total: 0,
+            total_pages: 1,
+            error: nil
+          }
+
+          index(
+            request.surface_id,
+            request.params,
+            __incant_rpc_context__(request.context, meta, state)
+          )
+        end
+
+        @rpc true
+        @doc "Read one item from an Incant surface."
+        @spec read(Incant.Service.Read.t(), map(), term()) :: {:ok, term()} | {:error, term()}
+        def read(%Incant.Service.Read{} = request, meta, state) do
+          _safe_rpc_boundary_contract = unquote(Macro.escape(contract))
+
+          read(
+            request.surface_id,
+            request.id,
+            __incant_rpc_context__(request.context, meta, state)
+          )
+        end
+
+        @rpc true
+        @doc "Run an Incant surface action."
+        @spec run_action(Incant.Service.RunAction.t(), map(), term()) ::
+                {:ok, Incant.ActionResult.t()} | {:error, term()}
+        def run_action(%Incant.Service.RunAction{} = request, meta, state) do
+          _safe_rpc_boundary_action_results = [
+            %Incant.ActionResult.Toast{},
+            %Incant.ActionResult.Error{},
+            %Incant.ActionResult.Refresh{},
+            %Incant.ActionResult.Navigate{},
+            %Incant.ActionResult.Download{},
+            %Incant.ActionResult.Job{},
+            %Incant.ActionResult.OpenSurface{}
+          ]
+
+          run_action(
+            request.surface_id,
+            request.action_id,
+            request.payload,
+            __incant_rpc_context__(request.context, meta, state)
+          )
+        end
       end
     else
       quote(do: :ok)
