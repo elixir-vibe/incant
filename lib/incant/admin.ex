@@ -41,8 +41,6 @@ defmodule Incant.Admin do
     quote bind_quoted: [opts: opts], unquote: true do
       import Incant.Admin, except: [describe: 1]
 
-      unquote(rpc_ast)
-
       Module.register_attribute(__MODULE__, :incant_admin_opts, persist: false)
 
       Module.register_attribute(__MODULE__, :incant_admin_resources,
@@ -72,6 +70,8 @@ defmodule Incant.Admin do
 
       @incant_admin_opts opts
       @before_compile Incant.Admin
+
+      unquote(rpc_ast)
     end
   end
 

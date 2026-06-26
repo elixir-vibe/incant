@@ -91,7 +91,7 @@ defmodule Incant.MixProject do
       {:vibe_kit, "~> 0.1"},
       {:igniter, "~> 0.6", runtime: false},
       {:release_kit, "~> 0.3", runtime: false},
-      {:safe_rpc, "~> 0.1.10"},
+      {:safe_rpc, "~> 0.1.11"},
       {:ecto, "~> 3.13"},
       {:phoenix_live_view, "~> 1.1"},
       {:plug_cowboy, "~> 2.7"}
