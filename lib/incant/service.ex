@@ -108,11 +108,11 @@ defmodule Incant.Service do
        when is_list(modules) do
     preload_application_modules(:incant)
 
-    clients =
+    with :ok <- prepare_atoms(socket, opts) do
       modules
-      |> Enum.flat_map(&discover_module(socket, binding, &1, opts))
-
-    {:ok, clients}
+      |> Enum.map(&discover_module(socket, binding, &1, opts))
+      |> discovery_result()
+    end
   end
 
   defp discover_binding(%{socket: _socket} = binding, _opts),
@@ -120,22 +120,43 @@ defmodule Incant.Service do
 
   defp discover_binding(binding, _opts), do: {:error, {:missing_socket, binding}}
 
+  defp prepare_atoms(socket, opts) do
+    opts = Keyword.get(opts, :atoms, [])
+    SafeRPC.prepare(socket, opts)
+  end
+
   defp discover_module(socket, binding, module, opts) do
     client = %Client{endpoint: socket, module: module, binding: binding}
 
     case describe(client, %Describe{}, opts) do
       {:ok, %Incant.Admin.Contract{} = contract} ->
-        [
-          %Client{
-            client
-            | service: contract.service,
-              version: contract.version
-          }
-        ]
+        {:ok,
+         %Client{
+           client
+           | service: contract.service,
+             version: contract.version
+         }}
 
-      _other ->
-        []
+      {:ok, other} ->
+        {:error, {module, {:unexpected_describe_reply, other}}}
+
+      {:error, reason} ->
+        {:error, {module, reason}}
     end
+  end
+
+  defp discovery_result(results) do
+    clients = for {:ok, client} <- results, do: client
+
+    if clients == [] do
+      {:error, {:no_incant_service, errors_from_discovery(results)}}
+    else
+      {:ok, clients}
+    end
+  end
+
+  defp errors_from_discovery(results) do
+    for {:error, reason} <- results, do: reason
   end
 
   defp ensure_application_loaded(app) do

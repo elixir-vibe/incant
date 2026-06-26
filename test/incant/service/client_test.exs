@@ -61,6 +61,50 @@ defmodule Incant.Service.ClientTest do
     GenServer.stop(server)
   end
 
+  test "discover prepares service atoms with caller policy" do
+    socket = socket_path("discover-atoms-policy")
+    {:ok, server} = Server.start_link(socket: socket)
+
+    bindings = %{accounts: %{socket: socket, modules: [Admin]}}
+
+    assert {:ok, [%Incant.Service.Client{module: Admin}]} =
+             Incant.Service.discover(bindings,
+               atoms: [
+                 max_atoms: 100,
+                 max_atom_length: 128,
+                 allow: [~r/^[a-z][a-z0-9_]*$/, ~r/^[A-Za-z][A-Za-z0-9_.]*$/]
+               ]
+             )
+
+    GenServer.stop(server)
+  end
+
+  test "discover returns atom preparation errors" do
+    socket = socket_path("discover-atoms-error")
+    {:ok, server} = Server.start_link(socket: socket)
+
+    bindings = %{accounts: %{socket: socket, modules: [Admin]}}
+
+    assert {:error, {:too_many_atoms, count, 1}} =
+             Incant.Service.discover(bindings, atoms: [max_atoms: 1])
+
+    assert count > 1
+
+    GenServer.stop(server)
+  end
+
+  test "discover returns probe errors when no module exposes Incant service" do
+    socket = socket_path("discover-none")
+    {:ok, server} = Server.start_link(socket: socket)
+
+    bindings = %{accounts: %{socket: socket, modules: [User]}}
+
+    assert {:error, {:no_incant_service, [{User, :unknown_operation}]}} =
+             Incant.Service.discover(bindings)
+
+    GenServer.stop(server)
+  end
+
   defp socket_path(name) do
     Path.join(
       System.tmp_dir!(),

@@ -4,9 +4,10 @@ defmodule Incant.Admin.RPC do
   defmacro __using__(opts) do
     service = Keyword.fetch!(opts, :service)
     version = Keyword.get(opts, :version)
+    atoms = Keyword.get(opts, :atoms, [])
 
     quote do
-      use SafeRPC, service: unquote(service), version: unquote(version)
+      use SafeRPC, service: unquote(service), version: unquote(version), atoms: unquote(atoms)
 
       @behaviour Incant.Service
 
