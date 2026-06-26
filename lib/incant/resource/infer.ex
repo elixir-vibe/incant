@@ -10,7 +10,7 @@ defmodule Incant.Resource.Infer do
   @timestamp_fields [:inserted_at, :updated_at]
 
   def from_schema(schema, opts \\ []) when is_atom(schema) and is_list(opts) do
-    Code.ensure_loaded!(schema)
+    Code.ensure_compiled!(schema)
 
     fields = schema.__schema__(:fields)
     primary_key = schema.__schema__(:primary_key)

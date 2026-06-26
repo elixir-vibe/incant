@@ -60,7 +60,8 @@ defmodule Incant.Admin.Exposure do
   end
 
   defp resource_module?(module) do
-    Code.ensure_loaded?(module) and function_exported?(module, :__incant_resource__, 0)
+    match?({:module, ^module}, Code.ensure_compiled(module)) and
+      function_exported?(module, :__incant_resource__, 0)
   end
 
   defp common_prefix([left | left_rest], [right | right_rest]) when left == right do
