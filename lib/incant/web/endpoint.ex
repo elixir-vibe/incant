@@ -9,7 +9,6 @@ defmodule Incant.Web.Endpoint do
     signing_salt: "incant"
   ]
 
-  @impl Phoenix.Endpoint
   def init(_key, config) do
     config = Keyword.put_new(config, :live_view, signing_salt: "incant-live-view")
     {:ok, config}

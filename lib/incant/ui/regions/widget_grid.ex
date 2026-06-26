@@ -16,8 +16,8 @@ defmodule Incant.UI.Regions.WidgetGrid do
 
     %__MODULE__{
       widgets: widgets,
-      columns: Keyword.get(grid, :columns, 12),
-      row_height: Keyword.get(grid, :row_height, 8)
+      columns: option(grid, :columns, 12),
+      row_height: option(grid, :row_height, 8)
     }
   end
 
@@ -28,10 +28,10 @@ defmodule Incant.UI.Regions.WidgetGrid do
     %Widget{
       id: widget.id,
       type: widget.type,
-      title: widget.opts[:label] || humanize(widget.id),
+      title: option(widget.opts, :label) || humanize(widget.id),
       value: value,
       display: display_value(value, widget),
-      span: widget.opts[:span],
+      span: option(widget.opts, :span),
       chart: chart_from_metadata(widget, value),
       error: error,
       loading: not Map.has_key?(context.widget_values, widget.id),
@@ -42,13 +42,13 @@ defmodule Incant.UI.Regions.WidgetGrid do
   defp chart_from_metadata(%{type: :chart} = widget, value) do
     %Incant.UI.Regions.Chart{
       id: widget.id,
-      type: widget.opts[:chart_type],
-      dataset: widget.opts[:dataset],
-      x: widget.opts[:x],
-      y: widget.opts[:y],
-      series: widget.opts[:series],
-      drilldown: widget.opts[:drilldown],
-      title: widget.opts[:label] || humanize(widget.id),
+      type: option(widget.opts, :chart_type),
+      dataset: option(widget.opts, :dataset),
+      x: option(widget.opts, :x),
+      y: option(widget.opts, :y),
+      series: option(widget.opts, :series),
+      drilldown: option(widget.opts, :drilldown),
+      title: option(widget.opts, :label) || humanize(widget.id),
       value: value,
       opts: widget.opts
     }
@@ -58,7 +58,14 @@ defmodule Incant.UI.Regions.WidgetGrid do
 
   defp display_value({:error, _message}, _widget), do: nil
   defp display_value(value, _widget) when is_list(value) or is_map(value), do: value
-  defp display_value(value, widget), do: Incant.Live.Format.value(value, widget.opts[:format])
+
+  defp display_value(value, widget),
+    do: Incant.Live.Format.value(value, option(widget.opts, :format))
+
+  defp option(options, key, default \\ nil)
+  defp option(options, key, default) when is_map(options), do: Map.get(options, key, default)
+  defp option(options, key, default) when is_list(options), do: Keyword.get(options, key, default)
+  defp option(_options, _key, default), do: default
 
   defp humanize(value) do
     value
