@@ -25,7 +25,7 @@ defmodule Incant.ApplicationTest do
     assert [registry, Incant.Web.Endpoint] = Incant.Application.children()
     assert {Incant.Service.RegistryServer, opts} = registry
     assert opts[:name] == MyRegistry
-    assert opts[:allow_empty]
+    refute Keyword.has_key?(opts, :allow_empty)
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:incant, key)
