@@ -41,12 +41,33 @@ defmodule Incant.Live.SessionProvider do
   def base_path(_session, _params), do: "/admin"
 
   defp registry_entry!(registry, service) do
+    case find_registry_entry(registry, service) do
+      nil ->
+        refresh_registry!(registry)
+
+        case find_registry_entry(registry, service) do
+          nil -> raise ArgumentError, "unknown Incant service: #{inspect(service)}"
+          entry -> entry
+        end
+
+      entry ->
+        entry
+    end
+  end
+
+  defp find_registry_entry(registry, service) do
     registry
     |> Incant.Service.RegistryServer.list_entries()
     |> Enum.find(&(to_string(&1.key) == to_string(service)))
-    |> case do
-      nil -> raise ArgumentError, "unknown Incant service: #{inspect(service)}"
-      entry -> entry
+  end
+
+  defp refresh_registry!(registry) do
+    case Incant.Service.RegistryServer.refresh(registry) do
+      {:ok, _registry} ->
+        :ok
+
+      {:error, reason} ->
+        raise ArgumentError, "could not refresh Incant registry: #{inspect(reason)}"
     end
   end
 end

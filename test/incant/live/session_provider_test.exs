@@ -60,6 +60,32 @@ defmodule Incant.Live.SessionProviderTest do
     GenServer.stop(server)
   end
 
+  test "refreshes an initially empty registry before selecting a service session" do
+    socket = socket_path("registry-refresh")
+    path = socket_path("registry-refresh-bindings")
+    bindings = %{accounts: %{socket: socket, modules: [Admin]}}
+    File.write!(path, :erlang.term_to_binary(bindings))
+
+    {:ok, registry} =
+      Incant.Service.RegistryServer.start_link(path: "/missing/incant/rpc.etf", allow_empty: true)
+
+    :sys.replace_state(registry, &%{&1 | opts: [path: path, allow_empty: true]})
+    {:ok, server} = Server.start_link(socket: socket)
+
+    phoenix_session = %{
+      "__incant__" => %Incant.Live.Session{source: {:registry, registry}, base_path: "/admin"}
+    }
+
+    session = Incant.Live.SessionProvider.fetch!(phoenix_session, %{"service" => "accounts"})
+
+    assert %Incant.Service.Session{} = session
+    assert [%{id: "user"}] = Incant.Session.list_surfaces(session, kind: :resource)
+
+    GenServer.stop(registry)
+    GenServer.stop(server)
+    File.rm(path)
+  end
+
   test "selects service sessions from a registry and route params" do
     socket = socket_path("registry")
     {:ok, server} = Server.start_link(socket: socket)

@@ -22,6 +22,9 @@ defmodule Incant.Application do
   defp registry_child do
     opts = Application.get_env(:incant, :registry, env: "HOSTKIT_RPC_BINDINGS")
 
-    {Incant.Service.RegistryServer, Keyword.put_new(opts, :name, Incant.Service.RegistryServer)}
+    {Incant.Service.RegistryServer,
+     opts
+     |> Keyword.put_new(:name, Incant.Service.RegistryServer)
+     |> Keyword.put_new(:allow_empty, true)}
   end
 end
