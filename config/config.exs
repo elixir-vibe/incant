@@ -8,6 +8,7 @@ config :incant, Incant.Web.Endpoint,
   server: false,
   url: [host: "localhost"],
   http: [ip: {127, 0, 0, 1}, port: 4000],
+  live_view: [signing_salt: "incant-live-view"],
   secret_key_base: String.duplicate("0", 64)
 
 config :release_kit, :artifact,

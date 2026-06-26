@@ -20,5 +20,6 @@ if config_env() == :prod do
         end,
       port: String.to_integer(System.get_env("INCANT_HTTP_PORT", "4000"))
     ],
+    live_view: [signing_salt: System.get_env("INCANT_LIVE_VIEW_SIGNING_SALT", "incant-live-view")],
     secret_key_base: System.fetch_env!("INCANT_SECRET_KEY_BASE")
 end
