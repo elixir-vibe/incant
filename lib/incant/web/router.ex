@@ -1,5 +1,7 @@
 defmodule Incant.Web.Router do
-  @moduledoc false
+  @moduledoc """
+  HTTP router for the standalone Incant admin release.
+  """
 
   use Phoenix.Router
   use Incant.Router
@@ -15,6 +17,8 @@ defmodule Incant.Web.Router do
   end
 
   scope "/" do
+    get("/health", Incant.Web.HealthPlug, [])
+
     pipe_through(:browser)
 
     incant("", registry: Incant.Service.RegistryServer, base_path: "/")
