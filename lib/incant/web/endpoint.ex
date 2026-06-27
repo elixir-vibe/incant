@@ -9,11 +9,6 @@ defmodule Incant.Web.Endpoint do
     signing_salt: "incant"
   ]
 
-  def init(_key, config) do
-    config = Keyword.put_new(config, :live_view, signing_salt: "incant-live-view")
-    {:ok, config}
-  end
-
   plug(Plug.RequestId)
   plug(Plug.Telemetry, event_prefix: [:incant, :endpoint])
   plug(Plug.Parsers, parsers: [:urlencoded, :multipart], pass: ["*/*"])
