@@ -69,9 +69,9 @@ defmodule Incant.Live.Rows do
   defp all(resource, table_state, context) do
     resource
     |> raw(table_state, [], context)
-    |> search(resource.table.search, table_state.search)
-    |> filter(resource.table.filters, table_state.filters)
-    |> sort(table_state.sort)
+    |> search(resource.table.search, Map.get(table_state, :search))
+    |> filter(resource.table.filters, Map.get(table_state, :filters, %{}))
+    |> sort(Map.get(table_state, :sort))
   end
 
   def one(resource, id, context \\ %{})

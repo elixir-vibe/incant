@@ -78,6 +78,14 @@ defmodule Incant.Live.RowsTest do
            ]
   end
 
+  test "loads rows with an empty table state" do
+    resource = %Metadata{index: fn _params -> [%{id: 1, name: "Incant Pro"}] end, table: %Table{}}
+
+    assert Rows.list(resource, %{}) == [
+             %{id: 1, name: "Incant Pro"}
+           ]
+  end
+
   test "passes context to index callbacks" do
     resource = %Metadata{
       index: fn _params, context -> [%{id: context.actor.id}] end,
