@@ -10,5 +10,6 @@ defmodule Incant.Result do
           meta: map
         }
 
+  @derive {Jason.Encoder, only: [:rows, :columns, :total_count, :meta]}
   defstruct rows: [], columns: [], total_count: nil, meta: %{}
 end

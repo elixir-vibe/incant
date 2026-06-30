@@ -211,6 +211,78 @@ Incant.Service.Session.run_action(session, "invoice", "refund", %{id: "123"})
 
 SafeRPC moves request structs and responses. The service-local admin module still owns callbacks, repos, policies, and side effects.
 
+## Standalone HTTP API
+
+Standalone Incant also exposes a JSON HTTP API for the same central-admin session boundary under `/incant`. The HTTP API is intentionally semantic: it resolves a discovered service entry, wraps it in `Incant.Service.Session`, and calls only the standard Incant session operations. It does not expose arbitrary module/function calls.
+
+Successful responses use the `application/vnd.incant.admin+json` media type and a typed document shape:
+
+```json
+{
+  "data": {},
+  "links": {},
+  "meta": {}
+}
+```
+
+Errors use RFC 9457 Problem Details with `application/problem+json`. Incant currently uses `type: "about:blank"` plus a stable `code` extension member until package docs define resolvable problem type URIs:
+
+```json
+{
+  "type": "about:blank",
+  "code": "unknown-service",
+  "title": "Unknown service",
+  "status": 404,
+  "detail": "No Incant service named billing is registered.",
+  "instance": "/incant/services/billing"
+}
+```
+
+Routes:
+
+```http
+GET  /incant
+GET  /incant/services
+GET  /incant/services/:service
+GET  /incant/services/:service/surfaces
+GET  /incant/services/:service/surfaces/:surface
+GET  /incant/services/:service/surfaces/:surface/rows
+POST /incant/services/:service/surfaces/:surface/queries
+GET  /incant/services/:service/surfaces/:surface/rows/:id
+GET  /incant/services/:service/surfaces/:surface/actions
+GET  /incant/services/:service/surfaces/:surface/actions/:action
+POST /incant/services/:service/surfaces/:surface/actions/:action/runs
+```
+
+Request bodies use strict JSONCodec-backed contracts. JSON string keys are decoded once at the HTTP boundary into typed request structs such as `Incant.Web.API.QueryRequest` and `Incant.Web.API.ActionRunRequest`.
+
+Query request body:
+
+```json
+{
+  "table": {"page": 1, "page_size": 25},
+  "context": {}
+}
+```
+
+Action run request body:
+
+```json
+{
+  "payload": {
+    "id": null,
+    "selected_ids": null,
+    "assigns": {},
+    "input": {}
+  },
+  "context": {}
+}
+```
+
+Row actions set `payload.id`, bulk actions set `payload.selected_ids`, and page actions set neither. The service-local action callback still decides what the payload means and performs the side effect. Synchronous action runs return `200 OK` with an `action_run` resource in `data`; future asynchronous action runs should return `202 Accepted` with `Location` and `Retry-After`.
+
+Admin API responses include `Cache-Control: no-store` and `Vary: Accept`. Method mismatches return `405 Method Not Allowed` with an `Allow` header. Unsupported request media types return `415 Unsupported Media Type`; unacceptable `Accept` headers return `406 Not Acceptable`.
+
 ## Design constraints
 
 - Do not expose arbitrary remote MFA over the wire; only explicitly generated module/function operations are callable.

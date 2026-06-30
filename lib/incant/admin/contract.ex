@@ -21,6 +21,18 @@ defmodule Incant.Admin.Contract do
           opts: map()
         }
 
+  @derive {Jason.Encoder,
+           only: [
+             :id,
+             :module,
+             :service,
+             :version,
+             :resources,
+             :dashboards,
+             :datasets,
+             :plugins,
+             :opts
+           ]}
   defstruct [
     :id,
     :module,

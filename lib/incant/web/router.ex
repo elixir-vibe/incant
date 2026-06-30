@@ -18,6 +18,7 @@ defmodule Incant.Web.Router do
 
   scope "/" do
     get("/health", Incant.Web.HealthPlug, [])
+    forward("/incant", Incant.Web.API)
 
     pipe_through(:browser)
 

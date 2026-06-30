@@ -34,7 +34,7 @@ defmodule Incant.Service.Runtime do
   def run_action(admin, surface_id, action_id, payload \\ %{}, context \\ %{}) do
     with {:ok, surface} <- fetch_surface(admin, surface_id),
          :resource <- surface.kind do
-      assigns = Map.get(payload, :assigns, %{})
+      assigns = action_assigns(payload)
       id = Map.get(payload, :id)
       selected_ids = Map.get(payload, :selected_ids)
       action_context = service_context(admin, surface, context)
@@ -61,6 +61,17 @@ defmodule Incant.Service.Runtime do
     else
       {:error, reason} -> {:error, reason}
       other -> {:error, {:unsupported_surface_kind, other}}
+    end
+  end
+
+  defp action_assigns(payload) do
+    assigns = Map.get(payload, :assigns, %{})
+    input = Map.get(payload, :input, %{})
+
+    case {assigns, input} do
+      {assigns, input} when is_map(assigns) and input != %{} -> Map.put(assigns, :input, input)
+      {assigns, _input} when is_map(assigns) -> assigns
+      _ -> %{}
     end
   end
 

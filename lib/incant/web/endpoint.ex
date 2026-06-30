@@ -11,7 +11,13 @@ defmodule Incant.Web.Endpoint do
 
   plug(Plug.RequestId)
   plug(Plug.Telemetry, event_prefix: [:incant, :endpoint])
-  plug(Plug.Parsers, parsers: [:urlencoded, :multipart], pass: ["*/*"])
+
+  plug(Plug.Parsers,
+    parsers: [:urlencoded, :multipart, :json],
+    pass: ["*/*"],
+    json_decoder: Jason
+  )
+
   plug(Plug.MethodOverride)
   plug(Plug.Head)
   plug(Plug.Session, @session_options)
