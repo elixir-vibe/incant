@@ -61,6 +61,11 @@ defmodule Incant.Live.AuthorizationTest do
     assert Authorization.allowed?(admin, :anything, nil, %{})
   end
 
+  test "allows service-backed sessions without local admin metadata" do
+    assert Authorization.authorize(nil, :view_row, nil, %{resource: %{opts: %{}}}) == :ok
+    assert Authorization.allowed?(nil, :view_row, nil, %{resource: %{opts: %{}}})
+  end
+
   test "normalizes Bodyguard-style policy results" do
     admin = %Metadata{opts: [policy: Policy]}
 

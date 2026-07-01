@@ -22,6 +22,8 @@ defmodule Incant.Live.Authorization do
     authorize(admin, action, actor, context) == :ok
   end
 
+  def policy(nil, action, context), do: local_policy(action, context)
+
   def policy(admin, action, context) do
     local_policy(action, context) || admin.opts[:policy]
   end

@@ -138,6 +138,52 @@ defmodule Incant.UI.DocumentTest do
     assert Enum.map(detail.fields, & &1.id) == ["name", "status"]
   end
 
+  test "builds resource index document from contract metadata maps" do
+    resource = %{
+      id: "message",
+      kind: :resource,
+      module: "Example.Admin.Resources.Message",
+      title: "Messages",
+      table: %{
+        columns: [%{id: "message", name: :message, opts: %{link: true}}],
+        filters: [],
+        actions: [],
+        bulk_actions: [],
+        page_actions: [],
+        row_detail: %{id: "message", name: :message, opts: %{label: "Message"}},
+        search: nil,
+        opts: %{density: :compact}
+      },
+      form: %{fields: [], opts: %{}},
+      opts: %{}
+    }
+
+    context =
+      context(
+        admin: nil,
+        resource: resource,
+        resources: [resource],
+        rows: [
+          %Incant.Service.Row{
+            id: "1",
+            cells: [%Incant.Service.Cell{column: "message", value: "hello"}]
+          }
+        ]
+      )
+
+    document = Incant.UI.Document.from_context(context, page_title: "Messages")
+
+    assert %Incant.UI.Surfaces.ResourceIndex{table: table} = document.surface
+    assert table.row_detail.id == "message"
+    assert table.row_detail.label == "Message"
+    assert [%{detail: %{id: "message"}}] = table.rows
+
+    assert document
+           |> Incant.UI.render(Incant.UI.Env.new(context))
+           |> Phoenix.HTML.Safe.to_iodata()
+           |> IO.iodata_to_binary() =~ "hello"
+  end
+
   test "redacts sensitive resource values in table and detail models" do
     resource = Incant.metadata(SecretResource)
 

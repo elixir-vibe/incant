@@ -116,6 +116,17 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
+  defp row_detail_from_metadata(%{opts: opts} = metadata) do
+    name = metadata[:name] || metadata[:id]
+
+    %RowDetail{
+      id: to_string(name),
+      label: opts[:label] || humanize(name),
+      kind: opts[:kind] || opts[:type] || :panel,
+      source: metadata
+    }
+  end
+
   defp selection_from_metadata(table, selected_ids) do
     %Selection{
       enabled: table.bulk_actions != [],
