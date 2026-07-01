@@ -79,7 +79,9 @@ defmodule Incant.Service.Session do
       context: context(session, context)
     }
 
-    Service.read(session.entry.client, request, opts)
+    with {:ok, row} <- Service.read(session.entry.client, request, opts) do
+      {:ok, Incant.Service.Row.from_external(row)}
+    end
   end
 
   @doc "Runs an action on a remote resource surface."

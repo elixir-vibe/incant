@@ -117,15 +117,23 @@ defmodule Incant.Web.APITest do
 
     assert conn.status == 200
 
-    assert %{"data" => %{"rows" => [%{"name" => "Ada"}, %{"name" => "Grace"}]}} =
-             Jason.decode!(conn.resp_body)
+    assert %{
+             "data" => %{
+               "rows" => [
+                 %{"id" => "1", "cells" => [%{"column" => "name", "value" => "Ada"}]},
+                 %{"id" => "2", "cells" => [%{"column" => "name", "value" => "Grace"}]}
+               ]
+             }
+           } = Jason.decode!(conn.resp_body)
   end
 
   test "reads resource rows", %{registry: registry} do
     conn = call_api(conn(:get, "/services/accounts/surfaces/user_resource/rows/1"), registry)
 
     assert conn.status == 200
-    assert %{"data" => %{"name" => "Ada"}} = Jason.decode!(conn.resp_body)
+
+    assert %{"data" => %{"id" => "1", "cells" => [%{"column" => "name", "value" => "Ada"}]}} =
+             Jason.decode!(conn.resp_body)
   end
 
   test "runs declared page actions as action runs", %{registry: registry} do

@@ -19,17 +19,13 @@ defmodule Incant.Admin.RPC do
       @spec index(String.t(), map(), map()) :: {:ok, map()} | {:error, term()}
       @impl Incant.Service
       def index(surface_id, params, context) when is_binary(surface_id) do
-        with {:ok, page} <- Incant.Service.Runtime.index(__MODULE__, surface_id, params, context) do
-          {:ok, Incant.Service.Page.to_external(page)}
-        end
+        Incant.Service.Runtime.index_external(__MODULE__, surface_id, params, context)
       end
 
       @spec read(String.t(), term(), map()) :: {:ok, term()} | {:error, term()}
       @impl Incant.Service
       def read(surface_id, id, context) when is_binary(surface_id) do
-        with {:ok, row} <- Incant.Service.Runtime.read(__MODULE__, surface_id, id, context) do
-          {:ok, JSONCodec.dump(row)}
-        end
+        Incant.Service.Runtime.read_external(__MODULE__, surface_id, id, context)
       end
 
       @spec run_action(String.t(), String.t(), map(), map()) ::

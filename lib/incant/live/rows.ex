@@ -159,6 +159,7 @@ defmodule Incant.Live.Rows do
 
   def raw(_resource, _table_state, _opts, _context), do: []
 
+  def id(%Incant.Service.Row{id: id}), do: id_string(id)
   def id(row), do: row |> field(:id) |> id_string()
 
   def title(row, resource) do
@@ -169,6 +170,12 @@ defmodule Incant.Live.Rows do
       nil -> "Record #{id(row)}"
       column -> row |> field(column.name) |> to_string()
     end
+  end
+
+  def fields(%Incant.Service.Row{} = row) do
+    Enum.map(row.cells, fn %Incant.Service.Cell{column: column, value: value} ->
+      {column, format_detail_value(value)}
+    end)
   end
 
   def fields(%_struct{} = row) do
@@ -182,6 +189,17 @@ defmodule Incant.Live.Rows do
   end
 
   def fields(_row), do: []
+
+  def field(%Incant.Service.Row{id: id}, field) when field in [:id, "id"], do: id
+
+  def field(%Incant.Service.Row{} = row, field) do
+    field = to_string(field)
+
+    row.cells
+    |> Enum.find_value(fn %Incant.Service.Cell{column: column, value: value} ->
+      if column == field, do: value
+    end)
+  end
 
   def field(row, field) do
     Map.get(row, field, Map.get(row, to_string(field)))

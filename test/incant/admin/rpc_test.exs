@@ -28,8 +28,23 @@ defmodule Incant.Admin.RPCTest do
   test "rpc: true makes the admin module an Incant service" do
     assert {:ok, %Incant.Admin.Contract{service: :accounts, version: "1"}} = Admin.describe(%{})
     assert {:ok, page} = Admin.index("user", %{}, %{})
-    assert [%{"id" => 1, "name" => "Ada"}, %{"id" => 2, "name" => "Grace"}] = page["rows"]
-    assert {:ok, %{"id" => 1, "name" => "Ada"}} = Admin.read("user", 1, %{})
+
+    assert [
+             %{
+               "id" => "1",
+               "cells" => [
+                 %{"column" => "id", "value" => 1},
+                 %{"column" => "name", "value" => "Ada"}
+               ]
+             },
+             %{
+               "id" => "2",
+               "cells" => [%{"column" => "id"}, %{"column" => "name", "value" => "Grace"}]
+             }
+           ] = page["rows"]
+
+    assert {:ok, %{"id" => "1", "cells" => cells}} = Admin.read("user", 1, %{})
+    assert %{"column" => "name", "value" => "Ada"} in cells
   end
 
   test "rpc: true exposes Incant service functions through SafeRPC" do
@@ -53,11 +68,15 @@ defmodule Incant.Admin.RPCTest do
     assert {:ok, %Incant.Admin.Contract{service: :accounts}} =
              SafeRPC.call(socket, {Admin, :describe}, %Incant.Service.Describe{})
 
-    assert {:ok, %{"rows" => [%{"name" => "Ada"}, %{"name" => "Grace"}]}} =
+    assert {:ok, %{"rows" => [%{"id" => "1", "cells" => ada_cells}, %{"id" => "2"}]}} =
              SafeRPC.call(socket, {Admin, :index}, %Incant.Service.Index{surface_id: "user"})
 
-    assert {:ok, %{"id" => 1, "name" => "Ada"}} =
+    assert %{"column" => "name", "value" => "Ada"} in ada_cells
+
+    assert {:ok, %{"id" => "1", "cells" => read_cells}} =
              SafeRPC.call(socket, {Admin, :read}, %Incant.Service.Read{surface_id: "user", id: 1})
+
+    assert %{"column" => "name", "value" => "Ada"} in read_cells
 
     GenServer.stop(server)
   end

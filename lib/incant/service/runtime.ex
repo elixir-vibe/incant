@@ -18,6 +18,17 @@ defmodule Incant.Service.Runtime do
     end
   end
 
+  def index_external(admin, surface_id, params \\ %{}, context \\ %{}) do
+    with {:ok, surface} <- fetch_surface(admin, surface_id),
+         :resource <- surface.kind,
+         {:ok, page} <- index(admin, surface_id, params, context) do
+      {:ok, page |> Incant.Service.Page.from_resource_page(surface.spec) |> JSONCodec.dump()}
+    else
+      {:error, reason} -> {:error, reason}
+      other -> {:error, {:unsupported_surface_kind, other}}
+    end
+  end
+
   def read(admin, surface_id, id, context \\ %{}) do
     with {:ok, surface} <- fetch_surface(admin, surface_id),
          :resource <- surface.kind do
@@ -25,6 +36,17 @@ defmodule Incant.Service.Runtime do
         nil -> {:error, :not_found}
         row -> {:ok, row}
       end
+    else
+      {:error, reason} -> {:error, reason}
+      other -> {:error, {:unsupported_surface_kind, other}}
+    end
+  end
+
+  def read_external(admin, surface_id, id, context \\ %{}) do
+    with {:ok, surface} <- fetch_surface(admin, surface_id),
+         :resource <- surface.kind,
+         {:ok, row} <- read(admin, surface_id, id, context) do
+      {:ok, Incant.Service.Row.from_resource(surface.spec, row) |> JSONCodec.dump()}
     else
       {:error, reason} -> {:error, reason}
       other -> {:error, {:unsupported_surface_kind, other}}
