@@ -42,7 +42,8 @@ defmodule Incant.MixProject do
       links: %{
         "GitHub" => "https://github.com/elixir-vibe/incant"
       },
-      files: ~w(lib mix.exs README.md CHANGELOG.md CONVENTIONS.md PLAN.md REFERENCES.md docs)
+      files:
+        ~w(assets lib mix.exs README.md CHANGELOG.md CONVENTIONS.md PLAN.md REFERENCES.md docs)
     ]
   end
 
@@ -91,7 +92,8 @@ defmodule Incant.MixProject do
       {:vibe_kit, "~> 0.1"},
       {:igniter, "~> 0.6", runtime: false},
       {:release_kit, "~> 0.3", runtime: false},
-      {:json_codec, "~> 0.2.1"},
+      {:json_codec, "~> 0.1.5"},
+      {:volt, "~> 0.14.12"},
       {:safe_rpc, "~> 0.1.12"},
       {:ecto, "~> 3.13"},
       {:phoenix_live_view, "~> 1.1"},
@@ -101,6 +103,8 @@ defmodule Incant.MixProject do
 
   defp aliases() do
     [
+      "assets.build": ["volt.build --tailwind"],
+      "assets.deploy": ["volt.build --tailwind", "phx.digest"],
       ci: [
         "compile --warnings-as-errors",
         "format --check-formatted",

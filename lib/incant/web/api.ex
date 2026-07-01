@@ -20,6 +20,9 @@ defmodule Incant.Web.API do
   plug(:fetch_query_params)
   plug(:put_common_headers)
   plug(:negotiate_accept)
+
+  plug(:parse_supported_body)
+
   plug(:match)
   plug(:dispatch)
 
@@ -290,6 +293,30 @@ defmodule Incant.Web.API do
       media = part |> String.split(";", parts: 2) |> hd() |> String.trim()
       media in ["*/*", "application/*", @json_media_type, @media_type]
     end)
+  end
+
+  defp parse_supported_body(conn, _opts) do
+    if conn.method in ["POST", "PUT", "PATCH"] and request_content_type_supported?(conn) do
+      Plug.Parsers.call(
+        conn,
+        Plug.Parsers.init(
+          parsers: [:json],
+          pass: [@media_type, @json_media_type, "*/*"],
+          json_decoder: Jason
+        )
+      )
+    else
+      conn
+    end
+  end
+
+  defp request_content_type_supported?(conn) do
+    conn
+    |> Plug.Conn.get_req_header("content-type")
+    |> case do
+      [content_type | _] -> supported_content_type?(content_type)
+      [] -> false
+    end
   end
 
   defp require_supported_content_type(conn) do

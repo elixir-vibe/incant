@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@source "../../lib";
+
+:root {
+  --incant-primary: var(--color-violet-600);
+  --incant-secondary: var(--color-blue-600);
+  --incant-success: var(--color-emerald-600);
+  --incant-info: var(--color-sky-600);
+  --incant-warning: var(--color-amber-600);
+  --incant-error: var(--color-rose-600);
+  --incant-neutral: var(--color-zinc-600);
+
+  --incant-text-dimmed: var(--color-zinc-400);
+  --incant-text-muted: var(--color-zinc-500);
+  --incant-text-toned: var(--color-zinc-600);
+  --incant-text: var(--color-zinc-700);
+  --incant-text-highlighted: var(--color-zinc-950);
+  --incant-text-inverted: white;
+
+  --incant-bg: white;
+  --incant-bg-muted: var(--color-zinc-50);
+  --incant-bg-elevated: white;
+  --incant-bg-accented: var(--color-zinc-100);
+  --incant-bg-inverted: var(--color-zinc-950);
+
+  --incant-border: var(--color-zinc-200);
+  --incant-border-muted: var(--color-zinc-100);
+  --incant-border-accented: var(--color-zinc-300);
+  --incant-border-inverted: var(--color-zinc-900);
+
+  --incant-radius-sm: 0.375rem;
+  --incant-radius-md: 0.5rem;
+  --incant-radius-lg: 0.75rem;
+  --incant-radius-xl: 1rem;
+  --incant-table-row-height: 2.75rem;
+  --incant-sidebar-width: 18rem;
+}
+
+[data-theme="dark"],
+.dark {
+  --incant-primary: var(--color-violet-400);
+  --incant-secondary: var(--color-blue-400);
+  --incant-success: var(--color-emerald-400);
+  --incant-info: var(--color-sky-400);
+  --incant-warning: var(--color-amber-400);
+  --incant-error: var(--color-rose-400);
+  --incant-neutral: var(--color-zinc-400);
+
+  --incant-text-dimmed: var(--color-zinc-500);
+  --incant-text-muted: var(--color-zinc-400);
+  --incant-text-toned: var(--color-zinc-300);
+  --incant-text: var(--color-zinc-200);
+  --incant-text-highlighted: white;
+  --incant-text-inverted: var(--color-zinc-950);
+
+  --incant-bg: var(--color-zinc-950);
+  --incant-bg-muted: var(--color-zinc-950);
+  --incant-bg-elevated: color-mix(in oklab, var(--color-zinc-900) 85%, black);
+  --incant-bg-accented: var(--color-zinc-900);
+  --incant-bg-inverted: white;
+
+  --incant-border: color-mix(in oklab, white 10%, transparent);
+  --incant-border-muted: color-mix(in oklab, white 6%, transparent);
+  --incant-border-accented: color-mix(in oklab, white 16%, transparent);
+  --incant-border-inverted: var(--color-zinc-100);
+}

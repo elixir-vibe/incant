@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[var(--incant-bg)]">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
+    <.live_title suffix=" · Incant">Incant</.live_title>
+    <link phx-track-static rel="stylesheet" href={Volt.static_path(Incant.Web.Endpoint, "/assets/css/app.css")} />
+    <script defer phx-track-static type="module" src={Volt.static_path(Incant.Web.Endpoint, "/assets/js/app.js")}>
+    </script>
+  </head>
+  <body class="h-full bg-[var(--incant-bg)]">
+    {@inner_content}
+  </body>
+</html>
