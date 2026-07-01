@@ -64,7 +64,9 @@ defmodule Incant.Service.Session do
       context: context(session, context)
     }
 
-    Service.index(session.entry.client, request, opts)
+    with {:ok, page} <- Service.index(session.entry.client, request, opts) do
+      {:ok, Incant.Service.Page.from_external(page)}
+    end
   end
 
   @doc "Reads one remote resource item."

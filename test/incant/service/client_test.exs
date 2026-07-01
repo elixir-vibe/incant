@@ -33,10 +33,10 @@ defmodule Incant.Service.ClientTest do
 
     assert {:ok, %Incant.Admin.Contract{service: :accounts}} = Incant.Service.describe(client)
 
-    assert {:ok, %{rows: [%{name: "Ada"}, %{name: "Grace"}]}} =
+    assert {:ok, %{"rows" => [%{"name" => "Ada"}, %{"name" => "Grace"}]}} =
              Incant.Service.index(client, %Incant.Service.Index{surface_id: "user"})
 
-    assert {:ok, %{id: 1, name: "Ada"}} =
+    assert {:ok, %{"id" => 1, "name" => "Ada"}} =
              Incant.Service.read(client, %Incant.Service.Read{surface_id: "user", id: 1})
 
     GenServer.stop(server)

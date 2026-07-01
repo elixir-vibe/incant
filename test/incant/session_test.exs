@@ -45,10 +45,11 @@ defmodule Incant.SessionTest do
       assert {:ok, %{id: "user", kind: :resource}} =
                Incant.Session.fetch_surface(session, "user", [])
 
-      assert {:ok, %{rows: [%{name: "Ada"}]}} =
-               Incant.Session.index(session, "user", %{}, %{}, [])
+      assert {:ok, %{rows: rows}} = Incant.Session.index(session, "user", %{}, %{}, [])
+      assert Enum.map(rows, &Incant.Live.Rows.field(&1, :name)) == ["Ada"]
 
-      assert {:ok, %{id: 1, name: "Ada"}} = Incant.Session.read(session, "user", 1, %{}, [])
+      assert {:ok, row} = Incant.Session.read(session, "user", 1, %{}, [])
+      assert Incant.Live.Rows.field(row, :name) == "Ada"
     end
 
     GenServer.stop(server)
