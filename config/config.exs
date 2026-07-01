@@ -42,4 +42,5 @@ config :release_kit, :artifact,
   env_secret: [
     "INCANT_SECRET_KEY_BASE"
   ],
-  assets: [volt: [tailwind: true, production: true, frozen: true]]
+  assets: [volt: [tailwind: true, production: true, frozen: true]],
+  steps: [after_release: [Incant.Web.ReleaseAssets]]
