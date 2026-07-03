@@ -105,6 +105,20 @@ defmodule Incant.Live.SessionProviderTest do
 
     assert [%{id: "user"}] = Incant.Session.list_surfaces(session, kind: :resource)
 
+    root_session = %{
+      "__incant__" => %Incant.Live.Session{source: {:registry, registry}, base_path: "/"}
+    }
+
+    assert Incant.Live.SessionProvider.base_path(root_session, %{"service" => "accounts"}) ==
+             "/accounts"
+
+    relative_session = %{
+      "__incant__" => %Incant.Live.Session{source: {:registry, registry}, base_path: "admin"}
+    }
+
+    assert Incant.Live.SessionProvider.base_path(relative_session, %{"service" => "accounts"}) ==
+             "/admin/accounts"
+
     GenServer.stop(registry)
     GenServer.stop(server)
   end

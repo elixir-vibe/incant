@@ -34,11 +34,19 @@ defmodule Incant.Live.SessionProvider do
   def base_path(%{"__incant__" => %LiveSession{base_path: base_path, source: {:registry, _}}}, %{
         "service" => service
       }) do
-    Path.join(base_path, URI.encode(to_string(service), &URI.char_unreserved?/1))
+    base_path
+    |> Path.join(URI.encode(to_string(service), &URI.char_unreserved?/1))
+    |> absolute_path()
   end
 
-  def base_path(%{"__incant__" => %LiveSession{base_path: base_path}}, _params), do: base_path
+  def base_path(%{"__incant__" => %LiveSession{base_path: base_path}}, _params),
+    do: absolute_path(base_path)
+
   def base_path(_session, _params), do: "/admin"
+
+  defp absolute_path("/"), do: "/"
+  defp absolute_path(<<"/", _rest::binary>> = path), do: path
+  defp absolute_path(path), do: "/" <> path
 
   defp registry_entry!(registry, service) do
     case find_registry_entry(registry, service) do
