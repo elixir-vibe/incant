@@ -17,7 +17,7 @@ defmodule Incant.UI.Adapters.LiveView do
   alias Incant.UI.Adapters.LiveView.Theme
   alias Incant.UI.Document
   alias Incant.UI.Regions.WidgetGrid
-  alias Incant.UI.Surfaces.{Dashboard, DatasetIndex, Empty, ResourceIndex}
+  alias Incant.UI.Surfaces.{Dashboard, DatasetIndex, Empty, ResourceIndex, ServiceIndex}
 
   @impl Incant.UI.Adapter
   def render(%Document{} = document, env) do
@@ -175,6 +175,58 @@ defmodule Incant.UI.Adapters.LiveView do
     """
   end
 
+  def render_surface(%{surface: %ServiceIndex{} = surface} = assigns) do
+    assigns = assign(assigns, :surface, surface)
+
+    ~H"""
+    <section class={Theme.slot(:surface, :stack)}>
+      <.page_header title={@surface.title} eyebrow="Incant Admin" />
+
+      <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <.link
+          :for={service <- @surface.services}
+          patch={service_path(@surface.base_path, service)}
+          class="block rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-4 transition-colors hover:border-[var(--incant-primary)] hover:bg-[var(--incant-bg-accented)]"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]">
+                Service
+              </p>
+              <h3 class="mt-1 text-lg font-semibold text-[var(--incant-text-highlighted)]">
+                {service.service || service.key || service.id}
+              </h3>
+            </div>
+            <span :if={service.version} class="rounded-full border border-[var(--incant-border)] px-2 py-0.5 text-xs text-[var(--incant-text-muted)]">
+              v{service.version}
+            </span>
+          </div>
+
+          <div class="mt-4 grid grid-cols-3 gap-2 text-sm">
+            <div>
+              <div class="text-lg font-semibold text-[var(--incant-text-highlighted)]">{service.surfaces.resources}</div>
+              <div class="text-xs text-[var(--incant-text-muted)]">Resources</div>
+            </div>
+            <div>
+              <div class="text-lg font-semibold text-[var(--incant-text-highlighted)]">{service.surfaces.datasets}</div>
+              <div class="text-xs text-[var(--incant-text-muted)]">Datasets</div>
+            </div>
+            <div>
+              <div class="text-lg font-semibold text-[var(--incant-text-highlighted)]">{service.surfaces.dashboards}</div>
+              <div class="text-xs text-[var(--incant-text-muted)]">Dashboards</div>
+            </div>
+          </div>
+        </.link>
+      </div>
+
+      <div :if={@surface.services == []} class={Theme.slot(:panel, :root, kind: :empty)}>
+        <p class={Theme.slot(:panel, :title)}>No services discovered</p>
+        <h2 class={Theme.slot(:panel, :empty_title)}>Incant registry is empty.</h2>
+      </div>
+    </section>
+    """
+  end
+
   def render_surface(%{surface: %Empty{context: %{authorization: {:error, reason}}}} = assigns) do
     assigns = assign(assigns, :message, authorization_message(reason))
 
@@ -192,4 +244,8 @@ defmodule Incant.UI.Adapters.LiveView do
   end
 
   defp nav_count(nav, kind), do: nav.items |> Enum.count(&(&1.kind == kind))
+
+  defp service_path(base_path, service) do
+    Path.join(base_path || "/", service.id)
+  end
 end

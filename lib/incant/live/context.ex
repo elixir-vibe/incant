@@ -8,6 +8,7 @@ defmodule Incant.Live.Context do
     :resources,
     :dashboards,
     :datasets,
+    :services,
     :theme,
     :actor,
     :authorization,

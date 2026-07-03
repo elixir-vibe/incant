@@ -304,6 +304,28 @@ defmodule Incant.UI.DocumentTest do
     assert chart.y == {:clicks, []}
   end
 
+  test "builds service index document from service summaries" do
+    services = [
+      %Incant.Web.API.ServiceSummary{
+        id: "llm_proxy",
+        key: "llm_proxy",
+        service: "llm_proxy",
+        version: "1",
+        surfaces: %Incant.Web.API.SurfaceCounts{resources: 4, datasets: 0, dashboards: 1}
+      }
+    ]
+
+    document =
+      Incant.UI.Document.from_context(
+        context(section: "services", resource: nil, services: services, base_path: "/")
+      )
+
+    assert document.title == "Services"
+    assert %Incant.UI.Surfaces.ServiceIndex{} = document.surface
+    assert document.surface.services == services
+    assert document.surface.base_path == "/"
+  end
+
   defp context(overrides) do
     resource = Keyword.get(overrides, :resource)
     dashboard = Keyword.get(overrides, :dashboard)

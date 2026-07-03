@@ -22,6 +22,14 @@ defmodule Incant.Live.SessionProvider do
     |> Incant.Service.Session.new()
   end
 
+  @doc "Returns registry entries when this is a registry-backed session."
+  @spec registry_entries(map()) :: [Entry.t()]
+  def registry_entries(%{"__incant__" => %LiveSession{source: {:registry, registry}}}) do
+    Incant.Service.RegistryServer.list_entries(registry)
+  end
+
+  def registry_entries(_session), do: []
+
   @doc "Returns local admin metadata when this is a local admin session."
   @spec local_admin(map()) :: Incant.Admin.Metadata.t() | nil
   def local_admin(%{"__incant__" => %LiveSession{source: {:local, admin}}}),

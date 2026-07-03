@@ -8,29 +8,68 @@ defmodule Incant.Live.Admin do
   import Incant.Live.Routes
 
   alias Incant.Live.Authorization
+  alias Incant.Web.API.ServiceSummary
 
   @impl Phoenix.LiveView
   def mount(params, session, socket) do
-    incant_session = Incant.Live.SessionProvider.fetch!(session, params)
-    contract = Incant.Session.contract(incant_session)
-    admin = Incant.Live.SessionProvider.local_admin(session)
+    if service_index?(socket.assigns.live_action, session, params) do
+      socket =
+        socket
+        |> assign(:base_path, Incant.Live.SessionProvider.base_path(session, params))
+        |> assign(:incant_session, nil)
+        |> assign(:admin, nil)
+        |> assign(:contract, nil)
+        |> assign(:resources, [])
+        |> assign(:dashboards, [])
+        |> assign(:datasets, [])
+        |> assign(:services, service_summaries(session))
+        |> assign(:theme, nil)
+        |> assign(:actor, actor(socket.assigns, nil))
 
-    socket =
-      socket
-      |> assign(:base_path, Incant.Live.SessionProvider.base_path(session, params))
-      |> assign(:incant_session, incant_session)
-      |> assign(:admin, admin)
-      |> assign(:contract, contract)
-      |> assign(:resources, Incant.Session.list_surfaces(incant_session, kind: :resource))
-      |> assign(:dashboards, Incant.Session.list_surfaces(incant_session, kind: :dashboard))
-      |> assign(:datasets, Incant.Session.list_surfaces(incant_session, kind: :dataset))
-      |> assign(:theme, theme_metadata(admin))
-      |> assign(:actor, actor(socket.assigns, admin))
+      {:ok, socket}
+    else
+      incant_session = Incant.Live.SessionProvider.fetch!(session, params)
+      contract = Incant.Session.contract(incant_session)
+      admin = Incant.Live.SessionProvider.local_admin(session)
 
-    {:ok, socket}
+      socket =
+        socket
+        |> assign(:base_path, Incant.Live.SessionProvider.base_path(session, params))
+        |> assign(:incant_session, incant_session)
+        |> assign(:admin, admin)
+        |> assign(:contract, contract)
+        |> assign(:resources, Incant.Session.list_surfaces(incant_session, kind: :resource))
+        |> assign(:dashboards, Incant.Session.list_surfaces(incant_session, kind: :dashboard))
+        |> assign(:datasets, Incant.Session.list_surfaces(incant_session, kind: :dataset))
+        |> assign(:services, [])
+        |> assign(:theme, theme_metadata(admin))
+        |> assign(:actor, actor(socket.assigns, admin))
+
+      {:ok, socket}
+    end
   end
 
   @impl Phoenix.LiveView
+  def handle_params(params, _uri, %{assigns: %{live_action: :services}} = socket) do
+    context = %Incant.Live.Context{
+      admin: socket.assigns.admin,
+      session: socket.assigns.incant_session,
+      base_path: socket.assigns.base_path,
+      resources: [],
+      dashboards: [],
+      datasets: [],
+      services: socket.assigns.services,
+      theme: socket.assigns.theme,
+      actor: socket.assigns.actor,
+      section: "services"
+    }
+
+    {:noreply,
+     socket
+     |> assign(:params, params)
+     |> assign(:context, context)}
+  end
+
   def handle_params(params, _uri, socket) do
     resources = socket.assigns.resources
     dashboards = socket.assigns.dashboards
@@ -338,6 +377,21 @@ defmodule Incant.Live.Admin do
       <h2 class="mt-2 text-2xl font-semibold tracking-tight">{@message}</h2>
     </section>
     """
+  end
+
+  defp service_index?(
+         :services,
+         %{"__incant__" => %Incant.Live.Session{source: {:registry, _}}},
+         %{}
+       ),
+       do: true
+
+  defp service_index?(_action, _session, _params), do: false
+
+  defp service_summaries(session) do
+    session
+    |> Incant.Live.SessionProvider.registry_entries()
+    |> Enum.map(&ServiceSummary.from_entry/1)
   end
 
   defp actor(assigns, nil), do: Authorization.actor(assigns, %{opts: []})

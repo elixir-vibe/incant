@@ -33,6 +33,7 @@ defmodule Incant.Router do
       registry = Keyword.fetch!(admin_or_opts, :registry)
       session_name = Keyword.get(opts, :as, :incant)
       base_path = Keyword.get(opts, :base_path, path)
+      root_path = if path == "", do: "/", else: path
 
       quote do
         live_session unquote(session_name),
@@ -64,6 +65,8 @@ defmodule Incant.Router do
             Incant.Live.Admin,
             :resource_edit
           )
+
+          live(unquote(root_path), Incant.Live.Admin, :services)
         end
       end
     else
