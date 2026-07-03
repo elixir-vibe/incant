@@ -12,6 +12,7 @@ defmodule Incant.Service.Session do
   alias Incant.Service.Index
   alias Incant.Service.Read
   alias Incant.Service.RunAction
+  alias Incant.Service.RunWidget
 
   @type surface :: map()
 
@@ -103,6 +104,27 @@ defmodule Incant.Service.Session do
     }
 
     Service.run_action(session.entry.client, request, opts)
+  end
+
+  @doc "Runs a remote dashboard widget query."
+  @spec run_widget(t(), String.t() | atom(), String.t() | atom(), map(), map(), keyword()) ::
+          {:ok, term()} | {:error, term()}
+  def run_widget(
+        %__MODULE__{} = session,
+        surface_id,
+        widget_id,
+        variables \\ %{},
+        context \\ %{},
+        opts \\ []
+      ) do
+    request = %RunWidget{
+      surface_id: to_string(surface_id),
+      widget_id: to_string(widget_id),
+      variables: variables,
+      context: context(session, context)
+    }
+
+    Service.run_widget(session.entry.client, request, opts)
   end
 
   defp surfaces_by_kind(%__MODULE__{} = session, :all) do

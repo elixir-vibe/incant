@@ -176,6 +176,25 @@ defmodule Incant.Admin do
             __incant_rpc_context__(request.context, meta, state)
           )
         end
+
+        @rpc true
+        @doc "Run an Incant dashboard widget query."
+        @spec run_widget(Incant.Service.RunWidget.t(), map(), term()) ::
+                {:ok, term()} | {:error, term()}
+        def run_widget(%Incant.Service.RunWidget{} = request, meta, state) do
+          _safe_rpc_boundary_widget_result = %{
+            rows: [],
+            value: nil,
+            error: nil
+          }
+
+          run_widget(
+            request.surface_id,
+            request.widget_id,
+            request.variables,
+            __incant_rpc_context__(request.context, meta, state)
+          )
+        end
       end
     else
       quote(do: :ok)

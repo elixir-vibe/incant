@@ -26,4 +26,7 @@ defprotocol Incant.Session do
 
   @doc "Runs a resource action."
   def run_action(session, surface_id, action_id, payload, context, opts)
+
+  @doc "Runs a dashboard widget query."
+  def run_widget(session, surface_id, widget_id, variables, context, opts)
 end

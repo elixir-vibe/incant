@@ -15,10 +15,19 @@ defmodule Incant.Service.SessionTest do
     end
   end
 
+  defmodule OperationsDashboard do
+    use Incant.Dashboard
+
+    stat(:users, query: &__MODULE__.users/2)
+
+    def users(%{"range" => range}, _context), do: %{range: range, count: 2}
+  end
+
   defmodule Admin do
     use Incant.Admin, service: :accounts, version: "1", repo: Repo, rpc: true
 
     expose(User)
+    dashboard(OperationsDashboard)
   end
 
   defmodule Server do
@@ -46,6 +55,11 @@ defmodule Incant.Service.SessionTest do
 
     assert {:ok, row} = Incant.Service.Session.read(session, "user", 1)
     assert Incant.Live.Rows.field(row, :name) == "Ada"
+
+    assert {:ok, %{range: "24h", count: 2}} =
+             Incant.Service.Session.run_widget(session, "operations_dashboard", "users", %{
+               "range" => "24h"
+             })
 
     GenServer.stop(server)
   end

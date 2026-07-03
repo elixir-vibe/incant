@@ -86,6 +86,24 @@ defmodule Incant.Service.Runtime do
     end
   end
 
+  def run_widget(admin, surface_id, widget_id, variables \\ %{}, context \\ %{}) do
+    with {:ok, surface} <- fetch_surface(admin, surface_id),
+         :dashboard <- surface.kind,
+         {:ok, widget} <- fetch_widget(surface, widget_id),
+         query when not is_nil(query) <- widget.opts[:query] do
+      {:ok,
+       Incant.Callback.call(
+         query,
+         variables,
+         dashboard_context(admin, surface, variables, context)
+       )}
+    else
+      {:error, reason} -> {:error, reason}
+      nil -> {:error, {:missing_widget_query, surface_id, widget_id}}
+      other -> {:error, {:unsupported_surface_kind, other}}
+    end
+  end
+
   defp action_assigns(payload) do
     assigns = Map.get(payload, :assigns, %{})
     input = Map.get(payload, :input, %{})
@@ -107,12 +125,28 @@ defmodule Incant.Service.Runtime do
     end
   end
 
+  defp fetch_widget(surface, widget_id) do
+    surface.spec.widgets
+    |> Enum.find(&(to_string(&1.id) == to_string(widget_id)))
+    |> case do
+      nil -> {:error, {:unknown_widget, surface.id, widget_id}}
+      widget -> {:ok, widget}
+    end
+  end
+
   defp service_context(admin, surface, context) do
     context
     |> context_map()
     |> Map.put_new(:admin, Incant.metadata(admin))
     |> Map.put_new(:surface, surface)
     |> Map.put_new(:resource, surface.spec)
+  end
+
+  defp dashboard_context(admin, surface, variables, context) do
+    admin
+    |> service_context(surface, context)
+    |> Map.put_new(:dashboard, surface.spec)
+    |> Map.put_new(:variables, variables)
   end
 
   defp context_map(%_struct{} = context), do: Map.from_struct(context)

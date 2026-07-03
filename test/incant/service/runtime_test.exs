@@ -32,10 +32,21 @@ defmodule Incant.Service.RuntimeTest do
     end
   end
 
+  defmodule OperationsDashboard do
+    use Incant.Dashboard
+
+    stat(:requests, query: &__MODULE__.requests/2)
+
+    def requests(%{"range" => range}, %{admin: admin, dashboard: dashboard}) do
+      %{range: range, admin: admin.module, dashboard: dashboard.module}
+    end
+  end
+
   defmodule Admin do
     use Incant.Admin, service: :runtime_test, version: "1"
 
     resource(OperationResource)
+    dashboard(OperationsDashboard)
   end
 
   test "passes action input through to callbacks without flattening it into assigns" do
@@ -44,5 +55,15 @@ defmodule Incant.Service.RuntimeTest do
                assigns: %{operator: "dan"},
                input: %{code: "abc", verifier: "secret"}
              })
+  end
+
+  test "runs dashboard widget queries in the service runtime" do
+    assert {:ok,
+            %{
+              range: "24h",
+              admin: Incant.Service.RuntimeTest.Admin,
+              dashboard: Incant.Service.RuntimeTest.OperationsDashboard
+            }} =
+             Runtime.run_widget(Admin, "operations_dashboard", "requests", %{"range" => "24h"})
   end
 end

@@ -17,6 +17,7 @@ defmodule Incant.Service do
   alias Incant.Service.Index
   alias Incant.Service.Read
   alias Incant.Service.RunAction
+  alias Incant.Service.RunWidget
 
   @callback describe(context :: map()) :: {:ok, Incant.Admin.Contract.t()} | {:error, term()}
   @callback index(surface_id :: String.t(), params :: map(), context :: map()) ::
@@ -29,6 +30,13 @@ defmodule Incant.Service do
               payload :: map(),
               context :: map()
             ) :: {:ok, Incant.ActionResult.t()} | {:error, term()}
+
+  @callback run_widget(
+              surface_id :: String.t(),
+              widget_id :: String.t(),
+              variables :: map(),
+              context :: map()
+            ) :: {:ok, term()} | {:error, term()}
 
   @doc """
   Builds a client handle for a discovered Incant service module.
@@ -97,6 +105,12 @@ defmodule Incant.Service do
           {:ok, Incant.ActionResult.t()} | {:error, term()}
   def run_action(%Client{} = client, %RunAction{} = request, opts \\ []) do
     call(client, :run_action, request, opts)
+  end
+
+  @doc "Calls the remote Incant service `run_widget` verb."
+  @spec run_widget(Client.t(), RunWidget.t(), keyword()) :: {:ok, term()} | {:error, term()}
+  def run_widget(%Client{} = client, %RunWidget{} = request, opts \\ []) do
+    call(client, :run_widget, request, opts)
   end
 
   defp call(%Client{endpoint: endpoint, module: module}, function, request, opts) do

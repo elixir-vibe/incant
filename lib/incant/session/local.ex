@@ -67,6 +67,16 @@ defimpl Incant.Session, for: Incant.Session.Local do
     )
   end
 
+  def run_widget(session, surface_id, widget_id, variables, context, _opts) do
+    Runtime.run_widget(
+      session.admin,
+      to_string(surface_id),
+      to_string(widget_id),
+      variables,
+      session_context(session, context)
+    )
+  end
+
   defp surfaces_by_kind(session, :all) do
     session.contract.resources ++ session.contract.dashboards ++ session.contract.datasets
   end

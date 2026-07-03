@@ -454,6 +454,7 @@ defmodule Incant.Live.Admin do
       context
       | widget_values:
           widget_values(
+            context.session,
             context.dashboard,
             context.dashboard_variables,
             context.raw_dashboard_variables
@@ -582,18 +583,24 @@ defmodule Incant.Live.Admin do
   defp authorization_message(:not_found), do: "Record not found or unavailable."
   defp authorization_message(reason), do: to_string(reason)
 
-  defp widget_values(nil, _variables, _raw_variables), do: %{}
+  defp widget_values(_session, nil, _variables, _raw_variables), do: %{}
 
-  defp widget_values(dashboard, variables, raw_variables) do
+  defp widget_values(session, dashboard, variables, raw_variables) do
     dashboard.widgets
-    |> Enum.filter(&(&1.opts[:query] != nil))
     |> Map.new(fn widget ->
       value =
         try do
-          Incant.Callback.call(widget.opts[:query], variables, %{
-            variables: variables,
-            raw_variables: raw_variables
-          })
+          case Incant.Session.run_widget(
+                 session,
+                 selected_id(dashboard),
+                 widget.id,
+                 variables,
+                 %{variables: variables, raw_variables: raw_variables},
+                 []
+               ) do
+            {:ok, value} -> value
+            {:error, reason} -> {:error, inspect(reason)}
+          end
         rescue
           error in [ArgumentError, FunctionClauseError, UndefinedFunctionError, RuntimeError] ->
             {:error, Exception.message(error)}

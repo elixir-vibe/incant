@@ -19,6 +19,9 @@ defmodule Incant.Session.Delegate do
 
       def run_action(session, surface_id, action_id, payload, context, opts),
         do: unquote(target).run_action(session, surface_id, action_id, payload, context, opts)
+
+      def run_widget(session, surface_id, widget_id, variables, context, opts),
+        do: unquote(target).run_widget(session, surface_id, widget_id, variables, context, opts)
     end
   end
 end

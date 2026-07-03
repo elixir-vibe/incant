@@ -36,6 +36,13 @@ defmodule Incant.Admin.RPC do
         Incant.Service.Runtime.run_action(__MODULE__, surface_id, action_id, payload, context)
       end
 
+      @spec run_widget(String.t(), String.t(), map(), map()) :: {:ok, term()} | {:error, term()}
+      @impl Incant.Service
+      def run_widget(surface_id, widget_id, variables, context)
+          when is_binary(surface_id) and is_binary(widget_id) and is_map(variables) do
+        Incant.Service.Runtime.run_widget(__MODULE__, surface_id, widget_id, variables, context)
+      end
+
       defp __incant_rpc_context__(context, meta, state) when is_map(context) do
         context
         |> Map.put_new(:rpc_meta, meta)
