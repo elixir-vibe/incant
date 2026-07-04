@@ -416,6 +416,35 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ">span auto<"
   end
 
+  test "renders nav links as full LiveView navigation links" do
+    nav = %Incant.UI.Regions.Nav{
+      active_id: "dashboard.operations",
+      items: [
+        %Incant.UI.Regions.Nav.Item{
+          id: "dashboard.operations",
+          label: "Operations",
+          group: :dashboards,
+          path: "/llm_proxy/dashboards/operations"
+        },
+        %Incant.UI.Regions.Nav.Item{
+          id: "resource.api_key",
+          label: "API Keys",
+          group: :resources,
+          path: "/llm_proxy/resources/api_key"
+        }
+      ]
+    }
+
+    html =
+      %{nav: nav}
+      |> Incant.UI.Adapters.LiveView.nav()
+      |> rendered_to_string()
+
+    assert html =~ ~s(href="/llm_proxy/resources/api_key")
+    assert html =~ ~s(data-phx-link="redirect")
+    refute html =~ ~s(data-phx-link="patch")
+  end
+
   test "renders service index links as absolute paths" do
     services = [
       %Incant.Web.API.ServiceSummary{
@@ -442,6 +471,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     html = document |> Incant.UI.render(env) |> rendered_to_string()
 
     assert html =~ ~s(href="/llm_proxy")
+    assert html =~ ~s(data-phx-link="redirect")
     refute html =~ ~s(href="llm_proxy")
     assert html =~ "4"
     assert html =~ "Resources"

@@ -82,7 +82,7 @@ defmodule Incant.UI.Adapters.LiveView do
       <div class={Theme.slot(:nav, :group_items)}>
         <.link
           :for={item <- @items}
-          patch={item.path}
+          navigate={item.path}
           class={Theme.slot(:nav_item, :base, active: item.id == @active_id)}
         >
           {item.label}
@@ -184,7 +184,7 @@ defmodule Incant.UI.Adapters.LiveView do
       <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <.link
           :for={service <- @surface.services}
-          patch={service_path(@surface.base_path, service)}
+          navigate={service_path(@surface.base_path, service)}
           class="block rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-4 transition-colors hover:border-[var(--incant-primary)] hover:bg-[var(--incant-bg-accented)]"
         >
           <div class="flex items-start justify-between gap-3">
