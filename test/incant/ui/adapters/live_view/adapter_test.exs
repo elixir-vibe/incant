@@ -176,6 +176,54 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ "Add a resource index callback"
   end
 
+  test "renders dashboard table widgets with explicit column order" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :usage,
+          type: :table,
+          title: "Usage",
+          value: %{
+            columns: [:model, "requests", :enabled, :cost],
+            rows: [%{cost: "$1", enabled: false, model: "gpt", requests: 2}]
+          },
+          span: 4
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ "Usage"
+    assert html =~ ~r/model.*requests.*enabled.*cost/s
+    assert html =~ ~r/gpt.*2.*false.*\$1/s
+  end
+
+  test "renders dashboard table widgets with sorted fallback columns" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :usage,
+          type: :table,
+          title: "Usage",
+          value: [%{zeta: 1, alpha: 2}],
+          span: 4
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ ~r/alpha.*zeta/s
+    assert html =~ ~r/2.*1/s
+  end
+
   test "does not render dashboard widget span debug badges" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [

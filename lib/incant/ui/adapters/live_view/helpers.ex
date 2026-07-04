@@ -170,8 +170,41 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def numeric_value(value) when is_number(value), do: value
   def numeric_value(_value), do: 0
 
-  def table_columns([row | _]) when is_map(row), do: Map.keys(row)
+  def table_columns(%{columns: columns}) when is_list(columns),
+    do: Enum.map(columns, &to_string/1)
+
+  def table_columns(%{"columns" => columns}) when is_list(columns),
+    do: Enum.map(columns, &to_string/1)
+
+  def table_columns([row | _]) when is_map(row),
+    do: row |> Map.keys() |> Enum.map(&to_string/1) |> Enum.sort()
+
   def table_columns(_rows), do: []
+
+  def table_rows(%{rows: rows}) when is_list(rows), do: rows
+  def table_rows(%{"rows" => rows}) when is_list(rows), do: rows
+  def table_rows(rows) when is_list(rows), do: rows
+  def table_rows(_rows), do: []
+
+  def table_cell(row, column) when is_map(row) do
+    case Map.fetch(row, column) do
+      {:ok, value} -> value
+      :error -> row |> Map.fetch(existing_atom(column)) |> elem_or_nil()
+    end
+  end
+
+  def table_cell(_row, _column), do: nil
+
+  defp elem_or_nil({:ok, value}), do: value
+  defp elem_or_nil(:error), do: nil
+
+  defp existing_atom(column) when is_binary(column) do
+    String.to_existing_atom(column)
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp existing_atom(_column), do: nil
 
   def authorization_message({:unauthorized, action}), do: "Not authorized to #{action}."
   def authorization_message(reason) when is_atom(reason), do: "Not authorized: #{reason}."
