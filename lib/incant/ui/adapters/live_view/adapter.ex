@@ -119,7 +119,6 @@ defmodule Incant.UI.Adapters.LiveView do
           <.page_header title={@surface.title} eyebrow={form_eyebrow(@surface.form.mode)} />
           <.resource_form form={@surface.form} env={@env} />
         <% @surface.detail -> %>
-          <.page_header title={@surface.detail.title} eyebrow="Detail" />
           <.inspector inspector={@surface.detail} env={@env} />
         <% true -> %>
           <.page_header title={@surface.title} eyebrow="Resource" />
