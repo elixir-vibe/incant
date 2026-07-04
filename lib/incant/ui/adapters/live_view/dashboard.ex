@@ -43,7 +43,6 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
           <p class={Theme.slot(:widget, :eyebrow)}>Timeseries</p>
           <h3 class={Theme.slot(:widget, :title)}>{@widget.title}</h3>
         </div>
-        <span class={Theme.slot(:badge, :base)}>span {@widget.span || "auto"}</span>
       </div>
       <div :if={is_list(@widget.value) && @widget.value != []} class={Theme.slot(:widget, :chart)}>
         <div :for={point <- @widget.value} class={Theme.slot(:widget, :bar)} style={"height: #{bar_height(point, @widget.value)}%;"}></div>
@@ -83,7 +82,6 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
           <p class={Theme.slot(:widget, :eyebrow)}>Table</p>
           <h3 class={Theme.slot(:widget, :title)}>{@widget.title}</h3>
         </div>
-        <span class={Theme.slot(:badge, :base)}>span {@widget.span || "auto"}</span>
       </div>
       <table :if={is_list(@widget.value) && @widget.value != []} class={Theme.slot(:table, :root)}>
         <thead class={Theme.slot(:table, :head)}>
