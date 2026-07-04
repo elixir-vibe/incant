@@ -286,6 +286,8 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         stat_value:
           "mt-2 text-2xl font-semibold tracking-tight text-[var(--incant-text-highlighted)]",
         error: "text-base text-[var(--incant-error)]",
+        message: "p-3 text-sm text-[var(--incant-text-muted)]",
+        message_error: "p-3 text-sm text-[var(--incant-error)]",
         chart: "mt-3 flex h-36 items-end gap-1.5 rounded-md bg-[var(--incant-bg-muted)] p-3",
         chart_placeholder: "flex min-h-full w-full flex-col justify-end gap-3",
         chart_line: "h-16 rounded-[50%] border-t-2 border-[var(--incant-primary)] opacity-80",

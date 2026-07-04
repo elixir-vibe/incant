@@ -263,6 +263,89 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "$1.00"
   end
 
+  test "renders dashboard table widget empty, loading, and error states" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :empty_usage,
+          type: :table,
+          title: "Empty usage",
+          value: [],
+          span: 4,
+          source: %Incant.Dashboard.Widget{id: :empty_usage, type: :table, opts: []}
+        },
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :loading_usage,
+          type: :table,
+          title: "Loading usage",
+          value: nil,
+          loading: true,
+          span: 4,
+          source: %Incant.Dashboard.Widget{id: :loading_usage, type: :table, opts: []}
+        },
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :error_usage,
+          type: :table,
+          title: "Error usage",
+          value: {:error, :boom},
+          error: :boom,
+          span: 4,
+          source: %Incant.Dashboard.Widget{id: :error_usage, type: :table, opts: []}
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ "No rows to display."
+    assert html =~ "Loading…"
+    assert html =~ "Unable to load widget."
+    refute html =~ "boom"
+  end
+
+  test "renders dashboard timeseries empty, loading, and error states" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :empty_series,
+          type: :timeseries,
+          title: "Empty series",
+          value: [],
+          span: 4
+        },
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :loading_series,
+          type: :timeseries,
+          title: "Loading series",
+          value: nil,
+          loading: true,
+          span: 4
+        },
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :error_series,
+          type: :timeseries,
+          title: "Error series",
+          value: {:error, :boom},
+          error: :boom,
+          span: 4
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ "No data to display."
+    assert html =~ "Loading…"
+    assert html =~ "Unable to load widget."
+    refute html =~ "boom"
+  end
+
   test "renders dashboard table widgets with sorted fallback columns" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [
