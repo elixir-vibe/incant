@@ -197,12 +197,12 @@ defmodule Incant.UI.Regions.Table do
     do: "Resource query failed: #{error}"
 
   defp empty_state(_pagination),
-    do: "No rows. Add a resource index callback or loosen the current filters."
+    do: "No results. Try adjusting or clearing the filters."
 
   defp dataset_empty_state(%{meta: %{error: reason}}),
     do: "Dataset query failed: #{inspect(reason)}"
 
-  defp dataset_empty_state(_result), do: "No rows match the current dataset query."
+  defp dataset_empty_state(_result), do: "No results. Try adjusting or clearing the filters."
 
   defp row_id(%{id: id}), do: id
   defp row_id(%{"id" => id}), do: id

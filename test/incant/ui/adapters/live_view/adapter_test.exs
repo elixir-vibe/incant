@@ -112,6 +112,70 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ "secret"
   end
 
+  test "renders action confirm text from boolean or custom messages" do
+    table = %Incant.UI.Regions.Table{
+      columns: [%Incant.UI.Regions.Table.Column{id: "name", label: "Name", sortable: true}],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "name",
+              value: "Ada",
+              display: "Ada",
+              source: %{opts: []}
+            }
+          ]
+        }
+      ],
+      row_actions: [
+        %Incant.Table.Action{name: :delete, opts: [confirm: true]},
+        %Incant.Table.Action{name: :disable, opts: [confirm: "Disable this token?"]},
+        %Incant.Table.Action{name: :view, opts: []}
+      ],
+      bulk_actions: [%Incant.Table.Action{name: :delete_selected, opts: [confirm: true]}],
+      page_actions: [%Incant.Table.Action{name: :resync, opts: [confirm: "Resync now?"]}],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: true, selected_ids: ["row-1"]},
+      empty_state: "No rows"
+    }
+
+    env =
+      Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin", resource: %{id: "user"}}, %{
+        admin: nil
+      })
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ ~s(data-confirm="Are you sure?")
+    assert html =~ ~s(data-confirm="Disable this token?")
+    assert html =~ ~s(data-confirm="Resync now?")
+    refute html =~ ~s(data-confirm="false")
+  end
+
+  test "renders operator-friendly empty table copy" do
+    table = %Incant.UI.Regions.Table{
+      columns: [%Incant.UI.Regions.Table.Column{id: "name", label: "Name", sortable: true}],
+      rows: [],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No results. Try adjusting or clearing the filters."
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ "No results. Try adjusting or clearing the filters."
+    refute html =~ "Add a resource index callback"
+  end
+
   test "does not render dashboard widget span debug badges" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [

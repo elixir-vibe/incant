@@ -60,6 +60,14 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def form_enabled?(resource), do: not is_nil(resource.repo) and not is_nil(resource.changeset)
   def action_label(action), do: action.opts[:label] || humanize(action.name)
 
+  def confirm_message(%{opts: opts}) do
+    case opts[:confirm] do
+      true -> "Are you sure?"
+      message when is_binary(message) -> message
+      _other -> nil
+    end
+  end
+
   def cell_class(cell) do
     align = if cell.source.opts[:align] == :right, do: :right, else: :left
     Theme.slot(:table, :cell, align: align, truncate: truncate_cell?(cell))

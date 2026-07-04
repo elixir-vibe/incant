@@ -73,7 +73,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
           phx-value-op="bulk_action"
           phx-value-target={action.name}
           disabled={selected_count(@table) == 0}
-          data-confirm={action.opts[:confirm] && "Are you sure?"}
+          data-confirm={confirm_message(action)}
         >
           {action_label(action)}
         </button>
@@ -86,7 +86,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
           phx-click="incant:event"
           phx-value-op="page_action"
           phx-value-target={action.name}
-          data-confirm={action.opts[:confirm] && "Are you sure?"}
+          data-confirm={confirm_message(action)}
         >
           {action_label(action)}
         </button>
@@ -126,7 +126,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         <.link :if={action.name == :edit && @row.id && form_enabled?(@env.context.resource)} patch={resource_edit_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:button, :base, variant: :ghost, size: :xs)}>
           {action_label(action)}
         </.link>
-        <button :if={action.name != :edit || !form_enabled?(@env.context.resource)} type="button" class={Theme.slot(:button, :base, variant: :ghost, size: :xs)} phx-click="incant:event" phx-value-op="row_action" phx-value-target={action.name} phx-value-value={@row.id} data-confirm={action.opts[:confirm] && "Are you sure?"}>
+        <button :if={action.name != :edit || !form_enabled?(@env.context.resource)} type="button" class={Theme.slot(:button, :base, variant: :ghost, size: :xs)} phx-click="incant:event" phx-value-op="row_action" phx-value-target={action.name} phx-value-value={@row.id} data-confirm={confirm_message(action)}>
           {action_label(action)}
         </button>
       <% end %>
