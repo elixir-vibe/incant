@@ -226,6 +226,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         body: "divide-y divide-[var(--incant-border-muted)]",
         row: "h-9 hover:bg-[var(--incant-bg-muted)]",
         cell: "px-3 py-1.5 text-[var(--incant-text-toned)]",
+        cell_content: "block",
         empty: "px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]",
         actions: "px-3 py-1.5 text-right",
         action_group: "inline-flex items-center gap-1",
@@ -238,9 +239,13 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         align: %{
           right: %{header_cell: "text-right", cell: "text-right tabular-nums"},
           left: %{}
+        },
+        truncate: %{
+          true => %{cell: "max-w-[28rem]", cell_content: "truncate"},
+          false => %{}
         }
       },
-      default_variants: %{align: :left}
+      default_variants: %{align: :left, truncate: false}
     }
   end
 

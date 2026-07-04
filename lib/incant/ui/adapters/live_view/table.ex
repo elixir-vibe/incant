@@ -40,7 +40,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
                 <span :if={selected?(@table, row.id)}>✓</span>
               </button>
             </td>
-            <td :for={cell <- row.cells} class={cell_class(cell)}>
+            <td :for={cell <- row.cells} class={cell_class(cell)} title={cell_title(cell)}>
               <.table_cell cell={cell} row={row} env={@env} />
             </td>
             <td :if={@table.row_actions != []} class={Theme.slot(:table, :actions)}>
@@ -111,7 +111,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
   def cell_value(assigns) do
     ~H"""
     <span :if={@cell.format == :badge} class={Theme.slot(:badge, :base, variant: :soft)}>{@cell.value}</span>
-    <span :if={@cell.format != :badge}>{@cell.display}</span>
+    <span :if={@cell.format != :badge} class={cell_content_class(@cell)}>{@cell.display}</span>
     """
   end
 

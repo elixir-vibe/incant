@@ -28,6 +28,90 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ">\n            input_tokens\n"
   end
 
+  test "truncates long and text-format table cells with hover titles" do
+    long_text = String.duplicate("long message ", 20)
+
+    table = %Incant.UI.Regions.Table{
+      columns: [
+        %Incant.UI.Regions.Table.Column{id: "message", label: "Message", sortable: true},
+        %Incant.UI.Regions.Table.Column{id: "notes", label: "Notes", sortable: true}
+      ],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "message",
+              value: long_text,
+              display: long_text,
+              format: nil,
+              source: %{opts: []}
+            },
+            %Incant.UI.Regions.Table.Cell{
+              column: "notes",
+              value: "short text",
+              display: "short text",
+              format: :text,
+              source: %{opts: [format: :text]}
+            }
+          ]
+        }
+      ],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No rows"
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ "max-w-[28rem]"
+    assert html =~ "truncate"
+    assert html =~ ~s(title="#{String.slice(long_text, 0, 200)}")
+    assert html =~ ~s(title="short text")
+  end
+
+  test "truncates sensitive table cells without exposing cleartext titles" do
+    table = %Incant.UI.Regions.Table{
+      columns: [%Incant.UI.Regions.Table.Column{id: "token", label: "Token", sortable: true}],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "token",
+              value: "•••• redacted",
+              display: "•••• redacted",
+              format: nil,
+              source: %{opts: [sensitive: true]}
+            }
+          ]
+        }
+      ],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No rows"
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ "max-w-[28rem]"
+    assert html =~ "truncate"
+    assert html =~ ~s(title="•••• redacted")
+    refute html =~ "secret"
+  end
+
   test "does not render dashboard widget span debug badges" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [

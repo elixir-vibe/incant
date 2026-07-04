@@ -62,8 +62,28 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
 
   def cell_class(cell) do
     align = if cell.source.opts[:align] == :right, do: :right, else: :left
-    Theme.slot(:table, :cell, align: align)
+    Theme.slot(:table, :cell, align: align, truncate: truncate_cell?(cell))
   end
+
+  def cell_content_class(cell) do
+    Theme.slot(:table, :cell_content, truncate: truncate_cell?(cell))
+  end
+
+  def cell_title(cell) do
+    if truncate_cell?(cell) && is_binary(cell.display) do
+      String.slice(cell.display, 0, 200)
+    end
+  end
+
+  defp truncate_cell?(cell) do
+    string_length(cell.display) > 120 || truthy?(cell.source.opts[:sensitive]) ||
+      cell.source.opts[:format] == :text || cell.format == :text
+  end
+
+  defp string_length(value) when is_binary(value), do: String.length(value)
+  defp string_length(_value), do: 0
+
+  defp truthy?(value), do: value in [true, "true", 1]
 
   def sort_column("-" <> column), do: column
   def sort_column(column), do: column
