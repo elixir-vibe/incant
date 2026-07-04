@@ -207,7 +207,7 @@ defmodule Incant.Web.APITest do
 
   defp json_conn(method, path, body) do
     method
-    |> conn(path, body)
+    |> conn(path, Jason.encode!(body))
     |> put_req_header("content-type", @media_type)
   end
 

@@ -8,6 +8,7 @@ config :incant, Incant.Web.Endpoint,
   server: false,
   url: [host: "localhost"],
   http: [ip: {127, 0, 0, 1}, port: 4000],
+  pubsub_server: Incant.PubSub,
   live_view: [signing_salt: "incant-live-view"],
   secret_key_base: String.duplicate("0", 64)
 
@@ -44,3 +45,7 @@ config :release_kit, :artifact,
   ],
   assets: [volt: [tailwind: true, production: true, frozen: true]],
   steps: [after_release: [Incant.Web.ReleaseAssets]]
+
+if File.exists?(Path.expand("#{config_env()}.exs", __DIR__)) do
+  import_config "#{config_env()}.exs"
+end

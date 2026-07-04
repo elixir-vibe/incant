@@ -18,11 +18,13 @@ defmodule Incant.ApplicationTest do
     assert Incant.Application.children() == []
   end
 
-  test "standalone mode starts registry and endpoint" do
+  test "standalone mode starts pubsub, registry, and endpoint" do
     Application.put_env(:incant, :serve?, true)
     Application.put_env(:incant, :registry, name: MyRegistry)
 
-    assert [registry, Incant.Web.Endpoint] = Incant.Application.children()
+    assert [{Phoenix.PubSub, [name: Incant.PubSub]}, registry, Incant.Web.Endpoint] =
+             Incant.Application.children()
+
     assert {Incant.Service.RegistryServer, opts} = registry
     assert opts[:name] == MyRegistry
     assert opts[:allow_empty]

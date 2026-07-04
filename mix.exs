@@ -13,7 +13,8 @@ defmodule Incant.MixProject do
       dialyzer: [plt_add_apps: [:mix]],
       releases: releases(),
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
@@ -105,6 +106,7 @@ defmodule Incant.MixProject do
     [
       "assets.build": ["volt.build --tailwind"],
       "assets.deploy": ["volt.build --tailwind", "phx.digest"],
+      server: ["phx.server"],
       ci: [
         "compile --warnings-as-errors",
         "format --check-formatted",

@@ -11,6 +11,7 @@ defmodule Incant.Application do
   def children do
     if Application.get_env(:incant, :serve?, false) do
       [
+        {Phoenix.PubSub, name: Incant.PubSub},
         registry_child(),
         Incant.Web.Endpoint
       ]

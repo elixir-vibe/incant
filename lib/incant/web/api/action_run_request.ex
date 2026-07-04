@@ -5,7 +5,7 @@ defmodule Incant.Web.API.ActionRunRequest do
 
   defstruct payload: %Incant.Web.API.ActionPayload{}, context: %{}
 
-  codec(:payload, transform: :cast_payload)
+  codec(:payload, cast: :cast_payload)
 
   @type t :: %__MODULE__{payload: Incant.Web.API.ActionPayload.t(), context: map()}
 
