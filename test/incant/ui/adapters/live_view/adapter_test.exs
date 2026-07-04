@@ -441,8 +441,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ ~s(href="/llm_proxy/resources/api_key")
-    assert html =~ ~s(data-phx-link="redirect")
-    refute html =~ ~s(data-phx-link="patch")
+    refute html =~ ~s(data-phx-link)
   end
 
   test "renders service index links as absolute paths" do
@@ -471,7 +470,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     html = document |> Incant.UI.render(env) |> rendered_to_string()
 
     assert html =~ ~s(href="/llm_proxy")
-    assert html =~ ~s(data-phx-link="redirect")
+    refute html =~ ~s(data-phx-link)
     refute html =~ ~s(href="llm_proxy")
     assert html =~ "4"
     assert html =~ "Resources"
