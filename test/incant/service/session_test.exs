@@ -56,7 +56,7 @@ defmodule Incant.Service.SessionTest do
     assert {:ok, row} = Incant.Service.Session.read(session, "user", 1)
     assert Incant.Live.Rows.field(row, :name) == "Ada"
 
-    assert {:ok, %{range: "24h", count: 2}} =
+    assert {:ok, %{"range" => "24h", "count" => 2}} =
              Incant.Service.Session.run_widget(session, "operations_dashboard", "users", %{
                "range" => "24h"
              })

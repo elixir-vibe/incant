@@ -36,9 +36,24 @@ defmodule Incant.Service.RuntimeTest do
     use Incant.Dashboard
 
     stat(:requests, query: &__MODULE__.requests/2)
+    table(:recent_requests, query: &__MODULE__.recent_requests/2)
 
     def requests(%{"range" => range}, %{admin: admin, dashboard: dashboard}) do
       %{range: range, admin: admin.module, dashboard: dashboard.module}
+    end
+
+    def recent_requests(_variables, _context) do
+      %{
+        columns: [:timestamp, :provider, :model, :ok],
+        rows: [
+          %{
+            timestamp: ~U[2026-07-04 10:00:00Z],
+            provider: :openai,
+            model: "gpt-4.1",
+            ok: false
+          }
+        ]
+      }
     end
   end
 
@@ -60,10 +75,25 @@ defmodule Incant.Service.RuntimeTest do
   test "runs dashboard widget queries in the service runtime" do
     assert {:ok,
             %{
-              range: "24h",
-              admin: Incant.Service.RuntimeTest.Admin,
-              dashboard: Incant.Service.RuntimeTest.OperationsDashboard
+              "range" => "24h",
+              "admin" => "Elixir.Incant.Service.RuntimeTest.Admin",
+              "dashboard" => "Elixir.Incant.Service.RuntimeTest.OperationsDashboard"
             }} =
              Runtime.run_widget(Admin, "operations_dashboard", "requests", %{"range" => "24h"})
+  end
+
+  test "normalizes dashboard widget values for portable service transport" do
+    assert {:ok,
+            %{
+              "columns" => ["timestamp", "provider", "model", "ok"],
+              "rows" => [
+                %{
+                  "timestamp" => "2026-07-04T10:00:00Z",
+                  "provider" => "openai",
+                  "model" => "gpt-4.1",
+                  "ok" => false
+                }
+              ]
+            }} = Runtime.run_widget(Admin, "operations_dashboard", "recent_requests", %{})
   end
 end

@@ -92,11 +92,9 @@ defmodule Incant.Service.Runtime do
          {:ok, widget} <- fetch_widget(surface, widget_id),
          query when not is_nil(query) <- widget.opts[:query] do
       {:ok,
-       Incant.Callback.call(
-         query,
-         variables,
-         dashboard_context(admin, surface, variables, context)
-       )}
+       query
+       |> Incant.Callback.call(variables, dashboard_context(admin, surface, variables, context))
+       |> portable_widget_value()}
     else
       {:error, reason} -> {:error, reason}
       nil -> {:error, {:missing_widget_query, surface_id, widget_id}}
@@ -141,6 +139,40 @@ defmodule Incant.Service.Runtime do
     |> Map.put_new(:surface, surface)
     |> Map.put_new(:resource, surface.spec)
   end
+
+  defp portable_widget_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
+  defp portable_widget_value(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
+  defp portable_widget_value(%Date{} = value), do: Date.to_iso8601(value)
+  defp portable_widget_value(%Time{} = value), do: Time.to_iso8601(value)
+
+  if Code.ensure_loaded?(Decimal) do
+    defp portable_widget_value(%Decimal{} = value), do: Decimal.to_string(value)
+  end
+
+  defp portable_widget_value(%_struct{} = value) do
+    value
+    |> Map.from_struct()
+    |> portable_widget_value()
+  end
+
+  defp portable_widget_value(value) when is_boolean(value) or is_nil(value), do: value
+
+  defp portable_widget_value(value) when is_map(value) do
+    Map.new(value, fn {key, value} -> {portable_widget_key(key), portable_widget_value(value)} end)
+  end
+
+  defp portable_widget_value(value) when is_list(value),
+    do: Enum.map(value, &portable_widget_value/1)
+
+  defp portable_widget_value(value) when is_tuple(value),
+    do: value |> Tuple.to_list() |> portable_widget_value()
+
+  defp portable_widget_value(value) when is_atom(value), do: Atom.to_string(value)
+  defp portable_widget_value(value), do: value
+
+  defp portable_widget_key(key) when is_atom(key), do: Atom.to_string(key)
+  defp portable_widget_key(key) when is_binary(key), do: key
+  defp portable_widget_key(key), do: key |> portable_widget_value() |> to_string()
 
   defp dashboard_context(admin, surface, variables, context) do
     admin
