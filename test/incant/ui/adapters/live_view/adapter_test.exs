@@ -190,10 +190,16 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
             type: :table,
             opts: [
               columns: [
-                %Incant.Table.Column{name: :model, opts: [label: "Model"]},
-                %Incant.Table.Column{name: :requests, opts: [label: "Requests", format: :number]},
-                %Incant.Table.Column{name: :enabled, opts: [label: "Enabled", format: :boolean]},
-                %Incant.Table.Column{name: :cost, opts: [label: "Cost", format: :money]}
+                %Incant.Dashboard.Column{name: :model, opts: [label: "Model"]},
+                %Incant.Dashboard.Column{
+                  name: :requests,
+                  opts: [label: "Requests", format: :number]
+                },
+                %Incant.Dashboard.Column{
+                  name: :enabled,
+                  opts: [label: "Enabled", format: :boolean]
+                },
+                %Incant.Dashboard.Column{name: :cost, opts: [label: "Cost", format: :money]}
               ]
             ]
           }
@@ -256,6 +262,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ ~s(<th class="h-8 px-3 font-medium text-right">)
+    assert html =~ "ml-auto"
 
     assert html =~
              ~S|<td class="px-3 py-1.5 text-[var(--incant-text-toned)] text-right tabular-nums">|
@@ -272,7 +279,16 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
           title: "Empty usage",
           value: [],
           span: 4,
-          source: %Incant.Dashboard.Widget{id: :empty_usage, type: :table, opts: []}
+          source: %Incant.Dashboard.Widget{
+            id: :empty_usage,
+            type: :table,
+            opts: [
+              columns: [
+                %Incant.Dashboard.Column{name: :service, opts: [label: "Service"]},
+                %Incant.Dashboard.Column{name: :count, opts: [label: "Count", format: :number]}
+              ]
+            ]
+          }
         },
         %Incant.UI.Regions.WidgetGrid.Widget{
           id: :loading_usage,
@@ -300,7 +316,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
       |> rendered_to_string()
 
-    assert html =~ "No rows to display."
+    assert html =~ ~r/Service.*Count.*No rows to display\./s
     assert html =~ "Loading…"
     assert html =~ "Unable to load widget."
     refute html =~ "boom"

@@ -80,8 +80,8 @@ defmodule Incant.DashboardTest do
     assert table.opts[:span] == 12
 
     assert [
-             %Incant.Table.Column{name: :timestamp, opts: timestamp_opts},
-             %Incant.Table.Column{name: :duration_ms, opts: duration_opts}
+             %Incant.Dashboard.Column{name: :timestamp, opts: timestamp_opts},
+             %Incant.Dashboard.Column{name: :duration_ms, opts: duration_opts}
            ] =
              table.opts[:columns]
 

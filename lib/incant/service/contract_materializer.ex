@@ -1,8 +1,7 @@
 defmodule Incant.Service.ContractMaterializer do
   @moduledoc false
 
-  alias Incant.Dashboard.Widget
-  alias Incant.Table.Column
+  alias Incant.Dashboard.{Column, Widget}
 
   def surface(surface) do
     case get(surface, :kind) do

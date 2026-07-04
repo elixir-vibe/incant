@@ -65,8 +65,8 @@ defmodule Incant.Service.SessionTest do
              Enum.find(widgets, &(&1.id == "recent_users"))
 
     assert [
-             %Incant.Table.Column{name: :name, opts: [label: "Name"]},
-             %Incant.Table.Column{name: :count, opts: [label: "Count", format: :number]}
+             %Incant.Dashboard.Column{name: :name, opts: [label: "Name"]},
+             %Incant.Dashboard.Column{name: :count, opts: [label: "Count", format: :number]}
            ] = Keyword.fetch!(opts, :columns)
 
     assert {:ok, %{rows: rows}} = Incant.Service.Session.index(session, "user", %{page: 1})

@@ -3,8 +3,7 @@ defmodule Incant.Dashboard.Scope do
 
   use DSL
 
-  alias Incant.Dashboard.Widget
-  alias Incant.Table.Column
+  alias Incant.Dashboard.{Column, Widget}
 
   scope :dashboard do
     accepts(:widget, into: :widgets)

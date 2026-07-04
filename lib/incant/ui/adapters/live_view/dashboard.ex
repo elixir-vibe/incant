@@ -93,12 +93,13 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
       </div>
       <.widget_message :if={@widget.error} tone={:error} message="Unable to load widget." />
       <.widget_message :if={!@widget.error && @widget.loading} message="Loading…" />
-      <.widget_message :if={!@widget.error && !@widget.loading && table_rows(@widget.value) == []} message="No rows to display." />
-      <table :if={!@widget.error && table_rows(@widget.value) != []} class={Theme.slot(:table, :root)}>
+      <.widget_message :if={!@widget.error && !@widget.loading && table_rows(@widget.value) == [] && table_columns(@widget) == []} message="No rows to display." />
+      <table :if={!@widget.error && !@widget.loading && table_columns(@widget) != []} class={Theme.slot(:table, :root)}>
         <thead class={Theme.slot(:table, :head)}>
           <tr><th :for={column <- table_columns(@widget)} class={table_header_class(column)}>{table_column_label(column)}</th></tr>
         </thead>
         <tbody class={Theme.slot(:table, :body)}>
+          <tr :if={table_rows(@widget.value) == []}><td colspan={length(table_columns(@widget))} class={Theme.slot(:table, :empty)}>No rows to display.</td></tr>
           <tr :for={row <- table_rows(@widget.value)} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)}>{table_cell_display(column, table_cell(row, column))}</td></tr>
         </tbody>
       </table>

@@ -29,10 +29,10 @@ defmodule Incant.Service.ContractMaterializerTest do
     assert Keyword.fetch!(opts, :label) == "Recent usage"
 
     assert [timestamp, cost] = Keyword.fetch!(opts, :columns)
-    assert %Incant.Table.Column{name: :timestamp, opts: timestamp_opts} = timestamp
+    assert %Incant.Dashboard.Column{name: :timestamp, opts: timestamp_opts} = timestamp
     assert Keyword.fetch!(timestamp_opts, :label) == "Timestamp"
     assert Keyword.fetch!(timestamp_opts, :format) == :datetime
-    assert %Incant.Table.Column{name: :cost, opts: cost_opts} = cost
+    assert %Incant.Dashboard.Column{name: :cost, opts: cost_opts} = cost
     assert Keyword.fetch!(cost_opts, :label) == "Cost"
     assert Keyword.fetch!(cost_opts, :format) == :money
   end

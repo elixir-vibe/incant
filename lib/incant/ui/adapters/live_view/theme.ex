@@ -237,7 +237,11 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
       },
       variants: %{
         align: %{
-          right: %{header_cell: "text-right", cell: "text-right tabular-nums"},
+          right: %{
+            header_cell: "text-right",
+            sort_button: "ml-auto",
+            cell: "text-right tabular-nums"
+          },
           left: %{}
         },
         truncate: %{

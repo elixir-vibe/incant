@@ -73,12 +73,18 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def table_header_class(column) do
-    Theme.slot(:table, :header_cell, align: column_align(column))
+    Theme.slot(:table, :header_cell, align: table_column_align(column))
+  end
+
+  def table_sort_button_class(column) do
+    Theme.slot(:table, :sort_button, align: table_column_align(column))
   end
 
   def table_data_class(column) do
-    Theme.slot(:table, :cell, align: column_align(column))
+    Theme.slot(:table, :cell, align: table_column_align(column))
   end
+
+  def table_column_align(column), do: column_align(column)
 
   def cell_content_class(cell) do
     Theme.slot(:table, :cell_content, truncate: truncate_cell?(cell))
@@ -98,7 +104,7 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   defp cell_align(cell),
     do: align(cell.source.opts[:align], cell.source.opts[:format] || cell.format)
 
-  defp column_align(%Incant.Table.Column{opts: opts}), do: align(opts[:align], opts[:format])
+  defp column_align(%Incant.Dashboard.Column{opts: opts}), do: align(opts[:align], opts[:format])
   defp column_align(%{align: align, format: format}), do: align(align, format)
   defp column_align(_column), do: :left
 
@@ -231,18 +237,18 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
 
   def table_cell(_row, _column), do: nil
 
-  def table_column_name(%Incant.Table.Column{name: name}), do: to_string(name)
+  def table_column_name(%Incant.Dashboard.Column{name: name}), do: to_string(name)
   def table_column_name(%{name: name}), do: to_string(name)
   def table_column_name(%{id: id}), do: to_string(id)
   def table_column_name(column), do: to_string(column)
 
-  def table_column_label(%Incant.Table.Column{name: name, opts: opts}),
+  def table_column_label(%Incant.Dashboard.Column{name: name, opts: opts}),
     do: Keyword.get(opts, :label) || humanize(name)
 
   def table_column_label(%{label: label}) when is_binary(label), do: label
   def table_column_label(column), do: column |> table_column_name() |> humanize()
 
-  def table_cell_display(%Incant.Table.Column{opts: opts}, value),
+  def table_cell_display(%Incant.Dashboard.Column{opts: opts}, value),
     do: Incant.Live.Format.value(value, Keyword.get(opts, :format))
 
   def table_cell_display(%{format: format}, value), do: Incant.Live.Format.value(value, format)
