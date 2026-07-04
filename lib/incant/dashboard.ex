@@ -13,13 +13,18 @@ defmodule Incant.Dashboard do
 
         grid columns: 12 do
           stat :total_requests, span: 3, query: &MyApp.Admin.Metrics.total_requests/2
-          table :slow_requests, span: 6, query: &MyApp.Admin.Metrics.slow_requests/2
+
+          table :slow_requests, span: 6, query: &MyApp.Admin.Metrics.slow_requests/2 do
+            column :timestamp, label: "Timestamp", format: :datetime
+            column :duration_ms, label: "Duration", format: :number
+          end
         end
       end
   """
 
   alias Incant.Dashboard.Metadata
-  alias Incant.Dashboard.{Variable, Widget}
+  alias Incant.Dashboard.Scope
+  alias Incant.Dashboard.Variable
 
   defmacro __using__(opts \\ []) do
     quote bind_quoted: [opts: opts] do
@@ -33,13 +38,10 @@ defmodule Incant.Dashboard do
         persist: false
       )
 
-      Module.register_attribute(__MODULE__, :incant_dashboard_widgets,
-        accumulate: true,
-        persist: false
-      )
-
       Module.register_attribute(__MODULE__, :incant_dashboard_grid, persist: false)
       Module.register_attribute(__MODULE__, :incant_dashboard_chart_opts, persist: false)
+
+      Scope.start_dashboard()
 
       @incant_dashboard_opts opts
       @before_compile Incant.Dashboard
@@ -48,7 +50,7 @@ defmodule Incant.Dashboard do
 
   defmacro __before_compile__(env) do
     variables = env.module |> Module.get_attribute(:incant_dashboard_variables) |> Enum.reverse()
-    widgets = env.module |> Module.get_attribute(:incant_dashboard_widgets) |> Enum.reverse()
+    dashboard_scope = Scope.finish_dashboard()
 
     metadata = %Metadata{
       module: env.module,
@@ -57,8 +59,7 @@ defmodule Incant.Dashboard do
         Enum.map(variables, fn {name, type, opts} ->
           %Variable{name: name, type: type, opts: opts}
         end),
-      widgets:
-        Enum.map(widgets, fn {id, type, opts} -> %Widget{id: id, type: type, opts: opts} end),
+      widgets: dashboard_scope.widgets,
       grid: Module.get_attribute(env.module, :incant_dashboard_grid) || [],
       opts: Module.get_attribute(env.module, :incant_dashboard_opts) || []
     }
@@ -77,9 +78,7 @@ defmodule Incant.Dashboard do
     end
   end
 
-  defmacro variables(do: block) do
-    block
-  end
+  defmacro variables(do: block), do: block
 
   defmacro var(name, type, opts \\ []) do
     quote bind_quoted: [name: name, type: type, opts: opts] do
@@ -96,7 +95,7 @@ defmodule Incant.Dashboard do
 
   defmacro widget(id, type, opts \\ []) do
     quote bind_quoted: [id: id, type: type, opts: opts] do
-      @incant_dashboard_widgets {id, type, opts}
+      Scope.add_widget(id, type, opts)
     end
   end
 
@@ -113,8 +112,22 @@ defmodule Incant.Dashboard do
   end
 
   defmacro table(id, opts \\ []) do
+    quote bind_quoted: [id: id, opts: opts] do
+      Scope.add_widget(id, :table, opts)
+    end
+  end
+
+  defmacro table(id, opts, do: block) do
     quote do
-      widget(unquote(id), :table, unquote(opts))
+      Scope.start_table_widget(unquote(id), unquote(opts))
+      unquote(block)
+      Scope.finish_table_widget()
+    end
+  end
+
+  defmacro column(name, opts \\ []) do
+    quote bind_quoted: [name: name, opts: opts] do
+      Scope.add_column(name, opts)
     end
   end
 

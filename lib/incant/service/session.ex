@@ -40,6 +40,7 @@ defmodule Incant.Service.Session do
 
     session
     |> surfaces_by_kind(kind)
+    |> Enum.map(&Incant.Service.ContractMaterializer.surface/1)
     |> Enum.map(&Map.put_new(&1, :service, contract(session).service))
   end
 

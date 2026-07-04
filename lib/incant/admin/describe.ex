@@ -155,7 +155,18 @@ defmodule Incant.Admin.Describe do
   end
 
   defp describe_widget(%{id: id, type: type, opts: opts}) do
-    %{id: to_string(id), type: public_value(type), opts: public_opts(opts, :widget)}
+    widget_opts = public_opts(opts, :widget)
+
+    widget_opts =
+      case Keyword.get(opts, :columns) do
+        columns when is_list(columns) ->
+          Map.put(widget_opts, :columns, Enum.map(columns, &describe_named_opts/1))
+
+        _other ->
+          widget_opts
+      end
+
+    %{id: to_string(id), type: public_value(type), opts: widget_opts}
   end
 
   defp describe_metric(%{name: name, aggregate: aggregate, expr: expr, opts: opts}) do

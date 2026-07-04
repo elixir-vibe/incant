@@ -170,11 +170,17 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def numeric_value(value) when is_number(value), do: value
   def numeric_value(_value), do: 0
 
-  def table_columns(%{columns: columns}) when is_list(columns),
-    do: Enum.map(columns, &to_string/1)
+  def table_columns(%Incant.UI.Regions.WidgetGrid.Widget{source: %{opts: opts}, value: value}) do
+    case Keyword.get(opts, :columns) do
+      columns when is_list(columns) and columns != [] -> columns
+      _other -> table_columns(value)
+    end
+  end
 
-  def table_columns(%{"columns" => columns}) when is_list(columns),
-    do: Enum.map(columns, &to_string/1)
+  def table_columns(%Incant.UI.Regions.WidgetGrid.Widget{value: value}), do: table_columns(value)
+
+  def table_columns(%{columns: columns}) when is_list(columns), do: columns
+  def table_columns(%{"columns" => columns}) when is_list(columns), do: columns
 
   def table_columns([row | _]) when is_map(row),
     do: row |> Map.keys() |> Enum.map(&to_string/1) |> Enum.sort()
@@ -187,6 +193,8 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def table_rows(_rows), do: []
 
   def table_cell(row, column) when is_map(row) do
+    column = table_column_name(column)
+
     case Map.fetch(row, column) do
       {:ok, value} -> value
       :error -> row |> Map.fetch(existing_atom(column)) |> elem_or_nil()
@@ -194,6 +202,23 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def table_cell(_row, _column), do: nil
+
+  def table_column_name(%Incant.Table.Column{name: name}), do: to_string(name)
+  def table_column_name(%{name: name}), do: to_string(name)
+  def table_column_name(%{id: id}), do: to_string(id)
+  def table_column_name(column), do: to_string(column)
+
+  def table_column_label(%Incant.Table.Column{name: name, opts: opts}),
+    do: Keyword.get(opts, :label) || humanize(name)
+
+  def table_column_label(%{label: label}) when is_binary(label), do: label
+  def table_column_label(column), do: column |> table_column_name() |> humanize()
+
+  def table_cell_display(%Incant.Table.Column{opts: opts}, value),
+    do: Incant.Live.Format.value(value, Keyword.get(opts, :format))
+
+  def table_cell_display(%{format: format}, value), do: Incant.Live.Format.value(value, format)
+  def table_cell_display(_column, value), do: Incant.Live.Format.value(value, nil)
 
   defp elem_or_nil({:ok, value}), do: value
   defp elem_or_nil(:error), do: nil

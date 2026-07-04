@@ -176,18 +176,27 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ "Add a resource index callback"
   end
 
-  test "renders dashboard table widgets with explicit column order" do
+  test "renders dashboard table widgets with source column metadata" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [
         %Incant.UI.Regions.WidgetGrid.Widget{
           id: :usage,
           type: :table,
           title: "Usage",
-          value: %{
-            columns: [:model, "requests", :enabled, :cost],
-            rows: [%{cost: "$1", enabled: false, model: "gpt", requests: 2}]
-          },
-          span: 4
+          value: [%{cost: 1.0, enabled: false, model: "gpt", requests: 2}],
+          span: 4,
+          source: %Incant.Dashboard.Widget{
+            id: :usage,
+            type: :table,
+            opts: [
+              columns: [
+                %Incant.Table.Column{name: :model, opts: [label: "Model"]},
+                %Incant.Table.Column{name: :requests, opts: [label: "Requests", format: :number]},
+                %Incant.Table.Column{name: :enabled, opts: [label: "Enabled", format: :boolean]},
+                %Incant.Table.Column{name: :cost, opts: [label: "Cost", format: :money]}
+              ]
+            ]
+          }
         }
       ]
     }
@@ -198,8 +207,8 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ "Usage"
-    assert html =~ ~r/model.*requests.*enabled.*cost/s
-    assert html =~ ~r/gpt.*2.*false.*\$1/s
+    assert html =~ ~r/Model.*Requests.*Enabled.*Cost/s
+    assert html =~ ~r/gpt.*2.*No.*\$1.00/s
   end
 
   test "renders dashboard table widgets with sorted fallback columns" do
@@ -220,7 +229,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
       |> rendered_to_string()
 
-    assert html =~ ~r/alpha.*zeta/s
+    assert html =~ ~r/Alpha.*Zeta/s
     assert html =~ ~r/2.*1/s
   end
 

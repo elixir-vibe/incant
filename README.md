@@ -55,7 +55,11 @@ defmodule MyApp.Admin.Dashboards.Operations do
 
   grid columns: 12 do
     stat :total_requests, span: 3, query: &MyApp.Admin.Metrics.total_requests/2
-    table :slow_requests, span: 6, query: &MyApp.Admin.Metrics.slow_requests/2
+
+    table :slow_requests, span: 6, query: &MyApp.Admin.Metrics.slow_requests/2 do
+      column :timestamp, label: "Timestamp", format: :datetime
+      column :duration_ms, label: "Duration", format: :number
+    end
   end
 end
 ```

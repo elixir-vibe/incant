@@ -14,14 +14,18 @@ defmodule Incant.DashboardTest do
     title("LLM Proxy")
 
     variables do
-      var(:range, :date_range, default: {:last, 24, :hours})
+      var(:range, :date_range, default: "24h")
       var(:provider, :multi_select, options: [:openai, :anthropic])
     end
 
     grid columns: 12, row_height: 8 do
       stat(:total_requests, span: 3, query: &Metrics.total_requests/2)
       timeseries(:requests_over_time, span: 9)
-      table(:slow_requests, span: 12)
+
+      table :slow_requests, span: 12 do
+        column(:timestamp, label: "Timestamp", format: :datetime)
+        column(:duration_ms, label: "Duration", format: :number)
+      end
 
       chart :campaign_clicks, :line, span: 8 do
         dataset(CampaignDataset)
@@ -30,6 +34,26 @@ defmodule Incant.DashboardTest do
         series(:campaign)
         drilldown(:campaign)
       end
+    end
+  end
+
+  defmodule Admin do
+    use Incant.Admin, service: :dashboard_test, version: "1"
+
+    dashboard(LLMStatsDashboard)
+  end
+
+  test "rejects table columns outside table blocks" do
+    assert_raise ArgumentError, ~r/column must be declared inside table_widget/, fn ->
+      Code.compile_string("""
+      defmodule Incant.DashboardTest.BadColumn#{System.unique_integer([:positive])} do
+        use Incant.Dashboard
+
+        grid do
+          column :timestamp
+        end
+      end
+      """)
     end
   end
 
@@ -51,6 +75,30 @@ defmodule Incant.DashboardTest do
 
     assert Enum.map(metadata.widgets, & &1.type) == [:stat, :timeseries, :table, :chart]
     assert hd(metadata.widgets).opts[:query] == (&Metrics.total_requests/2)
+
+    table = Enum.find(metadata.widgets, &(&1.id == :slow_requests))
+    assert table.opts[:span] == 12
+
+    assert [
+             %Incant.Table.Column{name: :timestamp, opts: timestamp_opts},
+             %Incant.Table.Column{name: :duration_ms, opts: duration_opts}
+           ] =
+             table.opts[:columns]
+
+    assert timestamp_opts == [label: "Timestamp", format: :datetime]
+    assert duration_opts == [label: "Duration", format: :number]
+
+    contract = Incant.Admin.describe(Incant.DashboardTest.Admin)
+
+    contract_table =
+      contract.dashboards
+      |> hd()
+      |> then(&Enum.find(&1.widgets, fn widget -> widget.id == "slow_requests" end))
+
+    assert contract_table.opts.columns == [
+             %{id: "timestamp", name: :timestamp, opts: %{label: "Timestamp", format: :datetime}},
+             %{id: "duration_ms", name: :duration_ms, opts: %{label: "Duration", format: :number}}
+           ]
 
     chart = List.last(metadata.widgets)
     assert chart.opts[:chart_type] == :line

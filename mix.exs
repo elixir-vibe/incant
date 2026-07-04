@@ -90,6 +90,7 @@ defmodule Incant.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
+      {:dsl, "~> 0.1.2"},
       {:vibe_kit, "~> 0.1"},
       {:igniter, "~> 0.6", runtime: false},
       {:release_kit, "~> 0.3", runtime: false},

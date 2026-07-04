@@ -1,8 +1,10 @@
 defmodule Incant.Live.Format do
   @moduledoc false
 
+  @formats ~w(money currency number datetime date time boolean relative percent)a
+
   def value(value, format) do
-    do_value(value, format)
+    do_value(value, format_name(format))
   rescue
     _error -> fallback(value)
   end
@@ -19,6 +21,17 @@ defmodule Incant.Live.Format do
   defp do_value(value, :relative), do: relative(value)
   defp do_value(value, :percent) when is_number(value), do: "#{Float.round(value * 100, 2)}%"
   defp do_value(value, _format), do: fallback(value)
+
+  defp format_name(format) when format in @formats, do: format
+
+  defp format_name(format) when is_binary(format) do
+    format = String.to_existing_atom(format)
+    if format in @formats, do: format
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp format_name(_format), do: nil
 
   defp currency(%Decimal{} = value), do: value |> Decimal.to_float() |> currency()
   defp currency(value) when is_integer(value), do: "$#{delimit_integer(value)}"

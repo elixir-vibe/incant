@@ -20,7 +20,13 @@ defmodule Incant.Service.SessionTest do
 
     stat(:users, query: &__MODULE__.users/2)
 
+    table :recent_users, query: &__MODULE__.recent_users/2 do
+      column(:name, label: "Name")
+      column(:count, label: "Count", format: :number)
+    end
+
     def users(%{"range" => range}, _context), do: %{range: range, count: 2}
+    def recent_users(_variables, _context), do: [%{name: "Ada", count: 2}]
   end
 
   defmodule Admin do
@@ -49,6 +55,19 @@ defmodule Incant.Service.SessionTest do
 
     assert {:ok, %{id: "user", title: "User", kind: :resource}} =
              Incant.Service.Session.fetch_surface(session, "user")
+
+    assert {:ok, %{widgets: widgets}} =
+             Incant.Service.Session.fetch_surface(session, "operations_dashboard",
+               kind: :dashboard
+             )
+
+    assert %Incant.Dashboard.Widget{opts: opts} =
+             Enum.find(widgets, &(&1.id == "recent_users"))
+
+    assert [
+             %Incant.Table.Column{name: :name, opts: [label: "Name"]},
+             %Incant.Table.Column{name: :count, opts: [label: "Count", format: :number]}
+           ] = Keyword.fetch!(opts, :columns)
 
     assert {:ok, %{rows: rows}} = Incant.Service.Session.index(session, "user", %{page: 1})
     assert Enum.map(rows, &Incant.Live.Rows.field(&1, :name)) == ["Ada", "Grace"]
