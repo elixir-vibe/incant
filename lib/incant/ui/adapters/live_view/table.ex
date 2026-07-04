@@ -21,7 +21,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         <thead class={Theme.slot(:table, :head)}>
           <tr>
             <th :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}></th>
-            <th :for={column <- @table.columns} class={Theme.slot(:table, :header_cell)}>
+            <th :for={column <- @table.columns} class={table_header_class(column)}>
               <button type="button" phx-click="incant:event" phx-value-op="sort" phx-value-target={column.id} class={Theme.slot(:table, :sort_button)}>
                 {column.label}
                 <span :if={sort_column(@table.sort) == column.id}>{sort_direction(@table.sort)}</span>

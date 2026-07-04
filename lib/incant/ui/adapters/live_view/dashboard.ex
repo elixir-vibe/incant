@@ -85,10 +85,10 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
       </div>
       <table :if={table_rows(@widget.value) != []} class={Theme.slot(:table, :root)}>
         <thead class={Theme.slot(:table, :head)}>
-          <tr><th :for={column <- table_columns(@widget)} class={Theme.slot(:table, :header_cell)}>{table_column_label(column)}</th></tr>
+          <tr><th :for={column <- table_columns(@widget)} class={table_header_class(column)}>{table_column_label(column)}</th></tr>
         </thead>
         <tbody class={Theme.slot(:table, :body)}>
-          <tr :for={row <- table_rows(@widget.value)} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={Theme.slot(:table, :cell)}>{table_cell_display(column, table_cell(row, column))}</td></tr>
+          <tr :for={row <- table_rows(@widget.value)} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)}>{table_cell_display(column, table_cell(row, column))}</td></tr>
         </tbody>
       </table>
     </div>

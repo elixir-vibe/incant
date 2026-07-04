@@ -209,6 +209,58 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "Usage"
     assert html =~ ~r/Model.*Requests.*Enabled.*Cost/s
     assert html =~ ~r/gpt.*2.*No.*\$1.00/s
+    assert html =~ ~s(<th class="h-8 px-3 font-medium text-right">Requests</th>)
+    assert html =~ ~s(<th class="h-8 px-3 font-medium text-right">Cost</th>)
+
+    assert html =~
+             ~S|<td class="px-3 py-1.5 text-[var(--incant-text-toned)] text-right tabular-nums">$1.00</td>|
+  end
+
+  test "right-aligns resource table cells from explicit or formatted metadata" do
+    table = %Incant.UI.Regions.Table{
+      columns: [
+        %Incant.UI.Regions.Table.Column{id: "name", label: "Name", sortable: true},
+        %Incant.UI.Regions.Table.Column{id: "cost", label: "Cost", sortable: true, format: :money}
+      ],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "name",
+              value: "Ada",
+              display: "Ada",
+              source: %Incant.Table.Column{name: :name, opts: []}
+            },
+            %Incant.UI.Regions.Table.Cell{
+              column: "cost",
+              value: 1.0,
+              display: "$1.00",
+              format: :money,
+              source: %Incant.Table.Column{name: :cost, opts: [format: :money]}
+            }
+          ]
+        }
+      ],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No rows"
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ ~s(<th class="h-8 px-3 font-medium text-right">)
+
+    assert html =~
+             ~S|<td class="px-3 py-1.5 text-[var(--incant-text-toned)] text-right tabular-nums">|
+
+    assert html =~ "$1.00"
   end
 
   test "renders dashboard table widgets with sorted fallback columns" do

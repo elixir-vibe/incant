@@ -69,8 +69,15 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def cell_class(cell) do
-    align = if cell.source.opts[:align] == :right, do: :right, else: :left
-    Theme.slot(:table, :cell, align: align, truncate: truncate_cell?(cell))
+    Theme.slot(:table, :cell, align: cell_align(cell), truncate: truncate_cell?(cell))
+  end
+
+  def table_header_class(column) do
+    Theme.slot(:table, :header_cell, align: column_align(column))
+  end
+
+  def table_data_class(column) do
+    Theme.slot(:table, :cell, align: column_align(column))
   end
 
   def cell_content_class(cell) do
@@ -87,6 +94,27 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     string_length(cell.display) > 120 || truthy?(cell.source.opts[:sensitive]) ||
       cell.source.opts[:format] == :text || cell.format == :text
   end
+
+  defp cell_align(cell),
+    do: align(cell.source.opts[:align], cell.source.opts[:format] || cell.format)
+
+  defp column_align(%Incant.Table.Column{opts: opts}), do: align(opts[:align], opts[:format])
+  defp column_align(%{align: align, format: format}), do: align(align, format)
+  defp column_align(_column), do: :left
+
+  defp align(align, _format) when align in [:right, "right"], do: :right
+  defp align(align, _format) when align in [:left, "left"], do: :left
+  defp align(_align, format), do: if(numeric_format?(format), do: :right, else: :left)
+
+  defp numeric_format?(format) when format in [:number, :money, :currency, :percent], do: true
+
+  defp numeric_format?(format) when is_binary(format) do
+    format |> String.to_existing_atom() |> numeric_format?()
+  rescue
+    ArgumentError -> false
+  end
+
+  defp numeric_format?(_format), do: false
 
   defp string_length(value) when is_binary(value), do: String.length(value)
   defp string_length(_value), do: 0
