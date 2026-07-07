@@ -28,7 +28,8 @@ defmodule Incant.UI.Regions.Inspector do
         label: column.opts[:label] || humanize(column.name),
         value: display_value,
         display: Incant.Live.Format.value(display_value, column.opts[:format]),
-        format: column.opts[:as] || column.opts[:format]
+        format: column.opts[:as] || column.opts[:format],
+        sensitive: Incant.Sensitive.sensitive?(column.opts)
       }
     end)
   end

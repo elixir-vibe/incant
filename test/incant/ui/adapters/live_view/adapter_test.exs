@@ -76,7 +76,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ ~s(title="short text")
   end
 
-  test "truncates sensitive table cells without exposing cleartext titles" do
+  test "renders sensitive table cells as redacted badges without cleartext titles" do
     table = %Incant.UI.Regions.Table{
       columns: [%Incant.UI.Regions.Table.Column{id: "token", label: "Token", sortable: true}],
       rows: [
@@ -86,10 +86,10 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
           cells: [
             %Incant.UI.Regions.Table.Cell{
               column: "token",
-              value: "•••• redacted",
-              display: "•••• redacted",
+              value: "[redacted]",
+              display: "[redacted]",
               format: nil,
-              source: %{opts: [sensitive: true]}
+              source: %{opts: [redacted: true]}
             }
           ]
         }
@@ -107,9 +107,10 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ "max-w-[28rem]"
-    assert html =~ "truncate"
     assert html =~ ~s(title="•••• redacted")
-    refute html =~ "secret"
+    assert html =~ "•••• redacted"
+    assert html =~ "border border-[var(--incant-border)]"
+    refute html =~ "sk-secret"
   end
 
   test "renders action confirm text from boolean or custom messages" do

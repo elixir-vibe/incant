@@ -115,8 +115,11 @@ defmodule Incant.UI.Adapters.LiveView.Table do
 
   def cell_value(assigns) do
     ~H"""
-    <span :if={@cell.format == :badge} class={Theme.slot(:badge, :base, variant: :soft)}>{@cell.value}</span>
-    <span :if={@cell.format != :badge} class={cell_content_class(@cell)}>{@cell.display}</span>
+    <span :if={cell_sensitive?(@cell)} class={Theme.slot(:badge, :base, variant: :outline)}>
+      {redacted_cell_display()}
+    </span>
+    <span :if={!cell_sensitive?(@cell) && @cell.format == :badge} class={Theme.slot(:badge, :base, variant: :soft)}>{@cell.value}</span>
+    <span :if={!cell_sensitive?(@cell) && @cell.format != :badge} class={cell_content_class(@cell)}>{@cell.display}</span>
     """
   end
 

@@ -187,14 +187,15 @@ defmodule Incant.UI.DocumentTest do
   test "redacts sensitive resource values in table and detail models" do
     resource = Incant.metadata(SecretResource)
 
-    document =
+    context =
       context(
         resource: resource,
         resources: [resource],
         rows: [%{id: 1, name: "prod", api_key: "sk-secret", prompt: "private prompt"}],
         selected_row: %{id: 1, name: "prod", api_key: "sk-secret", prompt: "private prompt"}
       )
-      |> Incant.UI.Document.from_context(page_title: "prod")
+
+    document = Incant.UI.Document.from_context(context, page_title: "prod")
 
     assert %Incant.UI.Surfaces.ResourceIndex{table: table, detail: detail} = document.surface
     assert [%{cells: cells, source: table_source}] = table.rows
@@ -204,6 +205,16 @@ defmodule Incant.UI.DocumentTest do
     assert Enum.map(detail.fields, & &1.value) == ["prod", "[redacted]", "[redacted]"]
     assert detail.source.api_key == "[redacted]"
     assert detail.source.prompt == "[redacted]"
+
+    html =
+      document
+      |> Incant.UI.render(Incant.UI.Env.new(context))
+      |> Phoenix.HTML.Safe.to_iodata()
+      |> IO.iodata_to_binary()
+
+    assert html =~ "•••• redacted"
+    refute html =~ "sk-secret"
+    refute html =~ "private prompt"
   end
 
   test "builds new form document" do

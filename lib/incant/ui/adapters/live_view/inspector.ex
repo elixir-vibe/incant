@@ -4,6 +4,7 @@ defmodule Incant.UI.Adapters.LiveView.Inspector do
   use Phoenix.Component
 
   import Incant.Live.Routes
+  import Incant.UI.Adapters.LiveView.Helpers, only: [redacted_cell_display: 0]
 
   alias Incant.UI.Adapters.LiveView.Theme
   alias Incant.UI.Regions.Inspector
@@ -24,7 +25,12 @@ defmodule Incant.UI.Adapters.LiveView.Inspector do
       <dl class={Theme.slot(:inspector, :list)}>
         <div :for={field <- @inspector.fields} class={Theme.slot(:inspector, :item)}>
           <dt class={Theme.slot(:inspector, :label)}>{field.label}</dt>
-          <dd class={Theme.slot(:inspector, :value)}>{field.display}</dd>
+          <dd class={Theme.slot(:inspector, :value)}>
+            <span :if={field[:sensitive]} class={Theme.slot(:badge, :base, variant: :outline)}>
+              {redacted_cell_display()}
+            </span>
+            <span :if={!field[:sensitive]}>{field.display}</span>
+          </dd>
         </div>
       </dl>
     </div>

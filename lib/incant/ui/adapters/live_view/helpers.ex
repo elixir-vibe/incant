@@ -91,15 +91,24 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def cell_title(cell) do
-    if truncate_cell?(cell) && is_binary(cell.display) do
-      String.slice(cell.display, 0, 200)
+    cond do
+      cell_sensitive?(cell) -> redacted_cell_display()
+      truncate_cell?(cell) && is_binary(cell.display) -> String.slice(cell.display, 0, 200)
+      true -> nil
     end
   end
 
+  def cell_sensitive?(cell), do: Incant.Sensitive.sensitive?(cell_opts(cell))
+
+  def redacted_cell_display, do: "•••• redacted"
+
   defp truncate_cell?(cell) do
-    string_length(cell.display) > 120 || truthy?(cell.source.opts[:sensitive]) ||
-      cell.source.opts[:format] == :text || cell.format == :text
+    string_length(cell.display) > 120 || cell_sensitive?(cell) ||
+      Keyword.get(cell_opts(cell), :format) == :text || cell.format == :text
   end
+
+  defp cell_opts(%{source: %{opts: opts}}) when is_list(opts), do: opts
+  defp cell_opts(_cell), do: []
 
   defp cell_align(cell),
     do: align(cell.source.opts[:align], cell.source.opts[:format] || cell.format)
@@ -124,8 +133,6 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
 
   defp string_length(value) when is_binary(value), do: String.length(value)
   defp string_length(_value), do: 0
-
-  defp truthy?(value), do: value in [true, "true", 1]
 
   def sort_column("-" <> column), do: column
   def sort_column(column), do: column
