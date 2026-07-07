@@ -228,6 +228,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         cell: "px-3 py-1.5 text-[var(--incant-text-toned)]",
         cell_content: "block",
         empty: "px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]",
+        empty_hint: "mt-1 text-xs text-[var(--incant-text-dimmed)]",
         actions: "px-3 py-1.5 text-right",
         action_group: "inline-flex items-center gap-1",
         link: "font-medium text-[var(--incant-text-highlighted)] hover:underline",

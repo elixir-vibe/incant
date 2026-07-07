@@ -12,6 +12,7 @@ defmodule Incant.UI.Env do
           locale: String.t() | nil,
           timezone: String.t() | nil,
           density: atom,
+          debug: boolean,
           theme: map | nil,
           context: map | nil,
           assigns: map
@@ -23,6 +24,7 @@ defmodule Incant.UI.Env do
             locale: nil,
             timezone: nil,
             density: :compact,
+            debug: false,
             theme: nil,
             context: nil,
             assigns: %{}
@@ -37,6 +39,7 @@ defmodule Incant.UI.Env do
       locale: Config.get(admin, :locale),
       timezone: Config.get(admin, :timezone),
       density: Config.get(admin, :density, :compact),
+      debug: Config.get(admin, :debug, false),
       theme: Map.get(context, :theme),
       context: context,
       assigns: assigns

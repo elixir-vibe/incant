@@ -32,7 +32,12 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         </thead>
         <tbody class={Theme.slot(:table, :body)}>
           <tr :if={@table.rows == []}>
-            <td colspan={empty_colspan(@table)} class={Theme.slot(:table, :empty)}>{@table.empty_state}</td>
+            <td colspan={empty_colspan(@table)} class={Theme.slot(:table, :empty)}>
+              <div>{@table.empty_state}</div>
+              <p :if={@env.debug} class={Theme.slot(:table, :empty_hint)}>
+                Developer hint: verify the resource index callback, filters, and query configuration.
+              </p>
+            </td>
           </tr>
           <tr :for={row <- @table.rows} class={Theme.slot(:table, :row)}>
             <td :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}>

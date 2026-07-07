@@ -26,6 +26,13 @@ defmodule Incant.UI.ConfigTest do
     assert Incant.UI.Config.get(Admin, :density) == :compact
   end
 
+  test "UI env reads debug mode from config" do
+    Application.put_env(:incant, :debug, true)
+
+    assert %Incant.UI.Env{debug: true} =
+             Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"})
+  end
+
   defp restore_env(app_env) do
     :incant
     |> Application.get_all_env()

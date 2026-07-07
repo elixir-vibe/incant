@@ -174,6 +174,27 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
 
     assert html =~ "No results. Try adjusting or clearing the filters."
     refute html =~ "Add a resource index callback"
+    refute html =~ "Developer hint:"
+  end
+
+  test "renders empty table developer hints only in debug mode" do
+    table = %Incant.UI.Regions.Table{
+      columns: [%Incant.UI.Regions.Table.Column{id: "name", label: "Name", sortable: true}],
+      rows: [],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No results. Try adjusting or clearing the filters."
+    }
+
+    env = %Incant.UI.Env{debug: true, base_path: "/admin", context: %Incant.Live.Context{}}
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ "No results. Try adjusting or clearing the filters."
+    assert html =~ "Developer hint: verify the resource index callback"
   end
 
   test "renders dashboard table widgets with source column metadata" do
