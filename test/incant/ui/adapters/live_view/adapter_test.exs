@@ -62,6 +62,52 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ">\n            input_tokens\n"
   end
 
+  test "renders boolean and identifier cells with semantic table treatment" do
+    table = %Incant.UI.Regions.Table{
+      columns: [
+        %Incant.UI.Regions.Table.Column{id: "enabled", label: "Enabled", sortable: true},
+        %Incant.UI.Regions.Table.Column{id: "key_id", label: "Key", sortable: true}
+      ],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "enabled",
+              value: true,
+              display: "Yes",
+              format: :boolean,
+              source: %{opts: []}
+            },
+            %Incant.UI.Regions.Table.Cell{
+              column: "key_id",
+              value: "27dca8e9-9d57",
+              display: "27dca8e9…",
+              format: :id,
+              source: %{opts: []}
+            }
+          ]
+        }
+      ],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No rows"
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ "●"
+    assert html =~ "Yes"
+    assert html =~ "font-mono text-xs"
+    assert html =~ ~s(title="27dca8e9-9d57")
+  end
+
   test "truncates long and text-format table cells with hover titles" do
     long_text = String.duplicate("long message ", 20)
 

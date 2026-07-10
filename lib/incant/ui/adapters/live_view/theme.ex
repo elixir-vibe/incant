@@ -266,6 +266,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         row: "h-9 hover:bg-[var(--incant-bg-muted)]",
         cell: "px-3 py-1.5 text-[var(--incant-text-toned)]",
         cell_content: "block",
+        boolean: "inline-flex items-center gap-1.5 text-xs",
         empty: "px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]",
         empty_hint: "mt-1 text-xs text-[var(--incant-text-dimmed)]",
         actions: "px-3 py-1.5 text-right",
@@ -292,9 +293,23 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
           compact: %{row: "h-8"},
           default: %{row: "h-10"},
           comfortable: %{row: "h-12"}
+        },
+        identifier: %{
+          true => %{cell_content: "font-mono text-xs"},
+          false => %{}
+        },
+        value: %{
+          true => %{boolean: "text-[var(--incant-success)]"},
+          false => %{boolean: "text-[var(--incant-text-muted)]"}
         }
       },
-      default_variants: %{align: :left, truncate: false, density: :default}
+      default_variants: %{
+        align: :left,
+        truncate: false,
+        density: :default,
+        identifier: false,
+        value: false
+      }
     }
   end
 

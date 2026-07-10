@@ -36,9 +36,11 @@ defmodule Incant.Live.FormatTest do
     assert Format.value("2026-07-01T15:55:42Z", :time) == "15:55:42"
   end
 
-  test "formats booleans and percentages" do
+  test "formats booleans, identifiers, and percentages" do
     assert Format.value(true, :boolean) == "Yes"
     assert Format.value(false, :boolean) == "No"
+    assert Format.value("27dca8e9-9d57-4ef2-8c5e-7dab93e3bbd3", :id) == "27dca8e9…"
+    assert Format.value("short", :id) == "short"
     assert Format.value(0.1234, :percent) == "12.34%"
   end
 

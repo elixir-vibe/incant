@@ -87,18 +87,27 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def table_column_align(column), do: column_align(column)
 
   def cell_content_class(cell) do
-    Theme.slot(:table, :cell_content, truncate: truncate_cell?(cell))
+    Theme.slot(
+      :table,
+      :cell_content,
+      truncate: truncate_cell?(cell),
+      identifier: id_cell?(cell)
+    )
   end
 
   def cell_title(cell) do
     cond do
       cell_sensitive?(cell) -> redacted_cell_display()
+      id_cell?(cell) -> string_value(cell.value)
       truncate_cell?(cell) && is_binary(cell.display) -> String.slice(cell.display, 0, 200)
       true -> nil
     end
   end
 
   def cell_sensitive?(cell), do: Incant.Sensitive.sensitive?(cell_opts(cell))
+  def id_cell?(cell), do: format?(cell.format, :id)
+  def boolean_cell?(cell), do: format?(cell.format, :boolean)
+  def boolean_value?(cell), do: cell.value in [true, "true", 1]
 
   def redacted_cell_display, do: "•••• redacted"
 
@@ -133,6 +142,13 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   defp numeric_format?(_format), do: false
+
+  defp format?(format, target) when is_atom(format), do: format == target
+  defp format?(format, target) when is_binary(format), do: format == to_string(target)
+  defp format?(_format, _target), do: false
+
+  defp string_value(value) when is_binary(value), do: value
+  defp string_value(value), do: to_string(value)
 
   defp string_length(value) when is_binary(value), do: String.length(value)
   defp string_length(_value), do: 0

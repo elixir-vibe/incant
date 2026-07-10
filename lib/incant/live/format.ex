@@ -1,7 +1,7 @@
 defmodule Incant.Live.Format do
   @moduledoc false
 
-  @formats ~w(money currency number datetime date time boolean relative percent)a
+  @formats ~w(money currency number datetime date time boolean relative percent id)a
 
   def value(value, format) do
     do_value(value, format_name(format))
@@ -19,6 +19,7 @@ defmodule Incant.Live.Format do
   defp do_value(true, :boolean), do: "Yes"
   defp do_value(false, :boolean), do: "No"
   defp do_value(value, :relative), do: relative(value)
+  defp do_value(value, :id), do: identifier(value)
   defp do_value(value, :percent) when is_number(value), do: "#{Float.round(value * 100, 2)}%"
   defp do_value(value, _format), do: fallback(value)
 
@@ -88,6 +89,11 @@ defmodule Incant.Live.Format do
     do: value |> parse_datetime() |> relative_or_fallback(value)
 
   defp relative(value), do: fallback(value)
+
+  defp identifier(value) when is_binary(value) and byte_size(value) > 8,
+    do: String.slice(value, 0, 8) <> "…"
+
+  defp identifier(value), do: fallback(value)
 
   defp relative_seconds(seconds) when seconds < 0, do: "in #{relative_unit(abs(seconds))}"
   defp relative_seconds(seconds), do: "#{relative_unit(seconds)} ago"
