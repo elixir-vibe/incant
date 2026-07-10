@@ -463,7 +463,23 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ ~s(href="/llm_proxy/resources/api_key")
+    assert html =~ ~s(aria-current="page")
+    refute html =~ "Datasets"
     refute html =~ ~s(data-phx-link)
+  end
+
+  test "renders shell breadcrumbs with the current page highlighted" do
+    html =
+      %{items: ["Incant", "llm_proxy", "Resources", "API Keys"]}
+      |> Incant.UI.Adapters.LiveView.breadcrumbs()
+      |> rendered_to_string()
+
+    assert html =~ ~s(aria-label="Breadcrumb")
+    assert html =~ "Incant"
+    assert html =~ "llm_proxy"
+    assert html =~ "Resources"
+    assert html =~ "API Keys"
+    assert html =~ "font-medium text-[var(--incant-text-highlighted)]"
   end
 
   test "renders service index links as absolute paths" do

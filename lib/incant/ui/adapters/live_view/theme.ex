@@ -13,16 +13,24 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
       slots: %{
         root: "min-h-screen bg-[var(--incant-bg)] text-[var(--incant-text)] antialiased",
         sidebar:
-          "fixed inset-y-0 left-0 hidden w-60 border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] lg:block",
+          "fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] transition-transform duration-200 lg:w-60 lg:translate-x-0",
+        sidebar_backdrop: "fixed inset-0 z-30 hidden bg-black/30 backdrop-blur-[1px] lg:hidden",
         brand: "border-b border-[var(--incant-border-muted)] px-4 py-4",
         brand_mark:
           "text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--incant-primary)]",
-        brand_title: "mt-1.5 text-sm font-medium text-[var(--incant-text-highlighted)]",
+        brand_title: "mt-1 text-base font-semibold text-[var(--incant-text-highlighted)]",
         main: "min-w-0 lg:pl-60",
         topbar:
-          "sticky top-0 z-10 border-b border-[var(--incant-border)] bg-[color-mix(in_oklab,var(--incant-bg-elevated)_94%,transparent)] px-5 backdrop-blur",
+          "sticky top-0 z-20 border-b border-[var(--incant-border)] bg-[color-mix(in_oklab,var(--incant-bg-elevated)_94%,transparent)] px-4 backdrop-blur lg:px-5",
         topbar_inner: "mx-auto flex h-12 max-w-[1180px] items-center justify-between gap-3",
-        chrome_count: "hidden shrink-0 text-xs text-[var(--incant-text-muted)] md:block",
+        breadcrumb: "flex min-w-0 items-center gap-1.5 text-sm",
+        breadcrumb_muted: "truncate text-[var(--incant-text-muted)]",
+        breadcrumb_current: "truncate font-medium text-[var(--incant-text-highlighted)]",
+        breadcrumb_separator: "text-[var(--incant-text-dimmed)]",
+        topbar_actions: "ml-auto flex items-center gap-1",
+        icon_button:
+          "inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--incant-text-muted)] transition-colors hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+        mobile_nav_toggle: "lg:hidden",
         body: "mx-auto max-w-[1180px] p-4 lg:p-5"
       }
     }
@@ -32,12 +40,13 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     %Recipe{
       slots: %{
         base:
-          "block rounded-md px-2.5 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]"
+          "block rounded-r-md border-l-[3px] border-transparent px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]"
       },
       variants: %{
         active: %{
           true => %{
-            base: "bg-[var(--incant-bg-muted)] font-medium text-[var(--incant-text-highlighted)]"
+            base:
+              "border-l-[var(--incant-primary)] bg-[var(--incant-bg-muted)] font-medium text-[var(--incant-text-highlighted)]"
           },
           false => %{
             base:
@@ -72,10 +81,10 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
   def recipe(:nav) do
     %Recipe{
       slots: %{
-        root: "space-y-5 px-3 py-4",
+        root: "flex-1 space-y-5 overflow-y-auto px-3 py-4",
         group_label:
           "px-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--incant-text-muted)]",
-        group_items: "mt-1 space-y-0.5"
+        group_items: "mt-1 space-y-1"
       }
     }
   end

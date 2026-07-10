@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
     <.live_title suffix=" · Incant">Incant</.live_title>
+    <script>
+      (() => {
+        try {
+          const theme = localStorage.getItem("incant-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          document.documentElement.classList.toggle("dark", theme === "dark");
+        } catch (_) {}
+      })();
+    </script>
     <link phx-track-static rel="stylesheet" href={Volt.static_path(Incant.Web.Endpoint, "/assets/css/app.css")} />
     <script defer phx-track-static type="module" src={Volt.static_path(Incant.Web.Endpoint, "/assets/js/app.js")}>
     </script>

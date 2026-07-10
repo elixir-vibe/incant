@@ -24,8 +24,9 @@ defmodule Incant.UI.Adapters.LiveView do
     assigns = %{document: document, env: env, nav: document.nav, surface: document.surface}
 
     ~H"""
-    <div class={Theme.slot(:shell, :root)}>
-      <aside class={Theme.slot(:shell, :sidebar)}>
+    <div class={Theme.slot(:shell, :root)} data-incant-shell>
+      <div class={Theme.slot(:shell, :sidebar_backdrop)} data-incant-nav-backdrop></div>
+      <aside class={Theme.slot(:shell, :sidebar)} data-incant-sidebar>
         <div class={Theme.slot(:shell, :brand)}>
           <div class={Theme.slot(:shell, :brand_mark)}>Incant</div>
           <div class={Theme.slot(:shell, :brand_title)}>{short_module(@env.admin)}</div>
@@ -36,9 +37,28 @@ defmodule Incant.UI.Adapters.LiveView do
       <main class={Theme.slot(:shell, :main)}>
         <div class={Theme.slot(:shell, :topbar)}>
           <div class={Theme.slot(:shell, :topbar_inner)}>
-            <div></div>
-            <div class={Theme.slot(:shell, :chrome_count)}>
-              {nav_count(@nav, :resource)} resources · {nav_count(@nav, :dataset)} datasets · {nav_count(@nav, :dashboard)} dashboards
+            <button
+              type="button"
+              class={[Theme.slot(:shell, :icon_button), Theme.slot(:shell, :mobile_nav_toggle)]}
+              aria-label="Open navigation"
+              aria-expanded="false"
+              data-incant-nav-toggle
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="h-4 w-4">
+                <path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+            <.breadcrumbs items={breadcrumb_items(@env.context, @surface)} />
+            <div class={Theme.slot(:shell, :topbar_actions)}>
+              <button type="button" class={Theme.slot(:shell, :icon_button)} aria-label="Toggle dark mode" data-incant-theme-toggle>
+                <svg data-incant-theme-icon="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="h-4 w-4">
+                  <circle cx="12" cy="12" r="4" />
+                  <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+                <svg data-incant-theme-icon="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="hidden h-4 w-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M20.35 15.5A8.5 8.5 0 0 1 8.5 3.65 8.5 8.5 0 1 0 20.35 15.5Z" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -77,18 +97,34 @@ defmodule Incant.UI.Adapters.LiveView do
 
   def nav_group(assigns) do
     ~H"""
-    <div>
+    <div :if={@items != []}>
       <div class={Theme.slot(:nav, :group_label)}>{@title}</div>
       <div class={Theme.slot(:nav, :group_items)}>
         <.link
           :for={item <- @items}
           href={item.path}
           class={Theme.slot(:nav_item, :base, active: item.id == @active_id)}
+          aria-current={if(item.id == @active_id, do: "page")}
         >
           {item.label}
         </.link>
       </div>
     </div>
+    """
+  end
+
+  attr(:items, :list, required: true)
+
+  def breadcrumbs(assigns) do
+    ~H"""
+    <nav aria-label="Breadcrumb" class={Theme.slot(:shell, :breadcrumb)}>
+      <%= for {item, index} <- Enum.with_index(@items) do %>
+        <span :if={index > 0} aria-hidden="true" class={Theme.slot(:shell, :breadcrumb_separator)}>/</span>
+        <span class={if(index == length(@items) - 1, do: Theme.slot(:shell, :breadcrumb_current), else: Theme.slot(:shell, :breadcrumb_muted))}>
+          {item}
+        </span>
+      <% end %>
+    </nav>
     """
   end
 
@@ -242,7 +278,27 @@ defmodule Incant.UI.Adapters.LiveView do
     """
   end
 
-  defp nav_count(nav, kind), do: nav.items |> Enum.count(&(&1.kind == kind))
+  defp breadcrumb_items(context, surface) do
+    ["Incant"]
+    |> maybe_add(service_name(context))
+    |> maybe_add(section_name(context))
+    |> maybe_add(surface.title)
+    |> Enum.uniq()
+  end
+
+  defp service_name(%{session: %{entry: %{contract: %{service: service}}}}),
+    do: to_string(service)
+
+  defp service_name(_context), do: nil
+
+  defp section_name(%{section: "dashboard"}), do: "Dashboards"
+  defp section_name(%{section: "dataset"}), do: "Datasets"
+  defp section_name(%{section: "resource"}), do: "Resources"
+  defp section_name(%{section: "services"}), do: "Services"
+  defp section_name(_context), do: nil
+
+  defp maybe_add(items, nil), do: items
+  defp maybe_add(items, item), do: items ++ [item]
 
   defp service_path(base_path, service) do
     Path.join(base_path || "/", service.id)

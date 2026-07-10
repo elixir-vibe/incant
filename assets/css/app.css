@@ -65,3 +65,13 @@
   --incant-border-accented: color-mix(in oklab, white 16%, transparent);
   --incant-border-inverted: var(--color-zinc-100);
 }
+
+@media (max-width: 1023px) {
+  .incant-nav-open [data-incant-sidebar] {
+    transform: translateX(0);
+  }
+
+  .incant-nav-open [data-incant-nav-backdrop] {
+    display: block;
+  }
+}
