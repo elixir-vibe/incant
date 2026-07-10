@@ -104,11 +104,14 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
 
   defp truncate_cell?(cell) do
     string_length(cell.display) > 120 || cell_sensitive?(cell) ||
-      Keyword.get(cell_opts(cell), :format) == :text || cell.format == :text
+      opt(cell_opts(cell), :format) == :text || cell.format == :text
   end
 
-  defp cell_opts(%{source: %{opts: opts}}) when is_list(opts), do: opts
+  defp cell_opts(%{source: %{opts: opts}}) when is_list(opts) or is_map(opts), do: opts
   defp cell_opts(_cell), do: []
+
+  defp opt(opts, key) when is_list(opts), do: Keyword.get(opts, key)
+  defp opt(opts, key) when is_map(opts), do: Map.get(opts, key) || Map.get(opts, to_string(key))
 
   defp cell_align(cell),
     do: align(cell.source.opts[:align], cell.source.opts[:format] || cell.format)

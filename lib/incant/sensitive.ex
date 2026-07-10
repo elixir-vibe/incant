@@ -11,8 +11,13 @@ defmodule Incant.Sensitive do
 
   @doc "Returns true when metadata opts mark a value as sensitive."
   def sensitive?(opts) when is_list(opts) do
-    truthy?(Keyword.get(opts, :secret)) or truthy?(Keyword.get(opts, :sensitive)) or
-      truthy?(Keyword.get(opts, :redacted))
+    sensitive_option?(opts, :secret) or sensitive_option?(opts, :sensitive) or
+      sensitive_option?(opts, :redacted)
+  end
+
+  def sensitive?(opts) when is_map(opts) do
+    sensitive_option?(opts, :secret) or sensitive_option?(opts, :sensitive) or
+      sensitive_option?(opts, :redacted)
   end
 
   def sensitive?(_opts), do: false
@@ -48,6 +53,12 @@ defmodule Incant.Sensitive do
 
   defp maybe_put_redacted(row, field) do
     if Map.has_key?(row, field), do: Map.put(row, field, @redacted), else: row
+  end
+
+  defp sensitive_option?(opts, key) when is_list(opts), do: opts |> Keyword.get(key) |> truthy?()
+
+  defp sensitive_option?(opts, key) when is_map(opts) do
+    truthy?(Map.get(opts, key)) or truthy?(Map.get(opts, to_string(key)))
   end
 
   defp truthy?(value), do: value not in [nil, false]
