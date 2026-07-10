@@ -62,6 +62,50 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ">\n            input_tokens\n"
   end
 
+  test "links every data cell when a row detail is available" do
+    table = %Incant.UI.Regions.Table{
+      columns: [
+        %Incant.UI.Regions.Table.Column{id: "name", label: "Name", sortable: true},
+        %Incant.UI.Regions.Table.Column{id: "status", label: "Status", sortable: true}
+      ],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          detail: %{},
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "name",
+              value: "Ada",
+              display: "Ada",
+              source: %{opts: []}
+            },
+            %Incant.UI.Regions.Table.Cell{
+              column: "status",
+              value: "active",
+              display: "active",
+              source: %{opts: []}
+            }
+          ]
+        }
+      ],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No rows"
+    }
+
+    context = %Incant.Live.Context{base_path: "/admin", resource: %{id: "user"}}
+    env = Incant.UI.Env.new(context, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert length(Regex.scan(~r/href="\/admin\/resources\/user\/row-1"/, html)) == 2
+    assert html =~ "cursor-pointer"
+  end
+
   test "renders boolean and identifier cells with semantic table treatment" do
     table = %Incant.UI.Regions.Table{
       columns: [
@@ -232,6 +276,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ ~s(data-confirm="Are you sure?")
+    assert html =~ ~s(phx-disable-with="Delete…")
     assert html =~ ~s(data-confirm="Disable this token?")
     assert html =~ ~s(data-confirm="Resync now?")
     refute html =~ ~s(data-confirm="false")

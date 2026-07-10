@@ -66,6 +66,12 @@
   --incant-border-inverted: var(--color-zinc-100);
 }
 
+.phx-click-loading,
+.phx-change-loading {
+  opacity: 0.65;
+  transition: opacity 150ms ease;
+}
+
 @media (max-width: 1023px) {
   .incant-nav-open [data-incant-sidebar] {
     transform: translateX(0);

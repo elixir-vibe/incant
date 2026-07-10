@@ -17,7 +17,11 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def input_value(value), do: value
 
   def detail_link?(context, column, row, row_id) do
-    column.opts[:link] && row_id &&
+    column.opts[:link] && row_detail_link?(context, row, row_id)
+  end
+
+  def row_detail_link?(context, row, row_id) do
+    row_id &&
       Authorization.allowed?(
         context.admin,
         :view_row,

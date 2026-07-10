@@ -301,6 +301,10 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         value: %{
           true => %{boolean: "text-[var(--incant-success)]"},
           false => %{boolean: "text-[var(--incant-text-muted)]"}
+        },
+        clickable: %{
+          true => %{row: "cursor-pointer"},
+          false => %{}
         }
       },
       default_variants: %{
@@ -308,7 +312,8 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         truncate: false,
         density: :default,
         identifier: false,
-        value: false
+        value: false,
+        clickable: false
       }
     }
   end

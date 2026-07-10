@@ -52,7 +52,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
               </p>
             </td>
           </tr>
-          <tr :for={row <- @table.rows} class={Theme.slot(:table, :row, density: @table.density)}>
+          <tr :for={row <- @table.rows} class={row_class(@env.context, @table, row)}>
             <td :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}>
               <input
                 type="checkbox"
@@ -98,6 +98,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
           phx-value-target={action.name}
           disabled={selected_count(@table) == 0}
           data-confirm={confirm_message(action)}
+          phx-disable-with={action_label(action) <> "…"}
         >
           {action_label(action)}
         </button>
@@ -111,6 +112,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
           phx-value-op="page_action"
           phx-value-target={action.name}
           data-confirm={confirm_message(action)}
+          phx-disable-with={action_label(action) <> "…"}
         >
           {action_label(action)}
         </button>
@@ -123,10 +125,10 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     assigns = assign(assigns, :column, assigns.cell.source)
 
     ~H"""
-    <.link :if={detail_link?(@env.context, @column, @row.source, @row.id)} patch={resource_detail_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:table, :link)}>
+    <.link :if={row_detail_link?(@env.context, @row.source, @row.id) && @row.detail} patch={resource_detail_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:table, :link)}>
       <.cell_value cell={@cell} />
     </.link>
-    <.cell_value :if={!detail_link?(@env.context, @column, @row.source, @row.id)} cell={@cell} />
+    <.cell_value :if={!(row_detail_link?(@env.context, @row.source, @row.id) && @row.detail)} cell={@cell} />
     """
   end
 
@@ -157,7 +159,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         <.link :if={action.name == :edit && @row.id && form_enabled?(@env.context.resource)} patch={resource_edit_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:button, :base, variant: :ghost, size: :xs)}>
           {action_label(action)}
         </.link>
-        <button :if={action.name != :edit || !form_enabled?(@env.context.resource)} type="button" class={Theme.slot(:button, :base, variant: :ghost, size: :xs)} phx-click="incant:event" phx-value-op="row_action" phx-value-target={action.name} phx-value-value={@row.id} data-confirm={confirm_message(action)}>
+        <button :if={action.name != :edit || !form_enabled?(@env.context.resource)} type="button" class={Theme.slot(:button, :base, variant: :ghost, size: :xs)} phx-click="incant:event" phx-value-op="row_action" phx-value-target={action.name} phx-value-value={@row.id} data-confirm={confirm_message(action)} phx-disable-with={action_label(action) <> "…"}>
           {action_label(action)}
         </button>
       <% end %>
@@ -180,6 +182,15 @@ defmodule Incant.UI.Adapters.LiveView.Table do
   def pagination(assigns) do
     ~H"""
     """
+  end
+
+  defp row_class(context, table, row) do
+    Theme.slot(
+      :table,
+      :row,
+      density: table.density,
+      clickable: not is_nil(row.detail) and row_detail_link?(context, row.source, row.id)
+    )
   end
 
   defp selected?(table, row_id), do: to_string(row_id) in table.selection.selected_ids
