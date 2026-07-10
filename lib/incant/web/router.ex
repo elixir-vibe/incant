@@ -19,6 +19,7 @@ defmodule Incant.Web.Router do
   scope "/" do
     get("/health", Incant.Web.HealthPlug, [])
     get("/favicon.ico", Incant.Web.FaviconPlug, [])
+    get("/config", Incant.Web.NotFoundPlug, [])
     forward("/incant", Incant.Web.API)
 
     pipe_through(:browser)
