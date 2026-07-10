@@ -6,6 +6,7 @@ config :incant,
 
 config :incant, Incant.Web.Endpoint,
   server: false,
+  render_errors: [formats: [html: Incant.Web.ErrorHTML], layout: false],
   url: [host: "localhost"],
   http: [ip: {127, 0, 0, 1}, port: 4000],
   pubsub_server: Incant.PubSub,
