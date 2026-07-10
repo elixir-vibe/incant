@@ -87,7 +87,7 @@ defmodule Incant.UI.Regions.Table do
       id: to_string(column.name),
       label: column.opts[:label] || humanize(column.name),
       align: column.opts[:align],
-      sortable: true,
+      sortable: metadata_opt(column.opts, :sortable, true),
       format: column.opts[:format],
       width: column.opts[:width],
       priority: column.opts[:priority],
@@ -217,6 +217,14 @@ defmodule Incant.UI.Regions.Table do
       true -> column
     end
   end
+
+  defp metadata_opt(opts, key, default) when is_list(opts), do: Keyword.get(opts, key, default)
+
+  defp metadata_opt(opts, key, default) when is_map(opts) do
+    Map.get(opts, key, Map.get(opts, to_string(key), default))
+  end
+
+  defp metadata_opt(_opts, _key, default), do: default
 
   defp existing_atom(column) when is_binary(column) do
     String.to_existing_atom(column)

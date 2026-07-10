@@ -251,7 +251,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         toolbar_hint: "text-xs text-[var(--incant-text-muted)]",
         checkbox_cell: "w-8 px-3 py-1.5",
         checkbox:
-          "h-3.5 w-3.5 rounded border-[var(--incant-border)] text-[var(--incant-primary)] focus:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+          "h-3.5 w-3.5 rounded border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] text-[var(--incant-primary)] focus:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
         viewport: "overflow-x-auto",
         root: "min-w-full text-sm",
         head:
@@ -284,9 +284,14 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         truncate: %{
           true => %{cell: "max-w-[28rem]", cell_content: "truncate"},
           false => %{}
+        },
+        density: %{
+          compact: %{row: "h-8"},
+          default: %{row: "h-10"},
+          comfortable: %{row: "h-12"}
         }
       },
-      default_variants: %{align: :left, truncate: false}
+      default_variants: %{align: :left, truncate: false, density: :default}
     }
   end
 

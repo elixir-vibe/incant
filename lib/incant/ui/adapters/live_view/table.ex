@@ -20,12 +20,22 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         <table class={Theme.slot(:table, :root)}>
         <thead class={Theme.slot(:table, :head)}>
           <tr>
-            <th :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}></th>
-            <th :for={column <- @table.columns} class={table_header_class(column)}>
-              <button type="button" phx-click="incant:event" phx-value-op="sort" phx-value-target={column.id} class={table_sort_button_class(column)}>
+            <th :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}>
+              <input
+                type="checkbox"
+                class={Theme.slot(:table, :checkbox)}
+                checked={all_selected?(@table)}
+                aria-label="Select all rows on this page"
+                phx-click="incant:event"
+                phx-value-op="row_select_all"
+              />
+            </th>
+            <th :for={column <- @table.columns} class={table_header_class(column)} aria-sort={sort_aria(@table.sort, column)}>
+              <button :if={column.sortable} type="button" phx-click="incant:event" phx-value-op="sort" phx-value-target={column.id} class={table_sort_button_class(column)}>
                 {column.label}
-                <span :if={sort_column(@table.sort) == column.id}>{sort_direction(@table.sort)}</span>
+                <span :if={sort_column(@table.sort) == column.id} aria-hidden="true">{sort_direction(@table.sort)}</span>
               </button>
+              <span :if={!column.sortable}>{column.label}</span>
             </th>
             <th :if={@table.row_actions != []} class={Theme.slot(:table, :header_cell, align: :right)}>Actions</th>
           </tr>
@@ -39,11 +49,17 @@ defmodule Incant.UI.Adapters.LiveView.Table do
               </p>
             </td>
           </tr>
-          <tr :for={row <- @table.rows} class={Theme.slot(:table, :row)}>
+          <tr :for={row <- @table.rows} class={Theme.slot(:table, :row, density: @table.density)}>
             <td :if={@table.selection && @table.selection.enabled} class={Theme.slot(:table, :checkbox_cell)}>
-              <button type="button" phx-click="incant:event" phx-value-op="row_select" phx-value-value={row.id} aria-pressed={selected?(@table, row.id)} class={Theme.slot(:table, :checkbox)}>
-                <span :if={selected?(@table, row.id)}>✓</span>
-              </button>
+              <input
+                type="checkbox"
+                class={Theme.slot(:table, :checkbox)}
+                checked={selected?(@table, row.id)}
+                aria-label={"Select row #{row.id}"}
+                phx-click="incant:event"
+                phx-value-op="row_select"
+                phx-value-value={row.id}
+              />
             </td>
             <td :for={cell <- row.cells} class={cell_class(cell)} title={cell_title(cell)}>
               <.table_cell cell={cell} row={row} env={@env} />
@@ -145,7 +161,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
   def pagination(%{pagination: %{total: total}} = assigns) when total > 0 do
     ~H"""
     <div class={Theme.slot(:table, :pagination)}>
-      <div>Page {@pagination.page} of {@pagination.total_pages} · {@pagination.total} rows</div>
+      <div>{pagination_range(@pagination)}</div>
       <div class={Theme.slot(:table, :pagination_actions)}>
         <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page - 1} disabled={@pagination.page <= 1} class={Theme.slot(:button, :base, variant: :outline, size: :xs)}>Previous</button>
         <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page + 1} disabled={@pagination.page >= @pagination.total_pages} class={Theme.slot(:button, :base, variant: :outline, size: :xs)}>Next</button>
@@ -161,6 +177,25 @@ defmodule Incant.UI.Adapters.LiveView.Table do
 
   defp selected?(table, row_id), do: to_string(row_id) in table.selection.selected_ids
   defp selected_count(table), do: length(table.selection.selected_ids)
+
+  defp all_selected?(table) do
+    table.rows != [] and Enum.all?(table.rows, &selected?(table, &1.id))
+  end
+
+  defp sort_aria(sort, column) do
+    cond do
+      not column.sortable -> nil
+      sort == column.id -> "ascending"
+      sort == "-#{column.id}" -> "descending"
+      true -> "none"
+    end
+  end
+
+  defp pagination_range(%{page: page, page_size: page_size, total: total}) do
+    first = (page - 1) * page_size + 1
+    last = min(page * page_size, total)
+    "#{first}–#{last} of #{total}"
+  end
 
   defp empty_colspan(table) do
     length(table.columns) + action_column_count(table) + selection_column_count(table)

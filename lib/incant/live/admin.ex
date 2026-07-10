@@ -148,6 +148,10 @@ defmodule Incant.Live.Admin do
   defp handle_incant_event(%{op: :sort} = event, socket), do: sort(event, socket)
   defp handle_incant_event(%{op: :paginate} = event, socket), do: paginate(event, socket)
   defp handle_incant_event(%{op: :row_select} = event, socket), do: row_select(event, socket)
+
+  defp handle_incant_event(%{op: :row_select_all} = event, socket),
+    do: row_select_all(event, socket)
+
   defp handle_incant_event(%{op: :row_action} = event, socket), do: row_action(event, socket)
   defp handle_incant_event(%{op: :bulk_action} = event, socket), do: bulk_action(event, socket)
   defp handle_incant_event(%{op: :page_action} = event, socket), do: page_action(event, socket)
@@ -199,6 +203,28 @@ defmodule Incant.Live.Admin do
 
   defp row_select(%{value: id}, socket) do
     selected_ids = toggle_selected(socket.assigns.context.table_state.selected_ids, id)
+
+    params =
+      socket.assigns.params
+      |> table_query_params()
+      |> Map.put("selected", Enum.join(selected_ids, ","))
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
+  end
+
+  defp row_select_all(_event, socket) do
+    visible_ids =
+      socket.assigns.context.rows |> Enum.map(&Incant.Live.Rows.id/1) |> Enum.map(&to_string/1)
+
+    selected_ids = socket.assigns.context.table_state.selected_ids
+
+    selected_ids =
+      if visible_ids != [] and Enum.all?(visible_ids, &(&1 in selected_ids)) do
+        selected_ids -- visible_ids
+      else
+        Enum.uniq(selected_ids ++ visible_ids)
+      end
 
     params =
       socket.assigns.params

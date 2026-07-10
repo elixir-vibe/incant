@@ -298,7 +298,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Table.table()
       |> rendered_to_string()
 
-    assert html =~ ~s(<th class="h-8 px-3 font-medium text-right">)
+    assert html =~ ~s(<th class="h-8 px-3 font-medium text-right" aria-sort="none">)
     assert html =~ "ml-auto"
 
     assert html =~
@@ -495,6 +495,55 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "Resources"
     assert html =~ "API Keys"
     assert html =~ "font-medium text-[var(--incant-text-highlighted)]"
+  end
+
+  test "renders accessible sortable headers, selection checkboxes, density, and pagination range" do
+    table = %Incant.UI.Regions.Table{
+      columns: [
+        %Incant.UI.Regions.Table.Column{id: "name", label: "Name", sortable: true},
+        %Incant.UI.Regions.Table.Column{id: "status", label: "Status", sortable: false}
+      ],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "name",
+              value: "Ada",
+              display: "Ada",
+              source: %{opts: []}
+            },
+            %Incant.UI.Regions.Table.Cell{
+              column: "status",
+              value: "active",
+              display: "active",
+              source: %{opts: []}
+            }
+          ]
+        }
+      ],
+      sort: "-name",
+      pagination: %{page: 2, page_size: 25, total: 31, total_pages: 2},
+      selection: %Incant.UI.Regions.Table.Selection{enabled: true, selected_ids: ["row-1"]},
+      empty_state: "No rows",
+      density: :comfortable
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ ~s(aria-sort="descending")
+    assert html =~ ~s(aria-label="Select all rows on this page")
+    assert html =~ ~s(phx-value-op="row_select_all")
+    assert html =~ ~s(aria-label="Select row row-1")
+    assert html =~ "h-12"
+    assert html =~ "26–31 of 31"
+    refute html =~ ~s(phx-value-target="status")
   end
 
   test "renders service index links as absolute paths" do

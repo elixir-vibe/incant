@@ -11,6 +11,7 @@ defmodule Incant.UI.Event do
           | :sort
           | :paginate
           | :row_select
+          | :row_select_all
           | :row_action
           | :bulk_action
           | :page_action
@@ -49,6 +50,7 @@ defmodule Incant.UI.Event do
   def sort(attrs \\ []), do: new(:sort, attrs)
   def paginate(attrs \\ []), do: new(:paginate, attrs)
   def row_select(attrs \\ []), do: new(:row_select, attrs)
+  def row_select_all(attrs \\ []), do: new(:row_select_all, attrs)
   def row_action(attrs \\ []), do: new(:row_action, attrs)
   def bulk_action(attrs \\ []), do: new(:bulk_action, attrs)
   def page_action(attrs \\ []), do: new(:page_action, attrs)
@@ -103,6 +105,7 @@ defmodule Incant.UI.Event do
   defp parse_op("sort"), do: :sort
   defp parse_op("paginate"), do: :paginate
   defp parse_op("row_select"), do: :row_select
+  defp parse_op("row_select_all"), do: :row_select_all
   defp parse_op("row_action"), do: :row_action
   defp parse_op("bulk_action"), do: :bulk_action
   defp parse_op("page_action"), do: :page_action
