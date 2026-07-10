@@ -32,6 +32,26 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
     """
   end
 
+  attr(:filter_bar, FilterBar, required: true)
+  attr(:env, :map, required: true)
+
+  def table_filter_bar(assigns) do
+    ~H"""
+    <div class={Theme.slot(:table, :filter_bar)}>
+      <.form :let={_form} for={%{}} as={form_as(@filter_bar)} phx-change="incant:event" phx-value-op={filter_bar_op(@filter_bar)} class={Theme.slot(:table, :filter_form)}>
+        <.control :if={@filter_bar.search} control={@filter_bar.search} />
+        <.control :for={control <- @filter_bar.filters} control={control} />
+        <label :if={@filter_bar.id == "resource.filters"} class={Theme.slot(:field, :root)}>
+          Rows
+          <select name="table[page_size]" class={Theme.slot(:field, :input)}>
+            <option :for={size <- [10, 25, 50, 100]} value={size} selected={to_string(size) == to_string(@env.context.table_state.page_size)}>{size}</option>
+          </select>
+        </label>
+      </.form>
+    </div>
+    """
+  end
+
   attr(:control, :any, required: true)
 
   def control(%{control: %DateRange{} = control} = assigns) do

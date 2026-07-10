@@ -18,6 +18,25 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "lv:clear-flash"
   end
 
+  test "renders small resource filter sets inside the table toolbar" do
+    filter_bar = %Incant.UI.Regions.FilterBar{id: "resource.filters"}
+
+    env =
+      Incant.UI.Env.new(
+        %Incant.Live.Context{base_path: "/admin", table_state: %{page_size: 25}},
+        %{admin: nil}
+      )
+
+    html =
+      %{filter_bar: filter_bar, env: env}
+      |> Incant.UI.Adapters.LiveView.Controls.table_filter_bar()
+      |> rendered_to_string()
+
+    assert html =~ ~s(name="table[page_size]")
+    assert html =~ ~s(phx-value-op="filter_commit")
+    refute html =~ ">Filters<"
+  end
+
   test "renders table column labels instead of raw ids" do
     table = %Incant.UI.Regions.Table{
       columns: [

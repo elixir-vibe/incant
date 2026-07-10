@@ -4,17 +4,20 @@ defmodule Incant.UI.Adapters.LiveView.Table do
   use Phoenix.Component
 
   import Incant.Live.Routes
+  import Incant.UI.Adapters.LiveView.Controls
   import Incant.UI.Adapters.LiveView.Helpers
 
   alias Incant.UI.Adapters.LiveView.Theme
-  alias Incant.UI.Regions.Table
+  alias Incant.UI.Regions.{FilterBar, Table}
 
   attr(:table, Table, required: true)
+  attr(:filter_bar, FilterBar, default: nil)
   attr(:env, :map, required: true)
 
   def table(assigns) do
     ~H"""
     <div class={Theme.slot(:panel, :root, kind: :table)}>
+      <.table_filter_bar :if={@filter_bar} filter_bar={@filter_bar} env={@env} />
       <.table_toolbar table={@table} env={@env} />
       <div class={Theme.slot(:table, :viewport)}>
         <table class={Theme.slot(:table, :root)}>

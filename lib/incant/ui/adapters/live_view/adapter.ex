@@ -191,9 +191,9 @@ defmodule Incant.UI.Adapters.LiveView do
           <.page_header title={@surface.title} eyebrow="Resource" />
           <div class={Theme.slot(:surface, :index)}>
             <div class={Theme.slot(:surface, :primary)}>
-              <.table table={@surface.table} env={@env} />
+              <.table table={@surface.table} filter_bar={inline_filter_bar(@surface.filter_bar)} env={@env} />
             </div>
-            <aside :if={@surface.filter_bar} class={Theme.slot(:surface, :aside)}>
+            <aside :if={sidebar_filter_bar?(@surface.filter_bar)} class={Theme.slot(:surface, :aside)}>
               <.filter_bar filter_bar={@surface.filter_bar} env={@env} />
             </aside>
           </div>
@@ -231,9 +231,9 @@ defmodule Incant.UI.Adapters.LiveView do
       </div>
       <div class={Theme.slot(:surface, :index)}>
         <div class={Theme.slot(:surface, :primary)}>
-          <.table table={@surface.table} env={@env} />
+          <.table table={@surface.table} filter_bar={inline_filter_bar(@surface.filter_bar)} env={@env} />
         </div>
-        <aside :if={@surface.filter_bar && @surface.filter_bar.filters != []} class={Theme.slot(:surface, :aside)}>
+        <aside :if={sidebar_filter_bar?(@surface.filter_bar)} class={Theme.slot(:surface, :aside)}>
           <.filter_bar filter_bar={@surface.filter_bar} env={@env} />
         </aside>
       </div>
@@ -308,6 +308,19 @@ defmodule Incant.UI.Adapters.LiveView do
     ~H"""
     """
   end
+
+  defp inline_filter_bar(nil), do: nil
+
+  defp inline_filter_bar(filter_bar) do
+    if filter_control_count(filter_bar) <= 4, do: filter_bar
+  end
+
+  defp sidebar_filter_bar?(filter_bar), do: filter_control_count(filter_bar) > 4
+
+  defp filter_control_count(nil), do: 0
+
+  defp filter_control_count(filter_bar),
+    do: length(filter_bar.filters) + if(filter_bar.search, do: 1, else: 0)
 
   defp flash_entries(flash) when is_map(flash) do
     Enum.flat_map([:info, :error], fn level ->

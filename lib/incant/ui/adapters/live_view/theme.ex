@@ -245,6 +245,9 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
   def recipe(:table) do
     %Recipe{
       slots: %{
+        filter_bar: "border-b border-[var(--incant-border-muted)] px-3 py-2",
+        filter_form:
+          "flex flex-wrap items-end gap-2 [&>label]:min-w-28 [&>label]:text-[10px] [&>label>input]:h-7 [&>label>select]:h-7",
         toolbar:
           "flex items-center justify-between gap-3 border-b border-[var(--incant-border-muted)] px-3 py-2",
         toolbar_group: "flex items-center gap-1.5",
