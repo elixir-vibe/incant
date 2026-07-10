@@ -37,7 +37,18 @@ function toggleNavigation() {
   document.querySelectorAll("[data-incant-nav-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(Boolean(isOpen))));
 }
 
+function scheduleFlashDismissal() {
+  document.querySelectorAll("[data-incant-flash]").forEach((flash) => {
+    if (flash.dataset.incantFlashScheduled) return;
+
+    flash.dataset.incantFlashScheduled = "true";
+    window.setTimeout(() => flash.querySelector("[data-incant-flash-close]")?.click(), 5000);
+  });
+}
+
 applyTheme(preferredTheme());
+scheduleFlashDismissal();
+new MutationObserver(scheduleFlashDismissal).observe(document.body, { childList: true, subtree: true });
 
 document.addEventListener("click", (event) => {
   if (event.target.closest("[data-incant-theme-toggle]")) {

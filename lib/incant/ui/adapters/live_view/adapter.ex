@@ -14,6 +14,7 @@ defmodule Incant.UI.Adapters.LiveView do
   import Incant.UI.Adapters.LiveView.Inspector
   import Incant.UI.Adapters.LiveView.Table
 
+  alias Phoenix.LiveView.JS
   alias Incant.UI.Adapters.LiveView.Theme
   alias Incant.UI.Document
   alias Incant.UI.Regions.WidgetGrid
@@ -21,7 +22,13 @@ defmodule Incant.UI.Adapters.LiveView do
 
   @impl Incant.UI.Adapter
   def render(%Document{} = document, env) do
-    assigns = %{document: document, env: env, nav: document.nav, surface: document.surface}
+    assigns = %{
+      document: document,
+      env: env,
+      nav: document.nav,
+      surface: document.surface,
+      flashes: flash_entries(env.flash)
+    }
 
     ~H"""
     <div class={Theme.slot(:shell, :root)} data-incant-shell>
@@ -67,6 +74,7 @@ defmodule Incant.UI.Adapters.LiveView do
           <.render_surface surface={@surface} env={@env} />
         </div>
       </main>
+      <.flash_region flashes={@flashes} />
     </div>
     """
   end
@@ -76,6 +84,29 @@ defmodule Incant.UI.Adapters.LiveView do
 
     ~H"""
     <pre class={Theme.slot(:debug, :pre)}><%= inspect(@node, pretty: true) %></pre>
+    """
+  end
+
+  attr(:flashes, :list, required: true)
+
+  def flash_region(assigns) do
+    ~H"""
+    <div :if={@flashes != []} class={Theme.slot(:toast, :region)} aria-live="polite" role="status">
+      <div :for={{level, message} <- @flashes} id={"incant-flash-#{level}"} class={Theme.slot(:toast, :root, level: level)} data-incant-flash>
+        <span class={Theme.slot(:toast, :message)}>{message}</span>
+        <button
+          type="button"
+          class={Theme.slot(:toast, :close)}
+          aria-label={"Dismiss #{level} notification"}
+          phx-click={dismiss_flash(level)}
+          data-incant-flash-close
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="h-4 w-4">
+            <path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+    </div>
     """
   end
 
@@ -276,6 +307,25 @@ defmodule Incant.UI.Adapters.LiveView do
   def render_surface(assigns) do
     ~H"""
     """
+  end
+
+  defp flash_entries(flash) when is_map(flash) do
+    Enum.flat_map([:info, :error], fn level ->
+      case Map.get(flash, level) || Map.get(flash, to_string(level)) do
+        message when is_binary(message) and message != "" -> [{level, message}]
+        _other -> []
+      end
+    end)
+  end
+
+  defp flash_entries(_flash), do: []
+
+  defp dismiss_flash(level) do
+    JS.push("lv:clear-flash", value: %{key: to_string(level)})
+    |> JS.hide(
+      to: "#incant-flash-#{level}",
+      transition: {"transition-opacity", "opacity-100", "opacity-0"}
+    )
   end
 
   defp breadcrumb_items(context, surface) do

@@ -36,6 +36,33 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:toast) do
+    %Recipe{
+      slots: %{
+        region:
+          "pointer-events-none fixed right-4 top-4 z-50 flex w-full max-w-sm flex-col gap-2",
+        root:
+          "pointer-events-auto flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm shadow-lg transition-opacity",
+        message: "flex-1 leading-5",
+        close:
+          "-mr-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-current/70 hover:bg-black/5 hover:text-current focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/30"
+      },
+      variants: %{
+        level: %{
+          info: %{
+            root:
+              "border-[color-mix(in_oklab,var(--incant-success)_32%,var(--incant-border))] bg-[color-mix(in_oklab,var(--incant-success)_10%,var(--incant-bg-elevated))] text-[var(--incant-text-highlighted)]"
+          },
+          error: %{
+            root:
+              "border-[color-mix(in_oklab,var(--incant-error)_38%,var(--incant-border))] bg-[color-mix(in_oklab,var(--incant-error)_10%,var(--incant-bg-elevated))] text-[var(--incant-text-highlighted)]"
+          }
+        }
+      },
+      default_variants: %{level: :info}
+    }
+  end
+
   def recipe(:nav_item) do
     %Recipe{
       slots: %{

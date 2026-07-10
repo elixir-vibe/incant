@@ -3,6 +3,21 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
 
   import Phoenix.LiveViewTest, only: [rendered_to_string: 1]
 
+  test "renders dismissible info and error flash toasts" do
+    html =
+      %{flashes: [info: "Saved API key", error: "Unable to delete token"]}
+      |> Incant.UI.Adapters.LiveView.flash_region()
+      |> rendered_to_string()
+
+    assert html =~ ~s(role="status")
+    assert html =~ "Saved API key"
+    assert html =~ "Unable to delete token"
+    assert html =~ "Dismiss info notification"
+    assert html =~ "Dismiss error notification"
+    assert html =~ "data-incant-flash"
+    assert html =~ "lv:clear-flash"
+  end
+
   test "renders table column labels instead of raw ids" do
     table = %Incant.UI.Regions.Table{
       columns: [

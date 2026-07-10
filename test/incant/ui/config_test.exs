@@ -33,6 +33,13 @@ defmodule Incant.UI.ConfigTest do
              Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"})
   end
 
+  test "UI env carries Phoenix flash assigns" do
+    assert %Incant.UI.Env{flash: %{info: "Saved"}} =
+             Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{
+               flash: %{info: "Saved"}
+             })
+  end
+
   defp restore_env(app_env) do
     :incant
     |> Application.get_all_env()
