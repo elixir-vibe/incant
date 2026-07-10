@@ -323,6 +323,34 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "Developer hint: verify the resource index callback"
   end
 
+  test "renders stat card deltas and dashboard grid columns" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      columns: 10,
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :requests,
+          type: :stat,
+          title: "Requests",
+          display: "1,234",
+          delta: -0.125,
+          span: 2
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ "--incant-grid-columns: 10"
+    assert html =~ "Requests"
+    assert html =~ "1,234"
+    assert html =~ "-12.5% vs previous"
+    assert html =~ "text-[var(--incant-error)]"
+    assert html =~ "text-3xl"
+  end
+
   test "renders dashboard table widgets with source column metadata" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [

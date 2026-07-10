@@ -333,7 +333,8 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
   def recipe(:widget_grid) do
     %Recipe{
       slots: %{
-        root: "grid grid-cols-1 gap-3 xl:grid-cols-12"
+        root:
+          "grid grid-cols-1 gap-3 xl:grid-cols-[repeat(var(--incant-grid-columns),minmax(0,1fr))]"
       }
     }
   end
@@ -353,7 +354,8 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         title: "mt-1 font-mono text-sm font-semibold text-[var(--incant-text-highlighted)]",
         stat_label: "text-xs font-medium text-[var(--incant-text-muted)]",
         stat_value:
-          "mt-2 text-2xl font-semibold tracking-tight text-[var(--incant-text-highlighted)]",
+          "mt-2 text-3xl font-semibold tracking-tight tabular-nums text-[var(--incant-text-highlighted)]",
+        stat_delta: "mt-2 text-xs font-medium",
         error: "text-base text-[var(--incant-error)]",
         message: "p-3 text-sm text-[var(--incant-text-muted)]",
         message_error: "p-3 text-sm text-[var(--incant-error)]",
@@ -363,7 +365,21 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         chart_axis:
           "flex items-center justify-between text-[11px] text-[var(--incant-text-muted)]",
         bar: "min-w-2 flex-1 rounded-sm bg-[var(--incant-primary)]"
-      }
+      },
+      variants: %{
+        kind: %{
+          stat: %{
+            root:
+              "p-4 transition-colors hover:border-[var(--incant-border-accented)] hover:shadow-sm"
+          },
+          default: %{}
+        },
+        positive: %{
+          true => %{stat_delta: "text-[var(--incant-success)]"},
+          false => %{stat_delta: "text-[var(--incant-error)]"}
+        }
+      },
+      default_variants: %{kind: :default, positive: true}
     }
   end
 end

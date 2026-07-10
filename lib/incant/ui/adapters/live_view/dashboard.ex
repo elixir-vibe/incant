@@ -12,7 +12,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget_grid(assigns) do
     ~H"""
-    <div class={Theme.slot(:widget_grid, :root)}>
+    <div class={Theme.slot(:widget_grid, :root)} style={widget_grid_style(@grid)}>
       <.widget :for={widget <- @grid.widgets} widget={widget} />
     </div>
     """
@@ -22,7 +22,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(%{widget: %{type: :stat}} = assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)}>
+    <div class={Theme.slot(:widget, :root, kind: :stat)} style={widget_style(@widget)}>
       <p class={Theme.slot(:widget, :stat_label)}>{@widget.title}</p>
       <div class={Theme.slot(:widget, :stat_value)}>
         <%= cond do %>
@@ -34,6 +34,9 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
             {@widget.display || "—"}
         <% end %>
       </div>
+      <p :if={is_number(@widget.delta)} class={stat_delta_class(@widget.delta)}>
+        {stat_delta(@widget.delta)} vs previous
+      </p>
     </div>
     """
   end
@@ -127,4 +130,13 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   defp widget_message_class(:error), do: Theme.slot(:widget, :message_error)
   defp widget_message_class(_tone), do: Theme.slot(:widget, :message)
+
+  defp widget_grid_style(%{columns: columns}), do: "--incant-grid-columns: #{columns};"
+
+  defp stat_delta(delta) do
+    sign = if delta >= 0, do: "+", else: ""
+    "#{sign}#{Float.round(delta * 100, 1)}%"
+  end
+
+  defp stat_delta_class(delta), do: Theme.slot(:widget, :stat_delta, positive: delta >= 0)
 end

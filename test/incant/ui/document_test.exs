@@ -315,6 +315,24 @@ defmodule Incant.UI.DocumentTest do
     assert chart.y == {:clicks, []}
   end
 
+  test "formats stat widget maps with optional deltas" do
+    dashboard = Incant.metadata(OperationsDashboard)
+
+    document =
+      context(
+        section: "dashboard",
+        dashboard: dashboard,
+        dashboards: [dashboard],
+        widget_values: %{total_requests: %{value: 1_234, delta: 0.125}}
+      )
+      |> Incant.UI.Document.from_context(page_title: "Operations")
+
+    widget = Enum.find(document.surface.widgets, &(&1.id == :total_requests))
+
+    assert widget.display == "1,234"
+    assert widget.delta == 0.125
+  end
+
   test "builds service index document from service summaries" do
     services = [
       %Incant.Web.API.ServiceSummary{

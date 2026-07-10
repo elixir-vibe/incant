@@ -7,7 +7,19 @@ defmodule Incant.UI.Regions.WidgetGrid do
 
   defmodule Widget do
     @moduledoc false
-    defstruct [:id, :type, :title, :value, :display, :span, :chart, :error, :loading, :source]
+    defstruct [
+      :id,
+      :type,
+      :title,
+      :value,
+      :display,
+      :delta,
+      :span,
+      :chart,
+      :error,
+      :loading,
+      :source
+    ]
   end
 
   def from_context(context) do
@@ -31,6 +43,7 @@ defmodule Incant.UI.Regions.WidgetGrid do
       title: option(widget.opts, :label) || humanize(widget.id),
       value: value,
       display: display_value(value, widget),
+      delta: stat_delta(value, widget),
       span: option(widget.opts, :span),
       chart: chart_from_metadata(widget, value),
       error: error,
@@ -57,10 +70,23 @@ defmodule Incant.UI.Regions.WidgetGrid do
   defp chart_from_metadata(_widget, _value), do: nil
 
   defp display_value({:error, _message}, _widget), do: nil
+
+  defp display_value(value, %{type: :stat} = widget) do
+    value
+    |> stat_value()
+    |> Incant.Live.Format.value(option(widget.opts, :format, :number))
+  end
+
   defp display_value(value, _widget) when is_list(value) or is_map(value), do: value
 
   defp display_value(value, widget),
     do: Incant.Live.Format.value(value, option(widget.opts, :format))
+
+  defp stat_delta(value, %{type: :stat}) when is_map(value), do: option(value, :delta)
+  defp stat_delta(_value, _widget), do: nil
+
+  defp stat_value(value) when is_map(value), do: option(value, :value)
+  defp stat_value(value), do: value
 
   defp option(options, key, default \\ nil)
   defp option(options, key, default) when is_map(options), do: Map.get(options, key, default)
