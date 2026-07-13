@@ -208,7 +208,7 @@ defmodule Incant.UI.Adapters.LiveView do
     ~H"""
     <section class={Theme.slot(:surface, :stack)}>
       <.page_header title={@surface.title} eyebrow="Dashboard" />
-      <.filter_bar :if={@surface.variables != []} filter_bar={List.first(@surface.regions)} env={@env} />
+      <.dashboard_variables variables={@surface.variables} env={@env} />
       <.widget_grid grid={Enum.find(@surface.regions, &match?(%WidgetGrid{}, &1))} />
     </section>
     """

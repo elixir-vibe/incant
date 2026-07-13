@@ -5,6 +5,7 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
 
   import Incant.UI.Adapters.LiveView.Helpers
 
+  alias Phoenix.LiveView.JS
   alias Incant.UI.Adapters.LiveView.Theme
   alias Incant.UI.Controls.{DateRange, MultiSelect, Select, Text}
   alias Incant.UI.Regions.FilterBar
@@ -27,6 +28,44 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
             </select>
           </label>
         </.form>
+      </div>
+    </div>
+    """
+  end
+
+  attr(:variables, :list, required: true)
+  attr(:env, :map, required: true)
+
+  def dashboard_variables(assigns) do
+    ~H"""
+    <div :if={@variables != []} class={Theme.slot(:dashboard, :variables)}>
+      <.form :let={_form} for={%{}} as={:var} phx-change="incant:event" phx-value-op="dashboard_variable_commit" class={Theme.slot(:dashboard, :variable_form)}>
+        <.dashboard_date_range :for={control <- @variables} :if={match?(%DateRange{}, control)} control={control} />
+        <.control :for={control <- @variables} :if={!match?(%DateRange{}, control)} control={control} />
+      </.form>
+    </div>
+    """
+  end
+
+  attr(:control, DateRange, required: true)
+
+  def dashboard_date_range(%{control: %DateRange{} = control} = assigns) do
+    assigns = assign(assigns, :custom?, date_range_custom?(control.value))
+
+    ~H"""
+    <div class={Theme.slot(:dashboard, :date_range)} data-incant-date-range>
+      <span class={Theme.slot(:dashboard, :variable_label)}>{@control.label || @control.name}</span>
+      <div class={Theme.slot(:dashboard, :preset_group)}>
+        <button :for={preset <- ["1h", "24h", "7d", "30d"]} type="button" class={Theme.slot(:dashboard, :preset, active: @control.value == preset)} phx-click={set_dashboard_preset(@control.name, preset)}>
+          {preset}
+        </button>
+        <button type="button" class={Theme.slot(:dashboard, :preset, active: @custom?)} data-incant-date-range-custom>
+          Custom
+        </button>
+      </div>
+      <div class={[Theme.slot(:dashboard, :date_fields), !@custom? && "hidden"]} data-incant-date-range-fields>
+        <input type="date" name={control_name(@control, "from")} value={map_value(@control.value, "from")} class={Theme.slot(:field, :input)} />
+        <input type="date" name={control_name(@control, "to")} value={map_value(@control.value, "to")} class={Theme.slot(:field, :input)} />
       </div>
     </div>
     """
@@ -117,6 +156,12 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
       <input type="text" name={control_name(@control)} value={@control.value} placeholder={@control.placeholder || @control.label} class={Theme.slot(:field, :input)} />
     </label>
     """
+  end
+
+  defp date_range_custom?(value), do: is_map(value)
+
+  defp set_dashboard_preset(name, preset) do
+    JS.push("incant:event", value: %{op: "dashboard_variable_commit", var: %{name => preset}})
   end
 
   defp form_as(%{id: "dashboard.variables"}), do: :var

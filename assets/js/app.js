@@ -59,6 +59,13 @@ document.addEventListener("click", (event) => {
 
   if (event.target.closest("[data-incant-nav-toggle]")) toggleNavigation();
   if (event.target.closest("[data-incant-nav-backdrop]")) closeNavigation();
+
+  const customRangeButton = event.target.closest("[data-incant-date-range-custom]");
+  if (customRangeButton) {
+    const fields = customRangeButton.closest("[data-incant-date-range]")?.querySelector("[data-incant-date-range-fields]");
+    fields?.classList.remove("hidden");
+    fields?.querySelector("input")?.focus();
+  }
 });
 
 document.addEventListener("keydown", (event) => {

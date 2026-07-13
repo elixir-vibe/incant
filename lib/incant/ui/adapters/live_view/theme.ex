@@ -97,6 +97,32 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:dashboard) do
+    %Recipe{
+      slots: %{
+        variables: "-mt-2 border-b border-[var(--incant-border-muted)] pb-3",
+        variable_form: "flex flex-wrap items-end gap-3",
+        variable_label:
+          "text-[10px] font-semibold uppercase tracking-wide text-[var(--incant-text-muted)]",
+        date_range: "flex flex-wrap items-center gap-2",
+        preset_group: "flex items-center gap-1",
+        preset:
+          "inline-flex h-7 items-center rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+        date_fields: "flex items-center gap-1 [&>input]:h-7 [&>input]:w-36 [&>input]:text-xs"
+      },
+      variants: %{
+        active: %{
+          true => %{preset: "bg-[var(--incant-primary)] text-[var(--incant-text-inverted)]"},
+          false => %{
+            preset:
+              "border border-[var(--incant-border)] text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)]"
+          }
+        }
+      },
+      default_variants: %{active: false}
+    }
+  end
+
   def recipe(:dataset) do
     %Recipe{
       slots: %{

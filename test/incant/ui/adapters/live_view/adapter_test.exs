@@ -18,6 +18,41 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "lv:clear-flash"
   end
 
+  test "renders inline dashboard date-range presets with custom date fallback" do
+    range = %Incant.UI.Controls.DateRange{
+      id: "variables.range",
+      name: "range",
+      label: "Range",
+      role: :dashboard_variable,
+      value: "24h"
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{variables: [range], env: env}
+      |> Incant.UI.Adapters.LiveView.Controls.dashboard_variables()
+      |> rendered_to_string()
+
+    assert html =~ "1h"
+    assert html =~ "24h"
+    assert html =~ "7d"
+    assert html =~ "30d"
+    assert html =~ "Custom"
+    assert html =~ ~s(data-incant-date-range-custom)
+    assert html =~ ~s(name="var[range][from]")
+    assert html =~ "hidden"
+    assert html =~ "dashboard_variable_commit"
+
+    custom_html =
+      %{variables: [%{range | value: %{"from" => "2026-07-01", "to" => "2026-07-02"}}], env: env}
+      |> Incant.UI.Adapters.LiveView.Controls.dashboard_variables()
+      |> rendered_to_string()
+
+    refute custom_html =~ ~s(data-incant-date-range-fields class="hidden")
+    assert custom_html =~ ~s(value="2026-07-01")
+  end
+
   test "renders small resource filter sets inside the table toolbar" do
     filter_bar = %Incant.UI.Regions.FilterBar{id: "resource.filters"}
 
