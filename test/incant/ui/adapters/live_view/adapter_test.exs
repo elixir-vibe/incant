@@ -537,6 +537,47 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ "boom"
   end
 
+  test "renders dependency-free SVG bars and line charts" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :requests,
+          type: :timeseries,
+          title: "Requests",
+          value: [
+            %Incant.UI.Regions.Chart.Point{label: "10:00", value: 2},
+            %Incant.UI.Regions.Chart.Point{label: "11:00", value: 6}
+          ],
+          span: 5
+        },
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :spend,
+          type: :chart,
+          title: "Spend",
+          value: [
+            %Incant.UI.Regions.Chart.Point{label: "10:00", value: 1},
+            %Incant.UI.Regions.Chart.Point{label: "11:00", value: 3}
+          ],
+          span: 5,
+          chart: %Incant.UI.Regions.Chart{id: :spend, type: :line}
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ "<rect"
+    assert html =~ "<polyline"
+    assert html =~ "<polygon"
+    assert html =~ "chart-gradient-spend"
+    assert html =~ "10:00"
+    assert html =~ "11:00"
+    refute html =~ "chart_placeholder"
+  end
+
   test "renders dashboard table widgets with sorted fallback columns" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [
@@ -566,7 +607,11 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
           id: :requests_over_time,
           type: :timeseries,
           title: "Requests over time",
-          value: [1, 2, 3],
+          value: [
+            %Incant.UI.Regions.Chart.Point{value: 1},
+            %Incant.UI.Regions.Chart.Point{value: 2},
+            %Incant.UI.Regions.Chart.Point{value: 3}
+          ],
           span: 8
         },
         %Incant.UI.Regions.WidgetGrid.Widget{

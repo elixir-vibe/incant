@@ -52,9 +52,17 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
       </div>
       <.widget_message :if={@widget.error} tone={:error} message="Unable to load widget." />
       <.widget_message :if={!@widget.error && @widget.loading} message="Loading…" />
-      <.widget_message :if={!@widget.error && !@widget.loading && table_rows(@widget.value) == []} message="No data to display." />
-      <div :if={!@widget.error && is_list(@widget.value) && @widget.value != []} class={Theme.slot(:widget, :chart)}>
-        <div :for={point <- @widget.value} class={Theme.slot(:widget, :bar)} style={"height: #{bar_height(point, @widget.value)}%;"}></div>
+      <.widget_message :if={!@widget.error && !@widget.loading && chart_points(@widget.value) == []} message="No data to display." />
+      <div :if={!@widget.error && !@widget.loading && chart_points(@widget.value) != []} class={Theme.slot(:widget, :chart)}>
+        <svg viewBox="0 0 100 48" preserveAspectRatio="none" class={Theme.slot(:widget, :chart_svg)} role="img" aria-label={"#{@widget.title} bars"}>
+          <rect :for={bar <- chart_bars(@widget.value)} x={bar.x} y={bar.y} width={bar.width} height={bar.height} rx="1.5" class={Theme.slot(:widget, :bar)}>
+            <title>{bar.label}</title>
+          </rect>
+        </svg>
+        <div class={Theme.slot(:widget, :chart_axis)}>
+          <span>{chart_first_label(@widget.value)}</span>
+          <span>{chart_last_label(@widget.value)}</span>
+        </div>
       </div>
     </div>
     """
@@ -72,13 +80,25 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
       </div>
       <.widget_message :if={@widget.error} tone={:error} message="Unable to load widget." />
       <.widget_message :if={!@widget.error && @widget.loading} message="Loading…" />
-      <div :if={!@widget.error && !@widget.loading} class={Theme.slot(:widget, :chart)}>
-        <div class={Theme.slot(:widget, :chart_placeholder)}>
-          <div class={Theme.slot(:widget, :chart_line)}></div>
-          <div class={Theme.slot(:widget, :chart_axis)}>
-            <span>{chart_axis_label(@widget.chart.x)}</span>
-            <span>{chart_axis_label(@widget.chart.y)}</span>
-          </div>
+      <.widget_message :if={!@widget.error && !@widget.loading && chart_points(@widget.value) == []} message="No data to display." />
+      <div :if={!@widget.error && !@widget.loading && chart_points(@widget.value) != []} class={Theme.slot(:widget, :chart)}>
+        <div class={Theme.slot(:widget, :chart_labels)}>
+          <span>{Incant.Live.Format.value(chart_max(@widget.value), :number)}</span>
+          <span>{Incant.Live.Format.value(chart_min(@widget.value), :number)}</span>
+        </div>
+        <svg viewBox="0 0 100 48" preserveAspectRatio="none" class={Theme.slot(:widget, :chart_svg)} role="img" aria-label={"#{@widget.title} line chart"}>
+          <defs>
+            <linearGradient id={"chart-gradient-#{@widget.id}"} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="var(--incant-primary)" stop-opacity="0.28" />
+              <stop offset="100%" stop-color="var(--incant-primary)" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <polygon points={chart_area(@widget.value)} fill={"url(#chart-gradient-#{@widget.id})"} />
+          <polyline points={chart_polyline(@widget.value)} fill="none" stroke="var(--incant-primary)" stroke-width="2" vector-effect="non-scaling-stroke" />
+        </svg>
+        <div class={Theme.slot(:widget, :chart_axis)}>
+          <span>{chart_first_label(@widget.value)}</span>
+          <span>{chart_last_label(@widget.value)}</span>
         </div>
       </div>
     </div>

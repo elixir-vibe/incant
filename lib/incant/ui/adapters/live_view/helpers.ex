@@ -227,12 +227,93 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     if max_value > 0, do: max(round(value / max_value * 100), 4), else: 4
   end
 
-  def numeric_value(%{value: value}) when is_number(value), do: value
-  def numeric_value(%{"value" => value}) when is_number(value), do: value
-  def numeric_value(%{y: value}) when is_number(value), do: value
-  def numeric_value(%{"y" => value}) when is_number(value), do: value
-  def numeric_value(value) when is_number(value), do: value
+  def chart_points(points) when is_list(points),
+    do: Enum.filter(points, &match?(%Incant.UI.Regions.Chart.Point{}, &1))
+
+  def chart_points(_points), do: []
+
+  def chart_polyline(points) do
+    points
+    |> chart_coordinates()
+    |> Enum.map_join(" ", fn %{x: x, y: y} -> "#{coordinate(x)},#{coordinate(y)}" end)
+  end
+
+  def chart_area(points) do
+    coordinates = chart_coordinates(points)
+
+    case coordinates do
+      [] ->
+        ""
+
+      [point] ->
+        "0,40 #{coordinate(point.x)},#{coordinate(point.y)} 100,40"
+
+      [first | _] ->
+        last = List.last(coordinates)
+        "#{coordinate(first.x)},40 #{chart_polyline(points)} #{coordinate(last.x)},40"
+    end
+  end
+
+  def chart_bars(points) do
+    points = chart_points(points)
+    count = max(length(points), 1)
+    gap = 1
+    width = max((100 - gap * (count - 1)) / count, 1)
+    max_value = points |> Enum.map(&numeric_value/1) |> Enum.max(fn -> 1 end)
+
+    points
+    |> Enum.with_index()
+    |> Enum.map(fn {point, index} ->
+      height = if max_value > 0, do: max(numeric_value(point) / max_value * 40, 2), else: 2
+
+      %{
+        x: index * (width + gap),
+        y: 40 - height,
+        width: width,
+        height: height,
+        label: chart_point_label(point)
+      }
+    end)
+  end
+
+  def chart_min(points),
+    do: points |> chart_points() |> Enum.map(&numeric_value/1) |> Enum.min(fn -> 0 end)
+
+  def chart_max(points),
+    do: points |> chart_points() |> Enum.map(&numeric_value/1) |> Enum.max(fn -> 0 end)
+
+  def chart_first_label(points),
+    do: points |> chart_points() |> List.first() |> chart_point_label()
+
+  def chart_last_label(points), do: points |> chart_points() |> List.last() |> chart_point_label()
+
+  def chart_point_label(nil), do: "—"
+
+  def chart_point_label(%Incant.UI.Regions.Chart.Point{label: label, value: value}) do
+    if is_nil(label), do: Incant.Live.Format.value(value, :number), else: to_string(label)
+  end
+
+  def numeric_value(%Incant.UI.Regions.Chart.Point{value: value}), do: value
   def numeric_value(_value), do: 0
+
+  defp chart_coordinates(points) do
+    points = chart_points(points)
+    count = length(points)
+    min_value = chart_min(points)
+    max_value = chart_max(points)
+    range = max(max_value - min_value, 1)
+
+    points
+    |> Enum.with_index()
+    |> Enum.map(fn {point, index} ->
+      x = if count <= 1, do: 50, else: index / (count - 1) * 100
+      y = 40 - (numeric_value(point) - min_value) / range * 40
+      %{x: x, y: y}
+    end)
+  end
+
+  defp coordinate(value),
+    do: value |> Kernel.*(1.0) |> Float.round(2) |> :erlang.float_to_binary(decimals: 2)
 
   def table_columns(%Incant.UI.Regions.WidgetGrid.Widget{source: %{opts: opts}, value: value}) do
     case Keyword.get(opts, :columns) do

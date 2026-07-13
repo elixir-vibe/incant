@@ -3,6 +3,8 @@ defmodule Incant.UI.Regions.WidgetGrid do
   Dashboard widget grid model.
   """
 
+  alias Incant.UI.Regions.Chart
+
   defstruct widgets: [], columns: 12, row_height: 8
 
   defmodule Widget do
@@ -34,8 +36,9 @@ defmodule Incant.UI.Regions.WidgetGrid do
   end
 
   defp widget_from_metadata(widget, context) do
-    value = Map.get(context.widget_values, widget.id)
-    error = if match?({:error, _message}, value), do: elem(value, 1)
+    raw_value = Map.get(context.widget_values, widget.id)
+    value = normalize_widget_value(raw_value, widget.type)
+    error = if match?({:error, _message}, raw_value), do: elem(raw_value, 1)
 
     %Widget{
       id: widget.id,
@@ -53,7 +56,7 @@ defmodule Incant.UI.Regions.WidgetGrid do
   end
 
   defp chart_from_metadata(%{type: :chart} = widget, value) do
-    %Incant.UI.Regions.Chart{
+    %Chart{
       id: widget.id,
       type: option(widget.opts, :chart_type),
       dataset: option(widget.opts, :dataset),
@@ -68,6 +71,13 @@ defmodule Incant.UI.Regions.WidgetGrid do
   end
 
   defp chart_from_metadata(_widget, _value), do: nil
+
+  defp normalize_widget_value({:error, _message} = value, _type), do: value
+
+  defp normalize_widget_value(value, type) when type in [:chart, :timeseries],
+    do: Chart.normalize_points(value)
+
+  defp normalize_widget_value(value, _type), do: value
 
   defp display_value({:error, _message}, _widget), do: nil
 
