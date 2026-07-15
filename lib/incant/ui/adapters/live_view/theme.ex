@@ -311,6 +311,10 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         editor_form: "flex flex-col items-stretch gap-2 sm:flex-row sm:items-end",
         editor_field:
           "flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium text-[var(--incant-text-muted)]",
+        date_editor: "min-w-0 flex-1 space-y-2",
+        date_presets: "flex flex-wrap items-center gap-1",
+        date_preset:
+          "inline-flex h-7 items-center rounded-md border border-[var(--incant-border)] px-2 text-xs text-[var(--incant-text-toned)] hover:border-[var(--incant-primary)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         date_fields: "grid min-w-0 flex-1 grid-cols-2 gap-2",
         clear_filter:
           "mt-2 text-xs text-[var(--incant-text-muted)] underline-offset-4 hover:text-[var(--incant-danger)] hover:underline"

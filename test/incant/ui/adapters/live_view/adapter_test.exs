@@ -63,10 +63,19 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       source: %{type: :boolean}
     }
 
+    date_control = %Incant.UI.Controls.DateRange{
+      id: "filters.created_at",
+      name: "created_at",
+      label: "Created at",
+      role: :filter,
+      value: %{},
+      source: %{type: :date_range}
+    }
+
     filter_bar = %Incant.UI.Regions.FilterBar{
       id: "resource.filters",
-      filters: [control],
-      state: Incant.UI.FilterState.new(nil, [control])
+      filters: [control, date_control],
+      state: Incant.UI.FilterState.new(nil, [control, date_control])
     }
 
     env =
@@ -85,6 +94,8 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "Enabled</span>"
     assert html =~ ~s(phx-value-op="filter_clear")
     assert html =~ ~s(data-incant-filter-dialog)
+    assert html =~ ~s(data-incant-filter-date-preset="7")
+    assert html =~ ~s(type="date")
     refute html =~ ~s(name="table[page_size]")
   end
 

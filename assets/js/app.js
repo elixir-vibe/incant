@@ -37,6 +37,13 @@ function toggleNavigation() {
   document.querySelectorAll("[data-incant-nav-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(Boolean(isOpen))));
 }
 
+function localDateValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function scheduleFlashDismissal() {
   document.querySelectorAll("[data-incant-flash]").forEach((flash) => {
     if (flash.dataset.incantFlashScheduled) return;
@@ -65,6 +72,20 @@ document.addEventListener("click", (event) => {
         window.requestAnimationFrame(() => input?.focus());
       }
     }
+  }
+
+  const datePreset = event.target.closest("[data-incant-filter-date-preset]");
+  if (datePreset) {
+    const form = datePreset.closest("form");
+    const days = Number(datePreset.dataset.incantFilterDatePreset);
+    const to = new Date();
+    const from = new Date(to);
+    from.setDate(to.getDate() - Math.max(days - 1, 0));
+
+    const fromInput = form?.querySelector('input[name$="[from]"]');
+    const toInput = form?.querySelector('input[name$="[to]"]');
+    if (fromInput) fromInput.value = localDateValue(from);
+    if (toInput) toInput.value = localDateValue(to);
   }
 
   const filterClose = event.target.closest("[data-incant-filter-close], [data-incant-filter-apply]");

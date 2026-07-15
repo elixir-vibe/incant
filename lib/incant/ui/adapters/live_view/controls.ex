@@ -177,15 +177,22 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
 
     ~H"""
     <.form :let={_form} for={%{}} as={:table} phx-submit="incant:event" phx-value-op="filter_commit" class={Theme.slot(:filters, :editor_form)}>
-      <div class={Theme.slot(:filters, :date_fields)}>
-        <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name) <> "-from"}>
-          From
-          <input id={filter_editor_id(@control.name) <> "-from"} type="date" name={control_name(@control, "from")} value={map_value(@control.value, "from")} class={Theme.slot(:field, :input)} />
-        </label>
-        <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name) <> "-to"}>
-          To
-          <input id={filter_editor_id(@control.name) <> "-to"} type="date" name={control_name(@control, "to")} value={map_value(@control.value, "to")} class={Theme.slot(:field, :input)} />
-        </label>
+      <div class={Theme.slot(:filters, :date_editor)}>
+        <div class={Theme.slot(:filters, :date_presets)} aria-label="Date range presets">
+          <button :for={{label, days} <- [{"Today", 1}, {"7 days", 7}, {"30 days", 30}]} type="button" class={Theme.slot(:filters, :date_preset)} data-incant-filter-date-preset={days}>
+            {label}
+          </button>
+        </div>
+        <div class={Theme.slot(:filters, :date_fields)}>
+          <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name) <> "-from"}>
+            From
+            <input id={filter_editor_id(@control.name) <> "-from"} type="date" name={control_name(@control, "from")} value={map_value(@control.value, "from")} class={Theme.slot(:field, :input)} />
+          </label>
+          <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name) <> "-to"}>
+            To
+            <input id={filter_editor_id(@control.name) <> "-to"} type="date" name={control_name(@control, "to")} value={map_value(@control.value, "to")} class={Theme.slot(:field, :input)} />
+          </label>
+        </div>
       </div>
       <button type="submit" class={Theme.slot(:button, :base, variant: :primary, size: :sm)} data-incant-filter-apply>Apply filter</button>
     </.form>
