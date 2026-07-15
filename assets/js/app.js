@@ -12,7 +12,10 @@ liveSocket.connect();
 window.liveSocket = liveSocket;
 
 const themeStorageKey = "incant-theme";
+const mobileNavigation = window.matchMedia("(max-width: 1023px)");
 const shell = () => document.querySelector("[data-incant-shell]");
+const sidebar = () => document.querySelector("[data-incant-sidebar]");
+const navigationToggle = () => document.querySelector("[data-incant-nav-toggle]");
 
 function preferredTheme() {
   const stored = window.localStorage.getItem(themeStorageKey);
@@ -27,14 +30,28 @@ function applyTheme(theme) {
   document.querySelectorAll("[data-incant-theme-icon='moon']").forEach((icon) => icon.classList.toggle("hidden", !dark));
 }
 
-function closeNavigation() {
-  shell()?.classList.remove("incant-nav-open");
-  document.querySelectorAll("[data-incant-nav-toggle]").forEach((button) => button.setAttribute("aria-expanded", "false"));
+function syncNavigation(open) {
+  const mobile = mobileNavigation.matches;
+  const expanded = mobile && open;
+
+  shell()?.classList.toggle("incant-nav-open", expanded);
+  sidebar()?.toggleAttribute("inert", mobile && !expanded);
+  sidebar()?.setAttribute("aria-hidden", String(mobile && !expanded));
+  document.querySelectorAll("[data-incant-nav-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(expanded)));
+}
+
+function closeNavigation({ restoreFocus = false } = {}) {
+  syncNavigation(false);
+  if (restoreFocus && mobileNavigation.matches) navigationToggle()?.focus();
 }
 
 function toggleNavigation() {
-  const isOpen = shell()?.classList.toggle("incant-nav-open");
-  document.querySelectorAll("[data-incant-nav-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(Boolean(isOpen))));
+  const open = !shell()?.classList.contains("incant-nav-open");
+  syncNavigation(open);
+
+  if (open) {
+    window.requestAnimationFrame(() => sidebar()?.querySelector("a")?.focus());
+  }
 }
 
 function localDateValue(date) {
@@ -55,6 +72,8 @@ function scheduleFlashDismissal() {
 
 applyTheme(preferredTheme());
 scheduleFlashDismissal();
+syncNavigation(false);
+mobileNavigation.addEventListener("change", () => syncNavigation(false));
 new MutationObserver(scheduleFlashDismissal).observe(document.body, { childList: true, subtree: true });
 
 document.addEventListener("click", (event) => {
@@ -100,7 +119,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (event.target.closest("[data-incant-nav-toggle]")) toggleNavigation();
-  if (event.target.closest("[data-incant-nav-backdrop]")) closeNavigation();
+  if (event.target.closest("[data-incant-nav-backdrop], [data-incant-sidebar] a")) closeNavigation();
 
   const customRangeButton = event.target.closest("[data-incant-date-range-custom]");
   if (customRangeButton) {
@@ -111,5 +130,7 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeNavigation();
+  if (event.key === "Escape" && shell()?.classList.contains("incant-nav-open")) {
+    closeNavigation({ restoreFocus: true });
+  }
 });

@@ -22,7 +22,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(%{widget: %{type: :stat}} = assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root, kind: :stat)} style={widget_style(@widget)}>
+    <div class={Theme.slot(:widget, :root, kind: :stat)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="stat">
       <p class={Theme.slot(:widget, :stat_label)}>{@widget.title}</p>
       <div class={Theme.slot(:widget, :stat_value)}>
         <%= cond do %>
@@ -43,7 +43,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(%{widget: %{type: :timeseries}} = assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)}>
+    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="timeseries">
       <div class={Theme.slot(:widget, :title_row)}>
         <div>
           <p class={Theme.slot(:widget, :eyebrow)}>Timeseries</p>
@@ -70,7 +70,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(%{widget: %{type: :chart}} = assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)}>
+    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="chart">
       <div class={Theme.slot(:widget, :title_row)}>
         <div>
           <p class={Theme.slot(:widget, :eyebrow)}>{@widget.chart.type || "Chart"}</p>
@@ -106,8 +106,15 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
   end
 
   def widget(%{widget: %{type: :table}} = assigns) do
+    rows = table_rows(assigns.widget.value)
+
+    assigns =
+      assigns
+      |> assign(:rows, Enum.take(rows, table_preview_limit(assigns.widget)))
+      |> assign(:total_rows, length(rows))
+
     ~H"""
-    <div class={Theme.slot(:widget, :framed)} style={widget_style(@widget)}>
+    <div class={Theme.slot(:widget, :framed)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="table">
       <div class={Theme.slot(:widget, :header)}>
         <div>
           <p class={Theme.slot(:widget, :eyebrow)}>Table</p>
@@ -116,23 +123,28 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
       </div>
       <.widget_message :if={@widget.error} tone={:error} message="Unable to load widget." />
       <.widget_message :if={!@widget.error && @widget.loading} message="Loading…" />
-      <.widget_message :if={!@widget.error && !@widget.loading && table_rows(@widget.value) == [] && table_columns(@widget) == []} message="No rows to display." />
-      <table :if={!@widget.error && !@widget.loading && table_columns(@widget) != []} class={Theme.slot(:table, :root)}>
-        <thead class={Theme.slot(:table, :head)}>
-          <tr><th :for={column <- table_columns(@widget)} class={table_header_class(column)}>{table_column_label(column)}</th></tr>
-        </thead>
-        <tbody class={Theme.slot(:table, :body)}>
-          <tr :if={table_rows(@widget.value) == []}><td colspan={length(table_columns(@widget))} class={Theme.slot(:table, :empty)}>No rows to display.</td></tr>
-          <tr :for={row <- table_rows(@widget.value)} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)}>{table_cell_display(column, table_cell(row, column))}</td></tr>
-        </tbody>
-      </table>
+      <.widget_message :if={!@widget.error && !@widget.loading && @rows == [] && table_columns(@widget) == []} message="No rows to display." />
+      <div :if={!@widget.error && !@widget.loading && table_columns(@widget) != []} class={Theme.slot(:widget, :table_viewport)}>
+        <table class={Theme.slot(:table, :root)}>
+          <thead class={Theme.slot(:table, :head)}>
+            <tr><th :for={column <- table_columns(@widget)} class={table_header_class(column)}>{table_column_label(column)}</th></tr>
+          </thead>
+          <tbody class={Theme.slot(:table, :body)}>
+            <tr :if={@rows == []}><td colspan={length(table_columns(@widget))} class={Theme.slot(:table, :empty)}>No rows to display.</td></tr>
+            <tr :for={row <- @rows} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)}>{table_cell_display(column, table_cell(row, column))}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div :if={@total_rows > length(@rows)} class={Theme.slot(:widget, :table_footer)}>
+        Showing {length(@rows)} of {@total_rows} rows
+      </div>
     </div>
     """
   end
 
   def widget(assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)}>
+    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind={@widget.type}>
       <p class={Theme.slot(:widget, :eyebrow)}>{@widget.type}</p>
       <h3 class={Theme.slot(:widget, :title)}>{@widget.title}</h3>
     </div>
@@ -150,6 +162,14 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   defp widget_message_class(:error), do: Theme.slot(:widget, :message_error)
   defp widget_message_class(_tone), do: Theme.slot(:widget, :message)
+
+  defp table_preview_limit(%{source: %{opts: opts}}) when is_list(opts),
+    do: Keyword.get(opts, :preview_rows, 10)
+
+  defp table_preview_limit(%{source: %{opts: opts}}) when is_map(opts),
+    do: Map.get(opts, :preview_rows, Map.get(opts, "preview_rows", 10))
+
+  defp table_preview_limit(_widget), do: 10
 
   defp widget_grid_style(%{columns: columns}), do: "--incant-grid-columns: #{columns};"
 

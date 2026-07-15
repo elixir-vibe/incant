@@ -73,11 +73,17 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def cell_class(cell) do
-    Theme.slot(:table, :cell, align: cell_align(cell), truncate: truncate_cell?(cell))
+    [
+      Theme.slot(:table, :cell, align: cell_align(cell), truncate: truncate_cell?(cell)),
+      responsive_column_class(cell_priority(cell))
+    ]
   end
 
   def table_header_class(column) do
-    Theme.slot(:table, :header_cell, align: table_column_align(column))
+    [
+      Theme.slot(:table, :header_cell, align: table_column_align(column)),
+      responsive_column_class(column_priority(column))
+    ]
   end
 
   def table_sort_button_class(column) do
@@ -85,7 +91,10 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def table_data_class(column) do
-    Theme.slot(:table, :cell, align: table_column_align(column))
+    [
+      Theme.slot(:table, :cell, align: table_column_align(column)),
+      responsive_column_class(column_priority(column))
+    ]
   end
 
   def table_column_align(column), do: column_align(column)
@@ -119,6 +128,20 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     string_length(cell.display) > 120 || cell_sensitive?(cell) ||
       opt(cell_opts(cell), :format) == :text || cell.format == :text
   end
+
+  defp cell_priority(cell), do: cell |> cell_opts() |> opt(:priority)
+
+  defp column_priority(%{priority: priority}), do: priority
+  defp column_priority(%{opts: opts}), do: opt(opts, :priority)
+  defp column_priority(_column), do: nil
+
+  defp responsive_column_class(priority) when priority in [:secondary, "secondary", 2],
+    do: "hidden sm:table-cell"
+
+  defp responsive_column_class(priority) when priority in [:tertiary, "tertiary", 3],
+    do: "hidden lg:table-cell"
+
+  defp responsive_column_class(_priority), do: nil
 
   defp cell_opts(%{source: %{opts: opts}}) when is_list(opts) or is_map(opts), do: opts
   defp cell_opts(_cell), do: []
@@ -208,7 +231,7 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def widget_style(widget) do
     case widget.span do
       nil -> nil
-      span -> "grid-column: span #{span} / span #{span};"
+      span -> "--incant-widget-span: #{span};"
     end
   end
 

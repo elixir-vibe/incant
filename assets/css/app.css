@@ -74,10 +74,20 @@
 
 @media (max-width: 1023px) {
   .incant-nav-open [data-incant-sidebar] {
-    transform: translateX(0);
+    translate: 0;
   }
 
   .incant-nav-open [data-incant-nav-backdrop] {
     display: block;
+  }
+}
+
+[data-incant-widget] {
+  min-width: 0;
+}
+
+@media (min-width: 1280px) {
+  [data-incant-widget] {
+    grid-column: span var(--incant-widget-span, 1) / span var(--incant-widget-span, 1);
   }
 }

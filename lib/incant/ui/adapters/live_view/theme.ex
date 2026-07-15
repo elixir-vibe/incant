@@ -329,14 +329,14 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         filter_form:
           "flex flex-wrap items-end gap-2 [&>label]:min-w-28 [&>label]:text-[10px] [&>label>input]:h-7 [&>label>select]:h-7",
         toolbar:
-          "flex items-center justify-between gap-3 border-b border-[var(--incant-border-muted)] px-3 py-2",
-        toolbar_group: "flex items-center gap-1.5",
+          "flex flex-wrap items-center justify-between gap-2 border-b border-[var(--incant-border-muted)] px-3 py-2",
+        toolbar_group: "flex flex-wrap items-center gap-1.5",
         toolbar_hint: "text-xs text-[var(--incant-text-muted)]",
         checkbox_cell: "w-8 px-3 py-1.5",
         checkbox:
           "h-3.5 w-3.5 rounded border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] text-[var(--incant-primary)] focus:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
         viewport: "overflow-x-auto",
-        root: "min-w-full text-sm",
+        root: "w-full min-w-full text-sm",
         head:
           "border-b border-[var(--incant-border)] bg-[var(--incant-bg-muted)] text-left text-[11px] uppercase tracking-wide text-[var(--incant-text-muted)]",
         header_cell: "h-8 px-3 font-medium",
@@ -351,12 +351,13 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         empty_action:
           "mt-2 inline-flex h-8 items-center rounded-md border border-[var(--incant-border)] px-3 text-xs font-medium text-[var(--incant-text-toned)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         empty_hint: "mt-1 text-xs text-[var(--incant-text-dimmed)]",
-        actions: "px-3 py-1.5 text-right",
-        action_group: "inline-flex items-center gap-1",
+        actions: "w-px px-2 py-1.5 text-right sm:px-3",
+        action_group:
+          "inline-flex flex-col items-stretch gap-0.5 sm:flex-row sm:items-center sm:gap-1",
         link: "font-medium text-[var(--incant-text-highlighted)] hover:underline",
         pagination:
-          "flex h-10 items-center justify-between gap-3 border-t border-[var(--incant-border)] px-3 text-xs text-[var(--incant-text-muted)]",
-        pagination_actions: "flex items-center gap-1",
+          "flex min-h-10 flex-wrap items-center justify-between gap-2 border-t border-[var(--incant-border)] px-3 py-1.5 text-xs text-[var(--incant-text-muted)]",
+        pagination_actions: "ml-auto flex flex-wrap items-center justify-end gap-1",
         page_size: "mr-1 inline-flex items-center gap-1.5",
         page_size_select:
           "h-7 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1.5 text-xs text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]"
@@ -419,7 +420,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     %Recipe{
       slots: %{
         root:
-          "grid grid-cols-1 gap-3 xl:grid-cols-[repeat(var(--incant-grid-columns),minmax(0,1fr))]"
+          "grid grid-cols-2 gap-3 xl:grid-cols-[repeat(var(--incant-grid-columns),minmax(0,1fr))]"
       }
     }
   end
@@ -428,9 +429,9 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     %Recipe{
       slots: %{
         root:
-          "rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-3",
+          "col-span-2 min-w-0 rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-3",
         framed:
-          "overflow-hidden rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]",
+          "col-span-2 min-w-0 overflow-hidden rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]",
         title_row: "flex items-center justify-between gap-3",
         header:
           "flex items-center justify-between gap-3 border-b border-[var(--incant-border-muted)] p-3",
@@ -439,7 +440,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         title: "mt-1 font-mono text-sm font-semibold text-[var(--incant-text-highlighted)]",
         stat_label: "text-xs font-medium text-[var(--incant-text-muted)]",
         stat_value:
-          "mt-2 text-3xl font-semibold tracking-tight tabular-nums text-[var(--incant-text-highlighted)]",
+          "mt-2 text-2xl font-semibold tracking-tight tabular-nums text-[var(--incant-text-highlighted)] sm:text-3xl",
         stat_delta: "mt-2 text-xs font-medium",
         error: "text-base text-[var(--incant-error)]",
         message: "p-3 text-sm text-[var(--incant-text-muted)]",
@@ -452,13 +453,16 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         chart_line: "h-16 rounded-[50%] border-t-2 border-[var(--incant-primary)] opacity-80",
         chart_axis:
           "mt-1 flex items-center justify-between text-[11px] text-[var(--incant-text-muted)]",
-        bar: "fill-[var(--incant-primary)]"
+        bar: "fill-[var(--incant-primary)]",
+        table_viewport: "overflow-x-auto",
+        table_footer:
+          "border-t border-[var(--incant-border-muted)] px-3 py-2 text-xs text-[var(--incant-text-muted)]"
       },
       variants: %{
         kind: %{
           stat: %{
             root:
-              "p-4 transition-colors hover:border-[var(--incant-border-accented)] hover:shadow-sm"
+              "col-span-1 p-3 transition-colors hover:border-[var(--incant-border-accented)] hover:shadow-sm sm:p-4"
           },
           default: %{}
         },

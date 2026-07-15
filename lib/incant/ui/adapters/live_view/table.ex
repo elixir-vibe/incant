@@ -74,8 +74,8 @@ defmodule Incant.UI.Adapters.LiveView.Table do
                 phx-value-value={row.id}
               />
             </td>
-            <td :for={cell <- row.cells} class={cell_class(cell)} title={cell_title(cell)}>
-              <.table_cell cell={cell} row={row} env={@env} />
+            <td :for={{cell, index} <- Enum.with_index(row.cells)} class={cell_class(cell)} title={cell_title(cell)}>
+              <.table_cell cell={cell} row={row} env={@env} detail_link={detail_link_cell?(row.cells, index)} />
             </td>
             <td :if={@table.row_actions != []} class={Theme.slot(:table, :actions)}>
               <.row_actions row={row} actions={@table.row_actions} env={@env} />
@@ -131,14 +131,17 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     """
   end
 
-  def table_cell(assigns) do
-    assigns = assign(assigns, :column, assigns.cell.source)
+  attr(:cell, :map, required: true)
+  attr(:row, :map, required: true)
+  attr(:env, :map, required: true)
+  attr(:detail_link, :boolean, default: false)
 
+  def table_cell(assigns) do
     ~H"""
-    <.link :if={row_detail_link?(@env.context, @row.source, @row.id) && @row.detail} patch={resource_detail_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:table, :link)}>
+    <.link :if={@detail_link && row_detail_link?(@env.context, @row.source, @row.id) && @row.detail} patch={resource_detail_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:table, :link)}>
       <.cell_value cell={@cell} />
     </.link>
-    <.cell_value :if={!(row_detail_link?(@env.context, @row.source, @row.id) && @row.detail)} cell={@cell} />
+    <.cell_value :if={!(@detail_link && row_detail_link?(@env.context, @row.source, @row.id) && @row.detail)} cell={@cell} />
     """
   end
 
@@ -207,14 +210,20 @@ defmodule Incant.UI.Adapters.LiveView.Table do
       Map.get(table_state, :search, "") not in [nil, ""]
   end
 
-  defp row_class(context, table, row) do
-    Theme.slot(
-      :table,
-      :row,
-      density: table.density,
-      clickable: not is_nil(row.detail) and row_detail_link?(context, row.source, row.id)
-    )
+  defp detail_link_cell?(cells, index) do
+    preferred_index = Enum.find_index(cells, &cell_link?/1) || 0
+    index == preferred_index
   end
+
+  defp cell_link?(%{source: %{opts: opts}}) when is_list(opts),
+    do: Keyword.get(opts, :link, false)
+
+  defp cell_link?(%{source: %{opts: opts}}) when is_map(opts),
+    do: Map.get(opts, :link, Map.get(opts, "link", false))
+
+  defp cell_link?(_cell), do: false
+
+  defp row_class(_context, table, _row), do: Theme.slot(:table, :row, density: table.density)
 
   defp selected?(table, row_id), do: to_string(row_id) in table.selection.selected_ids
   defp selected_count(table), do: length(table.selection.selected_ids)

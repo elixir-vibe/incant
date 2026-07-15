@@ -32,8 +32,8 @@ defmodule Incant.UI.Adapters.LiveView do
 
     ~H"""
     <div class={Theme.slot(:shell, :root)} data-incant-shell>
-      <div class={Theme.slot(:shell, :sidebar_backdrop)} data-incant-nav-backdrop></div>
-      <aside class={Theme.slot(:shell, :sidebar)} data-incant-sidebar>
+      <div class={Theme.slot(:shell, :sidebar_backdrop)} data-incant-nav-backdrop aria-hidden="true"></div>
+      <aside id="incant-primary-navigation" class={Theme.slot(:shell, :sidebar)} data-incant-sidebar aria-label="Primary navigation">
         <div class={Theme.slot(:shell, :brand)}>
           <div class={Theme.slot(:shell, :brand_mark)}>Incant</div>
           <div class={Theme.slot(:shell, :brand_title)}>{short_module(@env.admin)}</div>
@@ -48,6 +48,7 @@ defmodule Incant.UI.Adapters.LiveView do
               type="button"
               class={[Theme.slot(:shell, :icon_button), Theme.slot(:shell, :mobile_nav_toggle)]}
               aria-label="Open navigation"
+              aria-controls="incant-primary-navigation"
               aria-expanded="false"
               data-incant-nav-toggle
             >

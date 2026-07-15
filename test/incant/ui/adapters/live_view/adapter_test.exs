@@ -124,7 +124,68 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ">\n            input_tokens\n"
   end
 
-  test "links every data cell when a row detail is available" do
+  test "applies semantic column priority at mobile breakpoints" do
+    table = %Incant.UI.Regions.Table{
+      columns: [
+        %Incant.UI.Regions.Table.Column{
+          id: "name",
+          label: "Name",
+          priority: :primary,
+          sortable: false
+        },
+        %Incant.UI.Regions.Table.Column{
+          id: "status",
+          label: "Status",
+          priority: :secondary,
+          sortable: false
+        },
+        %Incant.UI.Regions.Table.Column{
+          id: "audit",
+          label: "Audit",
+          priority: :tertiary,
+          sortable: false
+        }
+      ],
+      rows: [
+        %Incant.UI.Regions.Table.Row{
+          id: "row-1",
+          source: %{},
+          cells: [
+            %Incant.UI.Regions.Table.Cell{
+              column: "name",
+              display: "Ada",
+              source: %{opts: [priority: :primary]}
+            },
+            %Incant.UI.Regions.Table.Cell{
+              column: "status",
+              display: "Active",
+              source: %{opts: [priority: :secondary]}
+            },
+            %Incant.UI.Regions.Table.Cell{
+              column: "audit",
+              display: "Today",
+              source: %{opts: [priority: :tertiary]}
+            }
+          ]
+        }
+      ],
+      row_actions: [],
+      selection: %Incant.UI.Regions.Table.Selection{enabled: false},
+      empty_state: "No rows"
+    }
+
+    env = Incant.UI.Env.new(%Incant.Live.Context{base_path: "/admin"}, %{admin: nil})
+
+    html =
+      %{table: table, env: env}
+      |> Incant.UI.Adapters.LiveView.Table.table()
+      |> rendered_to_string()
+
+    assert html =~ "hidden sm:table-cell"
+    assert html =~ "hidden lg:table-cell"
+  end
+
+  test "links one intentional data cell when a row detail is available" do
     table = %Incant.UI.Regions.Table{
       columns: [
         %Incant.UI.Regions.Table.Column{id: "name", label: "Name", sortable: true},
@@ -164,8 +225,8 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Table.table()
       |> rendered_to_string()
 
-    assert length(Regex.scan(~r/href="\/admin\/resources\/user\/row-1"/, html)) == 2
-    assert html =~ "cursor-pointer"
+    assert length(Regex.scan(~r/href="\/admin\/resources\/user\/row-1"/, html)) == 1
+    refute html =~ "cursor-pointer"
   end
 
   test "renders boolean and identifier cells with semantic table treatment" do
@@ -457,6 +518,46 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
 
     assert html =~
              ~S|<td class="px-3 py-1.5 text-[var(--incant-text-toned)] text-right tabular-nums">$1.00</td>|
+  end
+
+  test "caps dashboard table previews and preserves responsive column metadata" do
+    rows = Enum.map(1..12, &%{model: "model-#{&1}", count: &1})
+
+    grid = %Incant.UI.Regions.WidgetGrid{
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :usage,
+          type: :table,
+          title: "Usage",
+          value: rows,
+          span: 7,
+          source: %Incant.Dashboard.Widget{
+            id: :usage,
+            type: :table,
+            opts: [
+              preview_rows: 3,
+              columns: [
+                %Incant.Dashboard.Column{name: :model, opts: [priority: :primary]},
+                %Incant.Dashboard.Column{name: :count, opts: [priority: :secondary]}
+              ]
+            ]
+          }
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ "model-1"
+    assert html =~ "model-3"
+    refute html =~ "model-4"
+    assert html =~ "Showing 3 of 12 rows"
+    assert html =~ "hidden sm:table-cell"
+    assert html =~ "--incant-widget-span: 7"
+    refute html =~ "grid-column: span 7"
   end
 
   test "right-aligns resource table cells from explicit or formatted metadata" do
