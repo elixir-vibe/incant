@@ -83,16 +83,14 @@ defmodule Incant.Live.Routes do
   end
 
   defp query_pairs(map) when is_map(map) do
-    Enum.flat_map(map, fn
-      {key, value} when is_map(value) ->
-        value
-        |> reject_empty_values()
-        |> Enum.flat_map(fn {nested_key, nested_value} ->
-          query_value_pairs("#{key}[#{nested_key}]", nested_value)
-        end)
+    Enum.flat_map(map, fn {key, value} -> query_value_pairs(to_string(key), value) end)
+  end
 
-      {key, value} ->
-        query_value_pairs(key, value)
+  defp query_value_pairs(key, value) when is_map(value) do
+    value
+    |> reject_empty_values()
+    |> Enum.flat_map(fn {nested_key, nested_value} ->
+      query_value_pairs("#{key}[#{nested_key}]", nested_value)
     end)
   end
 

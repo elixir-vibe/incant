@@ -53,6 +53,17 @@ defmodule Incant.Live.RoutesTest do
              "/admin/dashboards/llm?var%5Brange%5D=7d&var%5Bteam%5D=core"
   end
 
+  test "preserves nested date range filter params" do
+    resource = resource(Product)
+
+    assert Routes.resource_path("/admin", resource, %{
+             "filter" => %{
+               "timestamp" => %{"from" => "2026-07-09", "to" => "2026-07-15"}
+             }
+           }) ==
+             "/admin/resources/product?filter%5Btimestamp%5D%5Bfrom%5D=2026-07-09&filter%5Btimestamp%5D%5Bto%5D=2026-07-15"
+  end
+
   test "preserves dashboard multi-select params" do
     dashboard = dashboard()
 
