@@ -51,6 +51,27 @@ scheduleFlashDismissal();
 new MutationObserver(scheduleFlashDismissal).observe(document.body, { childList: true, subtree: true });
 
 document.addEventListener("click", (event) => {
+  const filterOpen = event.target.closest("[data-incant-filter-open]");
+  if (filterOpen) {
+    const dialog = document.getElementById(filterOpen.dataset.incantFilterOpen);
+    if (dialog?.showModal) {
+      dialog.showModal();
+
+      const focusId = filterOpen.dataset.incantFilterFocus;
+      if (focusId) {
+        const input = document.getElementById(focusId) || document.getElementById(`${focusId}-from`);
+        const definition = input?.closest("[data-incant-filter-definition]");
+        if (definition) definition.open = true;
+        window.requestAnimationFrame(() => input?.focus());
+      }
+    }
+  }
+
+  const filterClose = event.target.closest("[data-incant-filter-close], [data-incant-filter-apply]");
+  if (filterClose) filterClose.closest("dialog")?.close();
+
+  if (event.target.matches("dialog[data-incant-filter-dialog]")) event.target.close();
+
   if (event.target.closest("[data-incant-theme-toggle]")) {
     const theme = document.documentElement.classList.contains("dark") ? "light" : "dark";
     window.localStorage.setItem(themeStorageKey, theme);

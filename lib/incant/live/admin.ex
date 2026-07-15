@@ -142,6 +142,9 @@ defmodule Incant.Live.Admin do
   defp handle_incant_event(%{op: :filter_commit} = event, socket),
     do: filter_commit(event, socket)
 
+  defp handle_incant_event(%{op: :filter_clear} = event, socket),
+    do: filter_clear(event, socket)
+
   defp handle_incant_event(%{op: :dashboard_variable_commit} = event, socket),
     do: dashboard_variable_commit(event, socket)
 
@@ -166,7 +169,31 @@ defmodule Incant.Live.Admin do
     params =
       socket.assigns.params
       |> table_query_params()
-      |> Map.merge(flatten_table_params(table_params))
+      |> merge_table_params(table_params)
+      |> Map.put("page", "1")
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
+  end
+
+  defp filter_clear(%{target: "all"}, socket) do
+    params =
+      socket.assigns.params
+      |> table_query_params()
+      |> Map.drop(["search", "filter"])
+      |> Map.put("page", "1")
+      |> reject_empty_values()
+
+    {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
+  end
+
+  defp filter_clear(%{target: target}, socket) when is_binary(target) do
+    filters = socket.assigns.params |> Map.get("filter", %{}) |> Map.delete(target)
+
+    params =
+      socket.assigns.params
+      |> table_query_params()
+      |> Map.put("filter", filters)
       |> Map.put("page", "1")
       |> reject_empty_values()
 
@@ -687,17 +714,37 @@ defmodule Incant.Live.Admin do
     }
   end
 
-  defp flatten_table_params(table_params) do
-    filters = Map.get(table_params, "filters", %{}) |> reject_empty_values()
+  defp merge_table_params(params, table_params) do
+    params
+    |> maybe_put_submitted(table_params, "search")
+    |> maybe_put_submitted(table_params, "page_size")
+    |> merge_submitted_filters(Map.get(table_params, "filters"))
+  end
 
-    %{}
-    |> Map.put("search", Map.get(table_params, "search"))
-    |> Map.put("filter", filters)
-    |> Map.put("page_size", Map.get(table_params, "page_size"))
+  defp maybe_put_submitted(params, submitted, key) do
+    if Map.has_key?(submitted, key),
+      do: Map.put(params, key, Map.get(submitted, key)),
+      else: params
+  end
+
+  defp merge_submitted_filters(params, nil), do: params
+
+  defp merge_submitted_filters(params, submitted) when is_map(submitted) do
+    filters =
+      params
+      |> Map.get("filter", %{})
+      |> Map.merge(submitted)
+      |> reject_empty_values()
+
+    Map.put(params, "filter", filters)
   end
 
   defp reject_empty_values(map) do
-    Map.reject(map, fn {_key, value} -> value in [nil, "", %{}] end)
+    Enum.reduce(map, %{}, fn {key, value}, acc ->
+      value = if is_map(value), do: reject_empty_values(value), else: value
+
+      if value in [nil, "", [], %{}], do: acc, else: Map.put(acc, key, value)
+    end)
   end
 
   defp table_query_params(params),

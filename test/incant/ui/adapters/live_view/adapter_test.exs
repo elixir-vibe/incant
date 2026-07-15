@@ -53,8 +53,21 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert custom_html =~ ~s(value="2026-07-01")
   end
 
-  test "renders small resource filter sets inside the table toolbar" do
-    filter_bar = %Incant.UI.Regions.FilterBar{id: "resource.filters"}
+  test "renders resource filters as a compact builder instead of expanded fields" do
+    control = %Incant.UI.Controls.Boolean{
+      id: "filters.enabled",
+      name: "enabled",
+      label: "Enabled",
+      role: :filter,
+      value: "true",
+      source: %{type: :boolean}
+    }
+
+    filter_bar = %Incant.UI.Regions.FilterBar{
+      id: "resource.filters",
+      filters: [control],
+      state: Incant.UI.FilterState.new(nil, [control])
+    }
 
     env =
       Incant.UI.Env.new(
@@ -67,9 +80,12 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Controls.table_filter_bar()
       |> rendered_to_string()
 
-    assert html =~ ~s(name="table[page_size]")
-    assert html =~ ~s(phx-value-op="filter_commit")
-    refute html =~ ">Filters<"
+    assert html =~ "Add filter"
+    assert html =~ "Enabled"
+    assert html =~ "Enabled</span>"
+    assert html =~ ~s(phx-value-op="filter_clear")
+    assert html =~ ~s(data-incant-filter-dialog)
+    refute html =~ ~s(name="table[page_size]")
   end
 
   test "renders table column labels instead of raw ids" do
@@ -761,6 +777,8 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ ~s(aria-label="Select row row-1")
     assert html =~ "h-12"
     assert html =~ "26–31 of 31"
+    assert html =~ ~s(name="table[page_size]")
+    assert html =~ ~s(aria-label="Rows per page")
     refute html =~ ~s(phx-value-target="status")
   end
 

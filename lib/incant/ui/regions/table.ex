@@ -61,7 +61,7 @@ defmodule Incant.UI.Regions.Table do
       page_actions: resource.table.page_actions,
       row_detail: row_detail_from_metadata(resource.table.row_detail),
       selection: selection_from_metadata(resource.table, context.table_state.selected_ids),
-      empty_state: empty_state(context.pagination),
+      empty_state: empty_state(context.pagination, context.table_state),
       density: resource.table.opts[:density] || :compact
     }
   end
@@ -77,7 +77,7 @@ defmodule Incant.UI.Regions.Table do
       rows: rows,
       sort: context.table_state.sort,
       pagination: dataset_pagination(context, result),
-      empty_state: dataset_empty_state(result),
+      empty_state: dataset_empty_state(result, context.table_state),
       density: context.dataset.table.opts[:density] || :compact
     }
   end
@@ -193,16 +193,26 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
-  defp empty_state(%{error: error}) when is_binary(error),
+  defp empty_state(%{error: error}, _table_state) when is_binary(error),
     do: "Resource query failed: #{error}"
 
-  defp empty_state(_pagination),
-    do: "No results. Try adjusting or clearing the filters."
+  defp empty_state(_pagination, table_state),
+    do: empty_results_message(table_state, "No records yet.")
 
-  defp dataset_empty_state(%{meta: %{error: reason}}),
+  defp dataset_empty_state(%{meta: %{error: reason}}, _table_state),
     do: "Dataset query failed: #{inspect(reason)}"
 
-  defp dataset_empty_state(_result), do: "No results. Try adjusting or clearing the filters."
+  defp dataset_empty_state(_result, table_state),
+    do: empty_results_message(table_state, "No dataset rows yet.")
+
+  defp empty_results_message(table_state, empty_message) do
+    filters = Map.get(table_state, :filters, %{})
+    search = Map.get(table_state, :search, "")
+
+    if filters != %{} or search not in [nil, ""],
+      do: "No results match the current filters.",
+      else: empty_message
+  end
 
   defp row_id(%{id: id}), do: id
   defp row_id(%{"id" => id}), do: id

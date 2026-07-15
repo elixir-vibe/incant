@@ -3,7 +3,9 @@ defmodule Incant.UI.Regions.FilterBar do
   Search and filter controls for a resource or dashboard variables surface.
   """
 
-  defstruct [:id, :search, filters: [], saved_views: [], density: :compact, events: %{}]
+  alias Incant.UI.FilterState
+
+  defstruct [:id, :search, :state, filters: [], saved_views: [], density: :compact, events: %{}]
 
   def from_context(%{resource: resource, table_state: table_state} = context) do
     search =
@@ -25,7 +27,12 @@ defmodule Incant.UI.Regions.FilterBar do
         Incant.UI.Controls.from_table_filter(filter, value, context)
       end)
 
-    %__MODULE__{id: "resource.filters", search: search, filters: filters}
+    %__MODULE__{
+      id: "resource.filters",
+      search: search,
+      filters: filters,
+      state: FilterState.new(search, filters)
+    }
   end
 
   def from_dataset_context(%{dataset: dataset, table_state: table_state} = context) do
@@ -35,7 +42,11 @@ defmodule Incant.UI.Regions.FilterBar do
         Incant.UI.Controls.from_table_filter(filter, value, context)
       end)
 
-    %__MODULE__{id: "dataset.filters", filters: filters}
+    %__MODULE__{
+      id: "dataset.filters",
+      filters: filters,
+      state: FilterState.new(nil, filters)
+    }
   end
 
   def dashboard_variables(variables) do

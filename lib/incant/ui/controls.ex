@@ -30,6 +30,32 @@ defmodule Incant.UI.Controls do
     }
   end
 
+  def from_table_filter(%{type: :multi_select} = filter, value, context) do
+    %Incant.UI.Controls.MultiSelect{
+      id: "filters.#{filter.name}",
+      name: to_string(filter.name),
+      label: filter.opts[:label] || humanize(filter.name),
+      role: :filter,
+      value: value,
+      options: options(filter.opts[:options] || [], filter, context),
+      clearable: true,
+      source: filter
+    }
+  end
+
+  def from_table_filter(%{type: :boolean} = filter, value, _context) do
+    %Incant.UI.Controls.Boolean{
+      id: "filters.#{filter.name}",
+      name: to_string(filter.name),
+      label: filter.opts[:label] || humanize(filter.name),
+      role: :filter,
+      value: value,
+      options: [%{label: "Enabled", value: "true"}, %{label: "Disabled", value: "false"}],
+      clearable: true,
+      source: filter
+    }
+  end
+
   def from_table_filter(filter, value, _context) do
     %Incant.UI.Controls.Text{
       id: "filters.#{filter.name}",

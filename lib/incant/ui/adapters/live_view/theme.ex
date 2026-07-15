@@ -268,6 +268,56 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:filters) do
+    %Recipe{
+      slots: %{
+        root: "border-b border-[var(--incant-border-muted)] px-3 py-2.5",
+        toolbar: "flex min-h-9 flex-wrap items-center gap-2",
+        search_form: "min-w-48 flex-1 sm:max-w-72",
+        search:
+          "h-10 w-full rounded-md sm:h-8 border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]",
+        chips: "flex min-w-0 flex-wrap items-center gap-1.5",
+        chip:
+          "inline-flex h-10 max-w-full sm:h-8 items-stretch overflow-hidden rounded-md border border-[color-mix(in_oklab,var(--incant-primary)_28%,var(--incant-border))] bg-[color-mix(in_oklab,var(--incant-primary)_8%,var(--incant-bg-elevated))] text-xs text-[var(--incant-text-toned)]",
+        chip_edit:
+          "inline-flex min-w-0 items-center gap-1.5 px-2 hover:bg-[var(--incant-bg-accented)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--incant-primary)]",
+        chip_label: "font-semibold text-[var(--incant-text-highlighted)]",
+        chip_remove:
+          "inline-flex w-7 shrink-0 items-center justify-center border-l border-[var(--incant-border-muted)] text-base text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--incant-primary)]",
+        trigger:
+          "inline-flex h-10 items-center sm:h-8 gap-1.5 rounded-md border border-dashed border-[var(--incant-border)] px-2.5 text-xs font-medium text-[var(--incant-text-toned)] hover:border-[var(--incant-primary)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+        count:
+          "inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--incant-primary)] px-1 text-[10px] text-[var(--incant-text-inverted)]",
+        clear_all:
+          "h-10 px-1.5 sm:h-8 text-xs text-[var(--incant-text-muted)] underline-offset-4 hover:text-[var(--incant-text-highlighted)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
+        dialog:
+          "fixed inset-x-3 bottom-3 top-auto z-50 m-0 max-h-[calc(100dvh-1.5rem)] w-auto max-w-none overflow-hidden rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-0 text-[var(--incant-text-toned)] shadow-2xl backdrop:bg-black/40 sm:inset-auto sm:left-1/2 sm:top-24 sm:max-h-[min(42rem,calc(100dvh-7rem))] sm:w-[32rem] sm:-translate-x-1/2",
+        dialog_header:
+          "flex items-start justify-between gap-4 border-b border-[var(--incant-border-muted)] px-4 py-3",
+        dialog_title: "text-base font-semibold text-[var(--incant-text-highlighted)]",
+        dialog_description: "mt-0.5 text-xs text-[var(--incant-text-muted)]",
+        dialog_close:
+          "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xl text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
+        dialog_body: "max-h-[calc(100dvh-11rem)] space-y-1 overflow-y-auto p-2 sm:max-h-[31rem]",
+        dialog_footer:
+          "flex min-h-14 items-center justify-end gap-2 border-t border-[var(--incant-border-muted)] px-4 py-2.5",
+        empty: "px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]",
+        definition:
+          "group rounded-lg border border-transparent open:border-[var(--incant-border-muted)] open:bg-[var(--incant-bg-muted)]",
+        definition_summary:
+          "flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[var(--incant-text-highlighted)] hover:bg-[var(--incant-bg-accented)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--incant-primary)] [&::-webkit-details-marker]:hidden",
+        definition_meta: "text-xs font-normal text-[var(--incant-text-muted)]",
+        definition_editor: "border-t border-[var(--incant-border-muted)] px-3 py-3",
+        editor_form: "flex flex-col items-stretch gap-2 sm:flex-row sm:items-end",
+        editor_field:
+          "flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium text-[var(--incant-text-muted)]",
+        date_fields: "grid min-w-0 flex-1 grid-cols-2 gap-2",
+        clear_filter:
+          "mt-2 text-xs text-[var(--incant-text-muted)] underline-offset-4 hover:text-[var(--incant-danger)] hover:underline"
+      }
+    }
+  end
+
   def recipe(:table) do
     %Recipe{
       slots: %{
@@ -294,13 +344,18 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         cell_content: "block",
         boolean: "inline-flex items-center gap-1.5 text-xs",
         empty: "px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]",
+        empty_action:
+          "mt-2 inline-flex h-8 items-center rounded-md border border-[var(--incant-border)] px-3 text-xs font-medium text-[var(--incant-text-toned)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         empty_hint: "mt-1 text-xs text-[var(--incant-text-dimmed)]",
         actions: "px-3 py-1.5 text-right",
         action_group: "inline-flex items-center gap-1",
         link: "font-medium text-[var(--incant-text-highlighted)] hover:underline",
         pagination:
           "flex h-10 items-center justify-between gap-3 border-t border-[var(--incant-border)] px-3 text-xs text-[var(--incant-text-muted)]",
-        pagination_actions: "flex items-center gap-1"
+        pagination_actions: "flex items-center gap-1",
+        page_size: "mr-1 inline-flex items-center gap-1.5",
+        page_size_select:
+          "h-7 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1.5 text-xs text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]"
       },
       variants: %{
         align: %{

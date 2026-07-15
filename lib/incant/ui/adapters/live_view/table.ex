@@ -47,6 +47,16 @@ defmodule Incant.UI.Adapters.LiveView.Table do
           <tr :if={@table.rows == []}>
             <td colspan={empty_colspan(@table)} class={Theme.slot(:table, :empty)}>
               <div>{@table.empty_state}</div>
+              <button
+                :if={table_filters_active?(@env.context.table_state)}
+                type="button"
+                class={Theme.slot(:table, :empty_action)}
+                phx-click="incant:event"
+                phx-value-op="filter_clear"
+                phx-value-target="all"
+              >
+                Clear all filters
+              </button>
               <p :if={@env.debug} class={Theme.slot(:table, :empty_hint)}>
                 Developer hint: verify the resource index callback, filters, and query configuration.
               </p>
@@ -172,6 +182,14 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     <div class={Theme.slot(:table, :pagination)}>
       <div>{pagination_range(@pagination)}</div>
       <div class={Theme.slot(:table, :pagination_actions)}>
+        <.form :let={_form} for={%{}} as={:table} phx-change="incant:event" phx-value-op="filter_commit">
+          <label class={Theme.slot(:table, :page_size)}>
+            <span>Rows</span>
+            <select name="table[page_size]" aria-label="Rows per page" class={Theme.slot(:table, :page_size_select)}>
+              <option :for={size <- [10, 25, 50, 100]} value={size} selected={size == @pagination.page_size}>{size}</option>
+            </select>
+          </label>
+        </.form>
         <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page - 1} disabled={@pagination.page <= 1} class={Theme.slot(:button, :base, variant: :outline, size: :xs)}>Previous</button>
         <button type="button" phx-click="incant:event" phx-value-op="paginate" phx-value-value={@pagination.page + 1} disabled={@pagination.page >= @pagination.total_pages} class={Theme.slot(:button, :base, variant: :outline, size: :xs)}>Next</button>
       </div>
@@ -182,6 +200,11 @@ defmodule Incant.UI.Adapters.LiveView.Table do
   def pagination(assigns) do
     ~H"""
     """
+  end
+
+  defp table_filters_active?(table_state) do
+    Map.get(table_state, :filters, %{}) != %{} or
+      Map.get(table_state, :search, "") not in [nil, ""]
   end
 
   defp row_class(context, table, row) do
