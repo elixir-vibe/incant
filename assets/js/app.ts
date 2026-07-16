@@ -75,6 +75,83 @@ function toggleNavigation(): void {
   }
 }
 
+function comboboxParts(root: HTMLElement): {
+  input: HTMLInputElement | null;
+  list: HTMLElement | null;
+  options: HTMLButtonElement[];
+  empty: HTMLElement | null;
+} {
+  return {
+    input: root.querySelector<HTMLInputElement>("[data-incant-combobox-input]"),
+    list: root.querySelector<HTMLElement>("[data-incant-combobox-list]"),
+    options: Array.from(root.querySelectorAll<HTMLButtonElement>("[data-incant-combobox-option]")),
+    empty: root.querySelector<HTMLElement>("[data-incant-combobox-empty]"),
+  };
+}
+
+function closeCombobox(root: HTMLElement): void {
+  const { input, list, options } = comboboxParts(root);
+  if (list) list.hidden = true;
+  input?.setAttribute("aria-expanded", "false");
+  input?.removeAttribute("aria-activedescendant");
+  options.forEach((option) => option.setAttribute("aria-selected", "false"));
+}
+
+function closeOtherComboboxes(current?: HTMLElement): void {
+  document.querySelectorAll<HTMLElement>("[data-incant-combobox]").forEach((root) => {
+    if (root !== current) closeCombobox(root);
+  });
+}
+
+function visibleComboboxOptions(root: HTMLElement): HTMLButtonElement[] {
+  return comboboxParts(root).options.filter((option) => !option.hidden);
+}
+
+function activateComboboxOption(root: HTMLElement, index: number): void {
+  const { input, options } = comboboxParts(root);
+  const visible = visibleComboboxOptions(root);
+  if (visible.length === 0) return;
+
+  const option = visible[(index + visible.length) % visible.length];
+  options.forEach((candidate) => candidate.setAttribute("aria-selected", String(candidate === option)));
+  input?.setAttribute("aria-activedescendant", option.id);
+  option.scrollIntoView({ block: "nearest" });
+}
+
+function openCombobox(root: HTMLElement): void {
+  closeOtherComboboxes(root);
+  const { input, list, options, empty } = comboboxParts(root);
+  if (!input || !list) return;
+
+  const query = input.value.trim().toLocaleLowerCase();
+  let visibleCount = 0;
+
+  options.forEach((option) => {
+    const value = option.dataset.value || "";
+    const matches =
+      query === "" ||
+      value.toLocaleLowerCase().includes(query) ||
+      option.textContent?.trim().toLocaleLowerCase().includes(query);
+    option.hidden = !matches;
+    option.setAttribute("aria-selected", "false");
+    if (matches) visibleCount += 1;
+  });
+
+  if (empty) empty.hidden = visibleCount > 0;
+  list.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+  input.removeAttribute("aria-activedescendant");
+}
+
+function chooseComboboxOption(root: HTMLElement, option: HTMLButtonElement): void {
+  const { input } = comboboxParts(root);
+  if (!input) return;
+  input.value = option.dataset.value || option.textContent?.trim() || "";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  closeCombobox(root);
+  input.focus();
+}
+
 function scheduleFlashDismissal(): void {
   document.querySelectorAll<HTMLElement>("[data-incant-flash]").forEach((flash) => {
     if (flash.dataset.incantFlashScheduled) return;
@@ -96,6 +173,14 @@ new MutationObserver(scheduleFlashDismissal).observe(document.body, { childList:
 document.addEventListener("click", (event) => {
   const target = eventElement(event);
   if (!target) return;
+
+  const comboboxOption = target.closest<HTMLButtonElement>("[data-incant-combobox-option]");
+  const combobox = target.closest<HTMLElement>("[data-incant-combobox]");
+  if (comboboxOption && combobox) {
+    chooseComboboxOption(combobox, comboboxOption);
+    return;
+  }
+  if (!combobox) closeOtherComboboxes();
 
   const filterOpen = target.closest<HTMLElement>("[data-incant-filter-open]");
   const dialogId = filterOpen?.dataset.incantFilterOpen;
@@ -151,7 +236,57 @@ document.addEventListener("click", (event) => {
   }
 });
 
+document.addEventListener("focusin", (event) => {
+  const input = eventElement(event)?.closest<HTMLInputElement>("[data-incant-combobox-input]");
+  const root = input?.closest<HTMLElement>("[data-incant-combobox]");
+  if (root) openCombobox(root);
+});
+
+document.addEventListener("input", (event) => {
+  const input = eventElement(event)?.closest<HTMLInputElement>("[data-incant-combobox-input]");
+  const root = input?.closest<HTMLElement>("[data-incant-combobox]");
+  if (root) openCombobox(root);
+});
+
 document.addEventListener("keydown", (event) => {
+  const input = eventElement(event)?.closest<HTMLInputElement>("[data-incant-combobox-input]");
+  const root = input?.closest<HTMLElement>("[data-incant-combobox]");
+
+  if (input && root) {
+    const options = visibleComboboxOptions(root);
+    const activeId = input.getAttribute("aria-activedescendant");
+    const activeIndex = options.findIndex((option) => option.id === activeId);
+
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      openCombobox(root);
+      const nextIndex =
+        event.key === "ArrowDown"
+          ? activeIndex < 0
+            ? 0
+            : activeIndex + 1
+          : activeIndex < 0
+            ? options.length - 1
+            : activeIndex - 1;
+      activateComboboxOption(root, nextIndex);
+      return;
+    }
+
+    if (event.key === "Enter" && activeIndex >= 0) {
+      event.preventDefault();
+      chooseComboboxOption(root, options[activeIndex]);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeCombobox(root);
+      return;
+    }
+
+    if (event.key === "Tab") closeCombobox(root);
+  }
+
   if (event.key === "Escape" && shell()?.classList.contains("incant-nav-open")) {
     closeNavigation({ restoreFocus: true });
   }

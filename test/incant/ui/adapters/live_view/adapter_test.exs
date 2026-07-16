@@ -99,7 +99,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ~s(name="table[page_size]")
   end
 
-  test "renders autocomplete filter values with a native keyboard-accessible list" do
+  test "renders autocomplete filters as controlled accessible comboboxes" do
     control = %Incant.UI.Controls.Combobox{
       id: "filters.model",
       name: "model",
@@ -129,11 +129,15 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Controls.table_filter_bar()
       |> rendered_to_string()
 
-    assert html =~ ~s(list="incant-filter-model-options")
-    assert html =~ ~s(aria-autocomplete="list")
-    assert html =~ ~s(autocomplete="off")
-    assert html =~ ~s(value="openai-codex/gpt-5.3-codex-spark")
+    assert html =~ ~s(role="combobox")
+    assert html =~ ~s(role="listbox")
+    assert html =~ ~s(role="option")
+    assert html =~ ~s(aria-controls="incant-filter-model-options")
+    assert html =~ ~s(autocomplete="new-password")
+    assert html =~ ~s(data-value="openai-codex/gpt-5.3-codex-spark")
     assert html =~ "GPT-5.3 Codex Spark"
+    refute html =~ "<datalist"
+    refute html =~ ~s(list="incant-filter-model-options")
   end
 
   test "renders table column labels instead of raw ids" do
@@ -391,8 +395,8 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ "max-w-[28rem]"
-    assert html =~ ~s(title="•••• redacted")
-    assert html =~ "•••• redacted"
+    assert html =~ ~s(title="Hidden")
+    assert html =~ "Hidden"
     assert html =~ "border border-[var(--incant-border)]"
     refute html =~ "sk-secret"
   end
@@ -945,6 +949,27 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ ~s(aria-label="Next page")
     assert html =~ ~s(aria-label="Last page")
     refute html =~ ~s(phx-value-target="status")
+  end
+
+  test "uses the canonical service title in rendered breadcrumbs" do
+    contract = %Incant.Admin.Contract{service: :llm_proxy, opts: %{title: "LLM Proxy"}}
+    entry = %Incant.Service.Entry{contract: contract}
+
+    context = %Incant.Live.Context{
+      base_path: "/llm_proxy",
+      section: "resources",
+      resources: [],
+      datasets: [],
+      dashboards: [],
+      session: %Incant.Service.Session{entry: entry}
+    }
+
+    document = Incant.UI.Document.from_context(context)
+    env = Incant.UI.Env.new(context, %{admin: nil})
+    html = document |> Incant.UI.render(env) |> rendered_to_string()
+
+    assert html =~ "LLM Proxy"
+    refute html =~ ">llm_proxy<"
   end
 
   test "renders service index links as absolute paths" do

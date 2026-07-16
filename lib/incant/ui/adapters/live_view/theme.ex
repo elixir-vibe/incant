@@ -313,6 +313,12 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         editor_form: "flex flex-col items-stretch gap-2 sm:flex-row sm:items-end",
         editor_field:
           "flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium text-[var(--incant-text-muted)]",
+        combobox: "relative min-w-0 flex-1",
+        combobox_list:
+          "absolute inset-x-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-1 text-sm text-[var(--incant-text-toned)] shadow-xl",
+        combobox_option:
+          "flex w-full items-center rounded px-2 py-1.5 text-left text-[var(--incant-text-toned)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus:bg-[var(--incant-bg-accented)] focus:text-[var(--incant-text-highlighted)] focus:outline-none aria-selected:bg-[color-mix(in_oklab,var(--incant-primary)_12%,var(--incant-bg-elevated))] aria-selected:text-[var(--incant-text-highlighted)]",
+        combobox_empty: "px-2 py-3 text-center text-xs text-[var(--incant-text-muted)]",
         date_editor: "min-w-0 flex-1 space-y-2",
         date_presets: "flex flex-wrap items-center gap-1",
         date_preset:
@@ -358,12 +364,14 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
           "inline-flex flex-col items-stretch gap-0.5 sm:flex-row sm:items-center sm:gap-1",
         link: "font-medium text-[var(--incant-text-highlighted)] hover:underline",
         pagination:
-          "flex min-h-10 flex-wrap items-center justify-between gap-2 border-t border-[var(--incant-border)] px-3 py-1.5 text-xs text-[var(--incant-text-muted)]",
-        pagination_actions: "ml-auto flex flex-wrap items-center justify-end gap-1",
-        page_size: "mr-1 inline-flex items-center gap-1.5",
+          "flex min-h-12 flex-wrap items-center justify-between gap-3 border-t border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-4 py-2 text-xs font-medium text-[var(--incant-text-muted)]",
+        pagination_actions: "ml-auto flex flex-wrap items-center justify-end gap-1.5",
+        page_size:
+          "mr-1 inline-flex items-center gap-1.5 border-r border-[var(--incant-border-muted)] pr-3",
         page_size_select:
           "h-7 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1.5 text-xs text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]",
-        page_jump: "inline-flex items-center gap-1",
+        page_jump:
+          "inline-flex h-7 items-center gap-1 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2",
         page_input:
           "h-7 w-12 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1 text-center text-xs tabular-nums text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]"
       },

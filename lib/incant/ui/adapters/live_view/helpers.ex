@@ -122,7 +122,7 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def boolean_cell?(cell), do: format?(cell.format, :boolean)
   def boolean_value?(cell), do: cell.value in [true, "true", 1]
 
-  def redacted_cell_display, do: "•••• redacted"
+  def redacted_cell_display, do: "Hidden"
 
   defp truncate_cell?(cell) do
     string_length(cell.display) > 120 || cell_sensitive?(cell) ||

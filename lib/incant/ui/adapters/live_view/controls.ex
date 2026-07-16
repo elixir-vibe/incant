@@ -241,23 +241,49 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
 
     ~H"""
     <.form :let={_form} for={%{}} as={:table} phx-submit="incant:event" phx-value-op="filter_commit" class={Theme.slot(:filters, :editor_form)}>
-      <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name)}>
-        Value
-        <input
-          id={filter_editor_id(@control.name)}
-          type="text"
-          name={control_name(@control)}
-          value={@control.value}
-          list={@list_id}
-          autocomplete="off"
-          aria-autocomplete="list"
-          placeholder={@control.placeholder || "Type to search"}
-          class={Theme.slot(:field, :input)}
-        />
-        <datalist id={@list_id}>
-          <option :for={option <- @control.options || []} value={option.value}>{option.label}</option>
-        </datalist>
-      </label>
+      <div class={Theme.slot(:filters, :combobox)} data-incant-combobox>
+        <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name)}>
+          Value
+          <input
+            id={filter_editor_id(@control.name)}
+            type="text"
+            name={control_name(@control)}
+            value={@control.value}
+            autocomplete="new-password"
+            autocapitalize="none"
+            spellcheck="false"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded="false"
+            aria-controls={@list_id}
+            placeholder={@control.placeholder || "Type to search"}
+            class={Theme.slot(:field, :input)}
+            data-incant-combobox-input
+          />
+        </label>
+        <div
+          id={@list_id}
+          role="listbox"
+          class={Theme.slot(:filters, :combobox_list)}
+          hidden
+          data-incant-combobox-list
+        >
+          <button
+            :for={{option, index} <- Enum.with_index(@control.options || [])}
+            id={"#{@list_id}-#{index}"}
+            type="button"
+            role="option"
+            class={Theme.slot(:filters, :combobox_option)}
+            data-incant-combobox-option
+            data-value={option.value}
+          >
+            {option.label}
+          </button>
+          <p class={Theme.slot(:filters, :combobox_empty)} hidden data-incant-combobox-empty>
+            No matching options
+          </p>
+        </div>
+      </div>
       <button type="submit" class={Theme.slot(:button, :base, variant: :primary, size: :sm)} data-incant-filter-apply>Apply filter</button>
     </.form>
     """

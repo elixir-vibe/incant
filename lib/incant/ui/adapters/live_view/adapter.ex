@@ -401,6 +401,10 @@ defmodule Incant.UI.Adapters.LiveView do
 
   defp section_breadcrumb_path(_context), do: nil
 
+  defp service_name(%{session: %{entry: %{contract: %{opts: %{title: title}}}}})
+       when is_binary(title),
+       do: title
+
   defp service_name(%{session: %{entry: %{contract: %{service: service}}}}),
     do: to_string(service)
 

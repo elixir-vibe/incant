@@ -269,7 +269,7 @@ defmodule Incant.UI.DocumentTest do
       |> Phoenix.HTML.Safe.to_iodata()
       |> IO.iodata_to_binary()
 
-    assert html =~ "•••• redacted"
+    assert html =~ "Hidden"
     refute html =~ "sk-secret"
     refute html =~ "private prompt"
   end
