@@ -14,7 +14,7 @@ config :incant, Incant.Web.Endpoint,
   secret_key_base: String.duplicate("0", 64)
 
 config :volt,
-  entry: "assets/js/app.js",
+  entry: "assets/js/app.ts",
   root: "assets",
   sources: ["**/*.{js,ts,jsx,tsx}"],
   target: :es2020,
@@ -30,7 +30,33 @@ config :volt,
 
 config :volt, :server,
   prefix: "/assets",
-  watch_dirs: ["lib/", "assets/"]
+  watch_dirs: ["lib/"]
+
+config :volt, :format,
+  print_width: 110,
+  semi: true,
+  single_quote: false,
+  trailing_comma: :all,
+  arrow_parens: :always
+
+config :volt, :lint,
+  plugins: [:typescript],
+  tsgolint: "node_modules/@oxlint-tsgolint/linux-x64/tsgolint",
+  rules: %{
+    "eqeqeq" => :deny,
+    "no-debugger" => :deny,
+    "no-duplicate-imports" => :deny,
+    "typescript/consistent-type-imports" => :deny,
+    "typescript/no-explicit-any" => :deny,
+    "typescript/no-floating-promises" => :deny,
+    "typescript/no-misused-promises" => :deny
+  }
+
+config :volt, :test,
+  root: "assets",
+  include: ["**/*.{test,spec}.{js,ts,jsx,tsx}"],
+  exclude: ["vendor/**", "node_modules/**"],
+  timeout: 30_000
 
 config :release_kit, :artifact,
   port: 4001,

@@ -18,29 +18,11 @@ defmodule Incant.UI.Controls do
   end
 
   def from_table_filter(%{type: :select} = filter, value, context) do
-    %Incant.UI.Controls.Select{
-      id: "filters.#{filter.name}",
-      name: to_string(filter.name),
-      label: filter.opts[:label] || humanize(filter.name),
-      role: :filter,
-      value: value,
-      options: options(filter.opts[:options] || [], filter, context),
-      clearable: true,
-      source: filter
-    }
+    struct!(Incant.UI.Controls.Select, filter_select_attrs(filter, value, context))
   end
 
   def from_table_filter(%{type: :multi_select} = filter, value, context) do
-    %Incant.UI.Controls.MultiSelect{
-      id: "filters.#{filter.name}",
-      name: to_string(filter.name),
-      label: filter.opts[:label] || humanize(filter.name),
-      role: :filter,
-      value: value,
-      options: options(filter.opts[:options] || [], filter, context),
-      clearable: true,
-      source: filter
-    }
+    struct!(Incant.UI.Controls.MultiSelect, filter_select_attrs(filter, value, context))
   end
 
   def from_table_filter(%{type: :boolean} = filter, value, _context) do
@@ -154,6 +136,19 @@ defmodule Incant.UI.Controls do
   defp resolve_options(options, source, context)
        when is_function(options) or is_tuple(options) do
     Incant.Callback.call(options, %{source: source}, context) || []
+  end
+
+  defp filter_select_attrs(filter, value, context) do
+    %{
+      id: "filters.#{filter.name}",
+      name: to_string(filter.name),
+      label: filter.opts[:label] || humanize(filter.name),
+      role: :filter,
+      value: value,
+      options: options(filter.opts[:options] || [], filter, context),
+      clearable: true,
+      source: filter
+    }
   end
 
   defp variable_attrs(variable, context, opts) do

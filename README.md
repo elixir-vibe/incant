@@ -89,6 +89,8 @@ mix test
 mix ci
 ```
 
+Browser code is authored in TypeScript and built, formatted, linted, type-checked, and tested through Volt. `mix ci` uses `npm_ex` to install the pinned native Linux x86-64 `tsgolint` binary; Node.js and npm are not required.
+
 ## Package name
 
 `incant` was checked as available on Hex.pm before project creation.

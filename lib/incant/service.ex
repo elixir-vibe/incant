@@ -82,8 +82,7 @@ defmodule Incant.Service do
   end
 
   @doc "Calls the remote Incant service `describe` verb."
-  @spec describe(Client.t(), Describe.t(), keyword()) ::
-          {:ok, Incant.Admin.Contract.t()} | {:error, term()}
+  @spec describe(Client.t(), Describe.t(), keyword()) :: {:ok, term()} | {:error, term()}
   def describe(%Client{} = client, request \\ %Describe{}, opts \\ []) do
     call(client, :describe, request, opts)
   end

@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@oxlint-tsgolint/linux-x64": "0.24.0"
+  }
+}

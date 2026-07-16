@@ -101,7 +101,7 @@ rendering correctness that is visible in the LLMProxy admin pages.
    - Right: dark-mode toggle button + the existing counts (move counts into a tooltip or
      drop them entirely — drop is fine).
 2. **Dark mode toggle.** Tokens already exist under `.dark` in `assets/css/app.css`.
-   Add a small JS hook in `assets/js/app.js`: toggle `document.documentElement.classList`
+   Add a small TypeScript hook in `assets/js/app.ts`: toggle `document.documentElement.classList`
    `dark`, persist in `localStorage("incant-theme")`, read on boot before paint (inline
    script in `lib/incant/web/layouts/root.html.heex` head to avoid flash). Toggle button
    in topbar with sun/moon inline SVG. Verify by screenshotting both modes.

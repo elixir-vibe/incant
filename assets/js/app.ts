@@ -1,0 +1,161 @@
+import "phoenix_html";
+import { Socket } from "phoenix";
+import { LiveSocket } from "phoenix_live_view";
+import { recentDateRange } from "./date_range";
+
+type Theme = "dark" | "light";
+
+interface CloseNavigationOptions {
+  restoreFocus?: boolean;
+}
+
+declare global {
+  interface Window {
+    liveSocket: LiveSocket;
+  }
+}
+
+const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content;
+const liveSocket = new LiveSocket("/live", Socket, {
+  longPollFallbackMs: 2500,
+  params: { _csrf_token: csrfToken },
+});
+
+liveSocket.connect();
+window.liveSocket = liveSocket;
+
+const themeStorageKey = "incant-theme";
+const mobileNavigation = window.matchMedia("(max-width: 1023px)");
+const shell = (): HTMLElement | null => document.querySelector<HTMLElement>("[data-incant-shell]");
+const sidebar = (): HTMLElement | null => document.querySelector<HTMLElement>("[data-incant-sidebar]");
+const navigationToggle = (): HTMLButtonElement | null =>
+  document.querySelector<HTMLButtonElement>("[data-incant-nav-toggle]");
+
+function eventElement(event: Event): Element | null {
+  return event.target instanceof Element ? event.target : null;
+}
+
+function preferredTheme(): Theme {
+  const stored = window.localStorage.getItem(themeStorageKey);
+  if (stored === "dark" || stored === "light") return stored;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function applyTheme(theme: Theme): void {
+  const dark = theme === "dark";
+  document.documentElement.classList.toggle("dark", dark);
+  document
+    .querySelectorAll<HTMLElement>("[data-incant-theme-icon='sun']")
+    .forEach((icon) => icon.classList.toggle("hidden", dark));
+  document
+    .querySelectorAll<HTMLElement>("[data-incant-theme-icon='moon']")
+    .forEach((icon) => icon.classList.toggle("hidden", !dark));
+}
+
+function syncNavigation(open: boolean): void {
+  const mobile = mobileNavigation.matches;
+  const expanded = mobile && open;
+
+  shell()?.classList.toggle("incant-nav-open", expanded);
+  sidebar()?.toggleAttribute("inert", mobile && !expanded);
+  sidebar()?.setAttribute("aria-hidden", String(mobile && !expanded));
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-incant-nav-toggle]")
+    .forEach((button) => button.setAttribute("aria-expanded", String(expanded)));
+}
+
+function closeNavigation({ restoreFocus = false }: CloseNavigationOptions = {}): void {
+  syncNavigation(false);
+  if (restoreFocus && mobileNavigation.matches) navigationToggle()?.focus();
+}
+
+function toggleNavigation(): void {
+  const open = !shell()?.classList.contains("incant-nav-open");
+  syncNavigation(open);
+
+  if (open) {
+    window.requestAnimationFrame(() => sidebar()?.querySelector<HTMLAnchorElement>("a")?.focus());
+  }
+}
+
+function scheduleFlashDismissal(): void {
+  document.querySelectorAll<HTMLElement>("[data-incant-flash]").forEach((flash) => {
+    if (flash.dataset.incantFlashScheduled) return;
+
+    flash.dataset.incantFlashScheduled = "true";
+    window.setTimeout(
+      () => flash.querySelector<HTMLButtonElement>("[data-incant-flash-close]")?.click(),
+      5000,
+    );
+  });
+}
+
+applyTheme(preferredTheme());
+scheduleFlashDismissal();
+syncNavigation(false);
+mobileNavigation.addEventListener("change", () => syncNavigation(false));
+new MutationObserver(scheduleFlashDismissal).observe(document.body, { childList: true, subtree: true });
+
+document.addEventListener("click", (event) => {
+  const target = eventElement(event);
+  if (!target) return;
+
+  const filterOpen = target.closest<HTMLElement>("[data-incant-filter-open]");
+  const dialogId = filterOpen?.dataset.incantFilterOpen;
+  if (dialogId) {
+    const dialog = document.getElementById(dialogId) as HTMLDialogElement | null;
+    if (dialog?.showModal) {
+      dialog.showModal();
+
+      const focusId = filterOpen.dataset.incantFilterFocus;
+      if (focusId) {
+        const input =
+          (document.getElementById(focusId) as HTMLElement | null) ||
+          (document.getElementById(`${focusId}-from`) as HTMLElement | null);
+        const definition = input?.closest<HTMLDetailsElement>("[data-incant-filter-definition]");
+        if (definition) definition.open = true;
+        window.requestAnimationFrame(() => input?.focus());
+      }
+    }
+  }
+
+  const datePreset = target.closest<HTMLElement>("[data-incant-filter-date-preset]");
+  if (datePreset) {
+    const form = datePreset.closest<HTMLFormElement>("form");
+    const days = Number(datePreset.dataset.incantFilterDatePreset);
+    const range = recentDateRange(days);
+    const fromInput = form?.querySelector<HTMLInputElement>('input[name$="[from]"]');
+    const toInput = form?.querySelector<HTMLInputElement>('input[name$="[to]"]');
+    if (fromInput) fromInput.value = range.from;
+    if (toInput) toInput.value = range.to;
+  }
+
+  const filterClose = target.closest<HTMLElement>("[data-incant-filter-close], [data-incant-filter-apply]");
+  if (filterClose) filterClose.closest<HTMLDialogElement>("dialog")?.close();
+
+  if (target instanceof HTMLDialogElement && target.matches("[data-incant-filter-dialog]")) target.close();
+
+  if (target.closest("[data-incant-theme-toggle]")) {
+    const theme: Theme = document.documentElement.classList.contains("dark") ? "light" : "dark";
+    window.localStorage.setItem(themeStorageKey, theme);
+    applyTheme(theme);
+  }
+
+  if (target.closest("[data-incant-nav-toggle]")) toggleNavigation();
+  if (target.closest("[data-incant-nav-backdrop], [data-incant-sidebar] a")) closeNavigation();
+
+  const customRangeButton = target.closest("[data-incant-date-range-custom]");
+  if (customRangeButton) {
+    const fields = customRangeButton
+      .closest("[data-incant-date-range]")
+      ?.querySelector<HTMLElement>("[data-incant-date-range-fields]");
+    fields?.classList.remove("hidden");
+    fields?.querySelector<HTMLInputElement>("input")?.focus();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && shell()?.classList.contains("incant-nav-open")) {
+    closeNavigation({ restoreFocus: true });
+  }
+});

@@ -391,13 +391,11 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   defp elem_or_nil({:ok, value}), do: value
   defp elem_or_nil(:error), do: nil
 
-  defp existing_atom(column) when is_binary(column) do
+  defp existing_atom(column) do
     String.to_existing_atom(column)
   rescue
     ArgumentError -> nil
   end
-
-  defp existing_atom(_column), do: nil
 
   def authorization_message({:unauthorized, action}), do: "Not authorized to #{action}."
   def authorization_message(reason) when is_atom(reason), do: "Not authorized: #{reason}."

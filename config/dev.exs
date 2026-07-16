@@ -18,10 +18,7 @@ config :incant, Incant.Web.Endpoint,
     System.get_env(
       "INCANT_SECRET_KEY_BASE",
       "dev-only-incant-secret-key-base-dev-only-incant-secret-key-base-1234"
-    ),
-  watchers: [
-    volt: {Mix.Tasks.Volt.Dev, :run, [~w(--tailwind)]}
-  ]
+    )
 
 config :volt, :server,
   prefix: "/assets",
