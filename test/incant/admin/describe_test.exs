@@ -76,6 +76,7 @@ defmodule Incant.Admin.DescribeTest do
 
     grid columns: 12 do
       stat(:requests, span: 3, query: &__MODULE__.requests/2)
+      table(:recent_usage, span: 6, preview_rows: 7, query: &__MODULE__.requests/2)
     end
 
     def requests(_vars, _context), do: 0
@@ -112,8 +113,13 @@ defmodule Incant.Admin.DescribeTest do
     refute Map.has_key?(hd(resource.table.actions).opts, :callback)
 
     assert [%{id: "operations_dashboard", title: "Operations"} = dashboard] = contract.dashboards
-    assert [%{id: "requests", opts: %{span: 3}}] = dashboard.widgets
-    refute Map.has_key?(hd(dashboard.widgets).opts, :query)
+
+    assert [
+             %{id: "requests", opts: %{span: 3}},
+             %{id: "recent_usage", opts: %{span: 6, preview_rows: 7}}
+           ] = dashboard.widgets
+
+    refute Enum.any?(dashboard.widgets, &Map.has_key?(&1.opts, :query))
 
     assert [%{id: "usage_dataset", title: "Usage"} = dataset] = contract.datasets
     refute Map.has_key?(dataset.opts, :source)

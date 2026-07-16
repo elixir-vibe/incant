@@ -41,7 +41,18 @@ defmodule Incant.Admin.Describe do
     ],
     filter: [:id, :label, :placeholder, :options],
     action: [:id, :label, :confirm, :destructive, :async, :result],
-    widget: [:id, :label, :span, :format, :chart_type, :x, :y, :series, :drilldown],
+    widget: [
+      :id,
+      :label,
+      :span,
+      :format,
+      :chart_type,
+      :x,
+      :y,
+      :series,
+      :drilldown,
+      :preview_rows
+    ],
     metric: [:id, :label, :format],
     drilldown: [:group_by, :columns, :label],
     row_detail: [:id, :label, :kind, :type]
