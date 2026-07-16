@@ -25,6 +25,7 @@ defmodule Incant.Admin.DescribeTest do
       column(:name, link: true)
       column(:status, as: :badge)
       filter(:status, :select, options: [:draft, :active], query: &__MODULE__.filter_status/3)
+      filter(:model, :combobox, options: :distinct)
       action(:archive, confirm: true, callback: &__MODULE__.archive/2)
 
       actions do
@@ -109,7 +110,11 @@ defmodule Incant.Admin.DescribeTest do
              %{id: "status", name: :status, opts: %{as: :badge}}
            ]
 
-    assert [%{id: "status", opts: %{options: [:draft, :active]}}] = resource.table.filters
+    assert [
+             %{id: "status", opts: %{options: [:draft, :active]}},
+             %{id: "model", type: :combobox, opts: %{options_from: :model}}
+           ] = resource.table.filters
+
     assert [%{id: "archive", opts: %{confirm: true}}] = resource.table.actions
     refute Map.has_key?(hd(resource.table.actions).opts, :callback)
 

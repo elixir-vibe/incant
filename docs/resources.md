@@ -179,11 +179,36 @@ Incant.ActionResult.error("Cannot archive this row")
 
 Shorthand returns are normalized for convenience: `:ok`, a message string, `{:ok, message}`, and `{:error, message}`.
 
-## Application-side query resources
+## Schema-backed query resources
 
-Use `index/2` for the resource collection and `read/2` for one record. These callbacks live in the application namespace, so Ecto queries, storage facades, authorization scoping, pagination, and transactions remain application responsibility.
+Ordinary Ecto resources only declare their schema, repo, and table semantics:
 
-A callback may return a plain list for a small collection. Incant then performs in-memory search, filtering, sorting, and pagination. Large collections should return the existing `%Incant.Result{}` with authoritative rows and count; Incant does not process or paginate those rows a second time:
+```elixir
+defmodule MyApp.Admin.Resources.Product do
+  use Incant.Resource,
+    schema: MyApp.Catalog.Product,
+    repo: MyApp.Repo
+
+  table default_sort: [inserted_at: :desc] do
+    column :name, link: true
+    column :status
+    column :inserted_at, format: :datetime
+
+    filter :status, :select, options: :distinct
+    search [:name]
+  end
+end
+```
+
+For local admins this query runs in the application VM. For remote admins the central Incant UI sends table state over SafeRPC and the same query runs inside the owning service VM. Repos, schemas, scoped Ecto queries, and callbacks never cross the RPC boundary.
+
+Incant applies authorization scope, declared search, typed filters, exact count, page clamping, allowlisted sorting with a primary-key tie-breaker, limit, and offset. `options: :distinct` returns at most 100 ordered schema values in the existing page metadata and option representation; the portable contract exposes only `options_from` to the renderer.
+
+## Application-owned query escape hatch
+
+Use `index/2` and `read/2` when a resource is not a straightforward schema query. These callbacks still execute in the application/service namespace, so custom storage, authorization scoping, projections, and transactions remain application-owned.
+
+A callback may return a plain list for a small collection. Incant then performs in-memory search, filtering, sorting, and pagination. Large custom collections should return the existing `%Incant.Result{}` with authoritative rows and count; Incant does not process or paginate those rows a second time:
 
 ```elixir
 %Incant.Result{
@@ -212,7 +237,7 @@ rows = query |> select([product], %{id: product.id, name: product.name}) |> MyAp
 
 The requested sort field must be in the explicit allowlist. A stable `:id` tie-breaker is applied by default.
 
-Additional bounded filter options can travel in the same result metadata without introducing a separate option model:
+Custom callback results can also provide bounded filter options without introducing a separate option model:
 
 ```elixir
 %Incant.Result{
@@ -226,35 +251,7 @@ Additional bounded filter options can travel in the same result metadata without
 }
 ```
 
-Declare the corresponding autocomplete filter with `filter :model, :combobox, options_from: :model`. The option values use the same existing `{label, value}` or `%{label:, value:}` representations as selects.
-
-```elixir
-defmodule MyApp.Admin.Resources.Product do
-  use Incant.Resource, schema: MyApp.Catalog.Product
-
-  import Ecto.Query
-
-  table do
-    column :name, link: true
-    filter :status, :select
-  end
-
-  def index(params, context) do
-    MyApp.Catalog.Product
-    |> where(account_id: ^context.actor.account_id)
-    |> maybe_filter_status(params)
-    |> order_by(desc: :inserted_at)
-    |> MyApp.Repo.all()
-  end
-
-  def read(id, context) do
-    MyApp.Repo.get_by(MyApp.Catalog.Product,
-      id: id,
-      account_id: context.actor.account_id
-    )
-  end
-end
-```
+Declare the corresponding custom-result control with `filter :model, :combobox, options_from: :model`. Option values use the same existing `{label, value}` or `%{label:, value:}` representations as selects.
 
 The DSL also accepts explicit callback declarations when the function names differ:
 

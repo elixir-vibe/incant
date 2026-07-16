@@ -114,6 +114,15 @@ defmodule Incant.ResourceTest do
     def sync(_params, _assigns), do: :ok
   end
 
+  defmodule DistinctOptionsResource do
+    use Incant.Resource, schema: Post
+
+    table default_sort: [title: :asc] do
+      column(:title)
+      filter(:title, :combobox, options: :distinct)
+    end
+  end
+
   defmodule ConventionCallbackResource do
     use Incant.Resource, schema: Post
 
@@ -143,6 +152,15 @@ defmodule Incant.ResourceTest do
 
     assert hd(metadata.table.bulk_actions).opts[:callback] == {AtomActionResource, :archive}
     assert hd(metadata.table.page_actions).opts[:callback] == {AtomActionResource, :sync}
+  end
+
+  test "normalizes declarative distinct filter options" do
+    metadata = Incant.metadata(DistinctOptionsResource)
+
+    assert metadata.table.opts[:default_sort] == [title: :asc]
+    assert [filter] = metadata.table.filters
+    assert filter.opts[:options] == :distinct
+    assert filter.opts[:options_from] == :title
   end
 
   test "resource callbacks use conventional index/2 and read/2 when defined" do

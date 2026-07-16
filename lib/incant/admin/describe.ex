@@ -6,7 +6,7 @@ defmodule Incant.Admin.Describe do
   @public_opts %{
     admin: [:service, :version, :title],
     resource: [:id, :as, :title, :readonly, :inferred],
-    table: [:density],
+    table: [:density, :default_sort, :page_size, :page_size_options],
     form: [:layout],
     dashboard: [:id, :as, :title],
     dataset: [:id, :as, :title],
@@ -146,8 +146,19 @@ defmodule Incant.Admin.Describe do
 
   defp describe_typed_opts(opts), do: describe_named_typed_opts(opts, :typed)
   defp describe_field(field), do: describe_named_typed_opts(field, :field)
-  defp describe_resource_filter(filter), do: describe_named_typed_opts(filter, :filter)
+
+  defp describe_resource_filter(filter) do
+    filter
+    |> describe_named_typed_opts(:filter)
+    |> hide_dynamic_options()
+  end
+
   defp describe_dataset_filter(filter), do: describe_named_typed_opts(filter, :filter)
+
+  defp hide_dynamic_options(%{opts: %{options: :distinct} = opts} = filter),
+    do: %{filter | opts: Map.delete(opts, :options)}
+
+  defp hide_dynamic_options(filter), do: filter
 
   defp describe_named_typed_opts(%{name: name, type: type, opts: opts}, kind) do
     %{

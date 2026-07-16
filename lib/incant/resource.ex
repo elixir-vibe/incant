@@ -89,7 +89,12 @@ defmodule Incant.Resource do
         Enum.map(columns, fn {name, column_opts} -> %Column{name: name, opts: column_opts} end),
       filters:
         Enum.map(filters, fn {name, type, filter_opts, query} ->
-          %Filter{name: name, type: type, opts: filter_opts, query: query}
+          %Filter{
+            name: name,
+            type: type,
+            opts: normalize_filter_opts(name, filter_opts),
+            query: query
+          }
         end),
       actions:
         Enum.map(actions, fn {name, action_opts} ->
@@ -146,6 +151,12 @@ defmodule Incant.Resource do
 
   def normalize_callback(module, callback) when is_atom(callback), do: {module, callback}
   def normalize_callback(_module, callback), do: callback
+
+  def normalize_filter_opts(name, opts) do
+    if Keyword.get(opts, :options) == :distinct,
+      do: Keyword.put_new(opts, :options_from, name),
+      else: opts
+  end
 
   def normalize_action_opts(module, opts) do
     Enum.reduce([:callback, :available_if], opts, fn key, opts ->

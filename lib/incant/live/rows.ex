@@ -26,7 +26,8 @@ defmodule Incant.Live.Rows do
       page: page,
       page_size: page_size,
       total: total,
-      total_pages: total_pages
+      total_pages: total_pages,
+      meta: %{options: distinct_filter_options(resource, context)}
     }
   rescue
     error in [
@@ -271,19 +272,27 @@ defmodule Incant.Live.Rows do
   defp queryable(resource, table_state, paginate?, context) do
     queryable = resource |> base_queryable(table_state, context) |> scope_query(resource, context)
 
+    query_context = %{
+      resource: resource,
+      table: table_state,
+      actor: Map.get(context, :actor)
+    }
+
     filtered =
-      Incant.Filter.apply_filters(
-        resource.table.filters,
-        queryable,
+      resource.table.filters
+      |> Incant.Filter.apply_filters(
+        apply_query_search(queryable, resource, table_state, query_context),
         table_state_filters(table_state),
-        %{
-          resource: resource,
-          table: table_state,
-          actor: Map.get(context, :actor)
-        }
+        query_context
       )
 
-    if paginate?, do: paginate_query(filtered, table_state), else: filtered
+    if paginate? do
+      filtered
+      |> sort_query(resource, table_state)
+      |> paginate_query(table_state)
+    else
+      filtered
+    end
   end
 
   defp base_queryable(%{query: nil, schema: schema}, _table_state, _context) do
@@ -403,6 +412,127 @@ defmodule Incant.Live.Rows do
 
   defp table_state_filters(%{filters: filters}), do: filters
   defp table_state_filters(_table_state), do: %{}
+
+  defp apply_query_search(queryable, _resource, %{search: search}, _context)
+       when search in [nil, ""],
+       do: queryable
+
+  defp apply_query_search(
+         queryable,
+         %{table: %{search: fields}} = resource,
+         table_state,
+         _context
+       )
+       when is_list(fields) or is_atom(fields) do
+    fields = Enum.filter(List.wrap(fields), &searchable_field?(resource, &1))
+
+    case {fields, Map.get(table_state, :search)} do
+      {[], _term} -> queryable
+      {_fields, term} when term in [nil, ""] -> queryable
+      {fields, term} -> search_fields(queryable, fields, term)
+    end
+  end
+
+  defp apply_query_search(queryable, %{table: %{search: callback}}, table_state, context)
+       when is_function(callback) or is_tuple(callback) do
+    Incant.Callback.call(callback, queryable, %{
+      search: Map.get(table_state, :search),
+      table: table_state,
+      context: context
+    })
+  end
+
+  defp apply_query_search(queryable, _resource, _table_state, _context), do: queryable
+
+  defp search_fields(queryable, fields, term) do
+    pattern = "%#{term}%"
+
+    expression =
+      Enum.reduce(fields, dynamic(false), fn field_name, expression ->
+        dynamic([row], ^expression or ilike(field(row, ^field_name), ^pattern))
+      end)
+
+    where(queryable, ^expression)
+  end
+
+  defp searchable_field?(%{schema: schema}, field_name) do
+    schema_field_type(schema, field_name) in [:string, :binary_id]
+  end
+
+  defp sort_query(%Ecto.Query{} = queryable, resource, table_state) do
+    allowed_fields =
+      resource.table.columns
+      |> Enum.reject(&(metadata_opt(&1.opts, :sortable, true) == false))
+      |> Enum.map(& &1.name)
+      |> Enum.filter(&(not is_nil(schema_field_type(resource.schema, &1))))
+
+    Incant.Ecto.sort(queryable, table_state, allowed_fields,
+      default: default_sort(resource.table.opts),
+      tie_breaker: primary_key(resource)
+    )
+  end
+
+  defp sort_query(queryable, _resource, _table_state), do: queryable
+
+  defp default_sort(opts) do
+    case metadata_opt(opts, :default_sort, nil) do
+      [{field_name, direction} | _rest] -> {field_name, direction}
+      {field_name, direction} -> {field_name, direction}
+      _other -> nil
+    end
+  end
+
+  defp distinct_filter_options(resource, context) do
+    case resource.repo do
+      nil ->
+        %{}
+
+      repo ->
+        queryable = resource |> base_queryable(%{}, context) |> scope_query(resource, context)
+
+        resource.table.filters
+        |> Enum.filter(&(metadata_opt(&1.opts, :options, nil) == :distinct))
+        |> Map.new(fn filter ->
+          {to_string(filter.name), distinct_options(repo, queryable, resource, filter)}
+        end)
+    end
+  rescue
+    _error in [ArgumentError, Ecto.QueryError, RuntimeError, UndefinedFunctionError] -> %{}
+  end
+
+  defp distinct_options(repo, queryable, resource, filter) do
+    if schema_field_type(resource.schema, filter.name) do
+      field_name = filter.name
+      limit = metadata_opt(filter.opts, :option_limit, 100)
+
+      queryable
+      |> exclude(:select)
+      |> exclude(:order_by)
+      |> where([row], not is_nil(field(row, ^field_name)))
+      |> distinct(true)
+      |> order_by([row], asc: field(row, ^field_name))
+      |> select([row], field(row, ^field_name))
+      |> limit(^limit)
+      |> then(&apply(repo, :all, [&1]))
+      |> Enum.map(&%{label: to_string(&1), value: &1})
+    else
+      []
+    end
+  end
+
+  defp schema_field_type(schema, field_name) when is_atom(schema) and is_atom(field_name) do
+    if function_exported?(schema, :__schema__, 2),
+      do: apply(schema, :__schema__, [:type, field_name])
+  end
+
+  defp schema_field_type(_schema, _field_name), do: nil
+
+  defp metadata_opt(opts, key, default) when is_list(opts) or is_map(opts) do
+    opts = Map.new(opts)
+    Map.get(opts, key, Map.get(opts, to_string(key), default))
+  end
+
+  defp metadata_opt(_opts, _key, default), do: default
 
   defp id_string(nil), do: nil
   defp id_string(""), do: nil

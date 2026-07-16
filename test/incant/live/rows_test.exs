@@ -21,6 +21,25 @@ defmodule Incant.Live.RowsTest do
     def aggregate({:scoped, _schema, _actor}, :count), do: 1
   end
 
+  defmodule InspectRepo do
+    def all(%Ecto.Query{distinct: nil} = query) do
+      send(self(), {:rows_query, query})
+      [%{id: 11, name: "Codex", model: "gpt-5", timestamp: ~U[2026-07-16 10:00:00Z]}]
+    end
+
+    def all(%Ecto.Query{} = query) do
+      send(self(), {:options_query, query})
+      ["gpt-5", "gpt-5-mini"]
+    end
+
+    def aggregate(%Ecto.Query{} = query, :count), do: aggregate(query, :count, :id)
+
+    def aggregate(%Ecto.Query{} = query, :count, :id) do
+      send(self(), {:count_query, query})
+      31
+    end
+  end
+
   defmodule GroupedRepo do
     def all(%Ecto.Query{}), do: []
     def aggregate(%Ecto.Query{}, :count), do: raise("grouped query")
@@ -49,6 +68,8 @@ defmodule Incant.Live.RowsTest do
 
     schema "products" do
       field(:name, :string)
+      field(:model, :string)
+      field(:timestamp, :utc_datetime)
     end
   end
 
@@ -140,6 +161,60 @@ defmodule Incant.Live.RowsTest do
     page = Rows.page(resource, %{search: "", filters: %{}, sort: "", page: "2", page_size: "10"})
     assert page.total == 42
     assert page.total_pages == 5
+  end
+
+  test "applies declarative search, sorting, exact pagination, and distinct options" do
+    resource = %Metadata{
+      repo: InspectRepo,
+      schema: QueryProduct,
+      table: %Table{
+        search: [:name, :model],
+        columns: [
+          %Incant.Table.Column{name: :name},
+          %Incant.Table.Column{name: :timestamp}
+        ],
+        filters: [
+          %Filter{
+            name: :model,
+            type: :combobox,
+            opts: [options: :distinct, options_from: :model]
+          }
+        ],
+        opts: [default_sort: [timestamp: :desc]]
+      }
+    }
+
+    page =
+      Rows.page(resource, %{
+        search: "codex",
+        filters: %{},
+        sort: "",
+        page: "2",
+        page_size: "10"
+      })
+
+    assert page.page == 2
+    assert page.page_size == 10
+    assert page.total == 31
+    assert page.total_pages == 4
+
+    assert page.meta.options["model"] == [
+             %{label: "gpt-5", value: "gpt-5"},
+             %{label: "gpt-5-mini", value: "gpt-5-mini"}
+           ]
+
+    assert_receive {:count_query, count_query}
+    assert inspect(count_query) =~ "ilike"
+    assert count_query.order_bys == []
+
+    assert_receive {:rows_query, rows_query}
+    assert inspect(rows_query) =~ ~r/order_by: \[desc: \w+\.timestamp, desc: \w+\.id\]/
+    assert rows_query.limit != nil
+    assert rows_query.offset != nil
+
+    assert_receive {:options_query, options_query}
+    assert inspect(options_query) =~ "distinct: true"
+    assert inspect(options_query) =~ "limit: ^100"
   end
 
   test "scopes index rows with policy scope_rows callback" do
