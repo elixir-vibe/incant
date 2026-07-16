@@ -74,10 +74,8 @@ defmodule Incant.Service.RegistryServerTest do
       :erlang.term_to_binary(%{accounts: %{socket: second_socket, modules: [Admin]}})
     )
 
-    assert {:ok, %Incant.Service.Registry{entries: [entry]}} =
-             Incant.Service.RegistryServer.refresh(registry_server)
-
-    assert %Incant.Service.Entry{client: %Incant.Service.Client{endpoint: ^second_socket}} = entry
+    assert [%Incant.Service.Entry{client: %Incant.Service.Client{endpoint: ^second_socket}}] =
+             Incant.Service.RegistryServer.refresh_entries(registry_server)
 
     File.rm(path)
     GenServer.stop(registry_server)

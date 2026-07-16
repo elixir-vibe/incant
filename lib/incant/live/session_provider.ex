@@ -25,7 +25,7 @@ defmodule Incant.Live.SessionProvider do
   @doc "Returns registry entries when this is a registry-backed session."
   @spec registry_entries(map()) :: [Entry.t()]
   def registry_entries(%{"__incant__" => %LiveSession{source: {:registry, registry}}}) do
-    Incant.Service.RegistryServer.list_entries(registry)
+    Incant.Service.RegistryServer.refresh_entries(registry)
   end
 
   def registry_entries(_session), do: []
@@ -57,33 +57,12 @@ defmodule Incant.Live.SessionProvider do
   defp absolute_path(path), do: "/" <> path
 
   defp registry_entry!(registry, service) do
-    case find_registry_entry(registry, service) do
-      nil ->
-        refresh_registry!(registry)
-
-        case find_registry_entry(registry, service) do
-          nil -> raise ArgumentError, "unknown Incant service: #{inspect(service)}"
-          entry -> entry
-        end
-
-      entry ->
-        entry
-    end
-  end
-
-  defp find_registry_entry(registry, service) do
     registry
-    |> Incant.Service.RegistryServer.list_entries()
+    |> Incant.Service.RegistryServer.refresh_entries()
     |> Enum.find(&(to_string(&1.key) == to_string(service)))
-  end
-
-  defp refresh_registry!(registry) do
-    case Incant.Service.RegistryServer.refresh(registry) do
-      {:ok, _registry} ->
-        :ok
-
-      {:error, reason} ->
-        raise ArgumentError, "could not refresh Incant registry: #{inspect(reason)}"
+    |> case do
+      nil -> raise ArgumentError, "unknown Incant service: #{inspect(service)}"
+      entry -> entry
     end
   end
 end

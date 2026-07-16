@@ -238,7 +238,7 @@ defmodule Incant.Web.API do
   defp entries(conn) do
     conn.private
     |> Map.get(:incant_api_registry, @default_registry)
-    |> RegistryServer.list_entries()
+    |> RegistryServer.refresh_entries()
   end
 
   defp contract_surfaces(session, opts) do

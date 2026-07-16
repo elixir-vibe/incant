@@ -30,6 +30,15 @@ defmodule Incant.Service.RegistryServer do
   @spec list_entries(server()) :: [Entry.t()]
   def list_entries(server \\ __MODULE__), do: GenServer.call(server, :list_entries)
 
+  @doc "Refreshes the registry and lists its entries, retaining the current snapshot on failure."
+  @spec refresh_entries(server()) :: [Entry.t()]
+  def refresh_entries(server \\ __MODULE__) do
+    case refresh(server) do
+      {:ok, registry} -> registry.entries
+      {:error, _reason} -> list_entries(server)
+    end
+  end
+
   @doc "Fetches the first entry for a binding key."
   @spec get_entry(server(), Entry.binding_key()) :: Entry.t() | nil
   def get_entry(server \\ __MODULE__, key), do: GenServer.call(server, {:get_entry, key})
