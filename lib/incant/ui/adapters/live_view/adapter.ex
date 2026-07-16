@@ -13,11 +13,21 @@ defmodule Incant.UI.Adapters.LiveView do
   import Incant.UI.Adapters.LiveView.Helpers
   import Incant.UI.Adapters.LiveView.Inspector
   import Incant.UI.Adapters.LiveView.Table
+  import Incant.Live.Routes
 
   alias Incant.UI.Adapters.LiveView.Theme
   alias Incant.UI.Document
   alias Incant.UI.Regions.WidgetGrid
-  alias Incant.UI.Surfaces.{Dashboard, DatasetIndex, Empty, ResourceIndex, ServiceIndex}
+
+  alias Incant.UI.Surfaces.{
+    Dashboard,
+    DatasetIndex,
+    Empty,
+    ResourceIndex,
+    SectionIndex,
+    ServiceIndex
+  }
+
   alias Phoenix.LiveView.JS
 
   @impl Incant.UI.Adapter
@@ -152,8 +162,19 @@ defmodule Incant.UI.Adapters.LiveView do
     <nav aria-label="Breadcrumb" class={Theme.slot(:shell, :breadcrumb)}>
       <%= for {item, index} <- Enum.with_index(@items) do %>
         <span :if={index > 0} aria-hidden="true" class={Theme.slot(:shell, :breadcrumb_separator)}>/</span>
-        <span class={if(index == length(@items) - 1, do: Theme.slot(:shell, :breadcrumb_current), else: Theme.slot(:shell, :breadcrumb_muted))}>
-          {item}
+        <.link
+          :if={item.path}
+          href={item.path}
+          class={Theme.slot(:shell, :breadcrumb_link)}
+        >
+          {item.label}
+        </.link>
+        <span
+          :if={!item.path}
+          class={if(index == length(@items) - 1, do: Theme.slot(:shell, :breadcrumb_current), else: Theme.slot(:shell, :breadcrumb_muted))}
+          aria-current={if(index == length(@items) - 1, do: "page")}
+        >
+          {item.label}
         </span>
       <% end %>
     </nav>
@@ -231,6 +252,28 @@ defmodule Incant.UI.Adapters.LiveView do
         <div class={Theme.slot(:surface, :primary)}>
           <.table table={@surface.table} filter_bar={@surface.filter_bar} env={@env} />
         </div>
+      </div>
+    </section>
+    """
+  end
+
+  def render_surface(%{surface: %SectionIndex{} = surface} = assigns) do
+    assigns = assign(assigns, :surface, surface)
+
+    ~H"""
+    <section class={Theme.slot(:surface, :stack)}>
+      <.page_header title={@surface.title} eyebrow={@surface.eyebrow} />
+      <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <.link
+          :for={item <- @surface.items}
+          href={item.path}
+          class="block rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-4 text-sm font-medium text-[var(--incant-text-highlighted)] transition-colors hover:border-[var(--incant-primary)] hover:bg-[var(--incant-bg-accented)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]"
+        >
+          {item.label}
+        </.link>
+      </div>
+      <div :if={@surface.items == []} class={Theme.slot(:panel, :root, kind: :empty)}>
+        <p class={Theme.slot(:panel, :empty_title)}>No {String.downcase(@surface.title)} available.</p>
       </div>
     </section>
     """
@@ -324,26 +367,55 @@ defmodule Incant.UI.Adapters.LiveView do
   end
 
   defp breadcrumb_items(context, surface) do
-    ["Incant"]
-    |> maybe_add(service_name(context))
-    |> maybe_add(section_name(context))
-    |> maybe_add(surface.title)
-    |> Enum.uniq()
+    [
+      %{label: "Incant", path: breadcrumb_root_path(context)},
+      %{label: service_name(context), path: service_breadcrumb_path(context)},
+      %{label: section_name(context), path: section_breadcrumb_path(context)},
+      %{label: surface.title, path: nil}
+    ]
+    |> Enum.reject(&is_nil(&1.label))
+    |> Enum.uniq_by(& &1.label)
   end
+
+  defp breadcrumb_root_path(%{session: %{entry: _entry}, base_path: base_path}) do
+    case Path.dirname(base_path) do
+      "." -> "/"
+      path -> path
+    end
+  end
+
+  defp breadcrumb_root_path(%{base_path: base_path}) when is_binary(base_path), do: base_path
+  defp breadcrumb_root_path(_context), do: "/"
+
+  defp service_breadcrumb_path(%{session: %{entry: _entry}, base_path: base_path}), do: base_path
+  defp service_breadcrumb_path(_context), do: nil
+
+  defp section_breadcrumb_path(%{section: "dashboard", base_path: base_path}),
+    do: dashboard_index_path(base_path)
+
+  defp section_breadcrumb_path(%{section: "dataset", base_path: base_path}),
+    do: dataset_index_path(base_path)
+
+  defp section_breadcrumb_path(%{section: "resource", base_path: base_path}),
+    do: resource_index_path(base_path)
+
+  defp section_breadcrumb_path(_context), do: nil
 
   defp service_name(%{session: %{entry: %{contract: %{service: service}}}}),
     do: to_string(service)
 
   defp service_name(_context), do: nil
 
-  defp section_name(%{section: "dashboard"}), do: "Dashboards"
-  defp section_name(%{section: "dataset"}), do: "Datasets"
-  defp section_name(%{section: "resource"}), do: "Resources"
+  defp section_name(%{section: section}) when section in ["dashboard", "dashboards"],
+    do: "Dashboards"
+
+  defp section_name(%{section: section}) when section in ["dataset", "datasets"], do: "Datasets"
+
+  defp section_name(%{section: section}) when section in ["resource", "resources"],
+    do: "Resources"
+
   defp section_name(%{section: "services"}), do: "Services"
   defp section_name(_context), do: nil
-
-  defp maybe_add(items, nil), do: items
-  defp maybe_add(items, item), do: items ++ [item]
 
   defp service_path(base_path, service) do
     Path.join(base_path || "/", service.id)

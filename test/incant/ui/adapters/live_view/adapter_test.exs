@@ -638,7 +638,8 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> rendered_to_string()
 
     assert html =~ ~s(<th class="h-8 px-3 font-medium text-right" aria-sort="none">)
-    assert html =~ "ml-auto"
+    assert html =~ "w-full"
+    assert html =~ "justify-end"
 
     assert html =~
              ~S|<td class="px-3 py-1.5 text-[var(--incant-text-toned)] text-right tabular-nums">|
@@ -867,18 +868,25 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ~s(data-phx-link)
   end
 
-  test "renders shell breadcrumbs with the current page highlighted" do
+  test "renders linked breadcrumb parents with the current page highlighted" do
     html =
-      %{items: ["Incant", "llm_proxy", "Resources", "API Keys"]}
+      %{
+        items: [
+          %{label: "Incant", path: "/"},
+          %{label: "llm_proxy", path: "/llm_proxy"},
+          %{label: "Resources", path: "/llm_proxy/resources/api_key"},
+          %{label: "API Keys", path: nil}
+        ]
+      }
       |> Incant.UI.Adapters.LiveView.breadcrumbs()
       |> rendered_to_string()
 
     assert html =~ ~s(aria-label="Breadcrumb")
-    assert html =~ "Incant"
-    assert html =~ "llm_proxy"
-    assert html =~ "Resources"
+    assert html =~ ~s(href="/")
+    assert html =~ ~s(href="/llm_proxy")
+    assert html =~ ~s(href="/llm_proxy/resources/api_key")
+    assert html =~ ~s(aria-current="page")
     assert html =~ "API Keys"
-    assert html =~ "font-medium text-[var(--incant-text-highlighted)]"
   end
 
   test "renders accessible sortable headers, selection checkboxes, density, and pagination range" do

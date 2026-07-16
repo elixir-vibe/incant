@@ -818,6 +818,10 @@ defmodule Incant.Live.Admin do
     Enum.find(collection, &(selected_id(&1) == id))
   end
 
+  defp section(:dashboards, _dashboard, _resource, _dataset), do: "dashboards"
+  defp section(:resources, _dashboard, _resource, _dataset), do: "resources"
+  defp section(:datasets, _dashboard, _resource, _dataset), do: "datasets"
+
   defp section(action, _dashboard, _resource, _dataset)
        when action in [:resource, :resource_detail, :resource_new, :resource_edit],
        do: "resource"

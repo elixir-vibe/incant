@@ -25,6 +25,8 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         topbar_inner: "mx-auto flex h-12 max-w-[1180px] items-center justify-between gap-3",
         breadcrumb: "flex min-w-0 items-center gap-1.5 text-sm",
         breadcrumb_muted: "truncate text-[var(--incant-text-muted)]",
+        breadcrumb_link:
+          "truncate rounded-sm text-[var(--incant-text-muted)] hover:text-[var(--incant-text-highlighted)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         breadcrumb_current: "truncate font-medium text-[var(--incant-text-highlighted)]",
         breadcrumb_separator: "text-[var(--incant-text-dimmed)]",
         topbar_actions: "ml-auto flex items-center gap-1",
@@ -341,7 +343,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
           "border-b border-[var(--incant-border)] bg-[var(--incant-bg-muted)] text-left text-[11px] text-[var(--incant-text-muted)]",
         header_cell: "h-8 px-3 font-medium",
         sort_button:
-          "inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+          "flex w-full items-center gap-1 rounded py-0.5 hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
         body: "divide-y divide-[var(--incant-border-muted)]",
         row: "h-9 hover:bg-[var(--incant-bg-muted)]",
         cell: "px-3 py-1.5 text-[var(--incant-text-toned)]",
@@ -351,7 +353,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         empty_action:
           "mt-2 inline-flex h-8 items-center rounded-md border border-[var(--incant-border)] px-3 text-xs font-medium text-[var(--incant-text-toned)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         empty_hint: "mt-1 text-xs text-[var(--incant-text-dimmed)]",
-        actions: "w-px px-2 py-1.5 text-right sm:px-3",
+        actions: "w-px px-1.5 py-1.5 text-right",
         action_group:
           "inline-flex flex-col items-stretch gap-0.5 sm:flex-row sm:items-center sm:gap-1",
         link: "font-medium text-[var(--incant-text-highlighted)] hover:underline",
@@ -369,10 +371,10 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         align: %{
           right: %{
             header_cell: "text-right",
-            sort_button: "ml-auto",
+            sort_button: "justify-end",
             cell: "text-right tabular-nums"
           },
-          left: %{}
+          left: %{sort_button: "justify-start"}
         },
         truncate: %{
           true => %{cell: "max-w-[28rem]", cell_content: "truncate"},

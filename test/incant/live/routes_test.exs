@@ -12,6 +12,12 @@ defmodule Incant.Live.RoutesTest do
   defmodule LLM do
   end
 
+  test "builds section index paths" do
+    assert Routes.dashboard_index_path("/admin") == "/admin/dashboards"
+    assert Routes.dataset_index_path("/admin") == "/admin/datasets"
+    assert Routes.resource_index_path("/admin") == "/admin/resources"
+  end
+
   test "builds underscored dashboard paths" do
     dashboard = dashboard()
 

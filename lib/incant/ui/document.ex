@@ -4,7 +4,7 @@ defmodule Incant.UI.Document do
   """
 
   alias Incant.UI.Regions.Nav
-  alias Incant.UI.Surfaces.{Dashboard, DatasetIndex, ResourceIndex, ServiceIndex}
+  alias Incant.UI.Surfaces.{Dashboard, DatasetIndex, ResourceIndex, SectionIndex, ServiceIndex}
 
   @type t :: %__MODULE__{
           id: String.t(),
@@ -50,6 +50,11 @@ defmodule Incant.UI.Document do
     DatasetIndex.from_context(context, title)
   end
 
+  defp surface_from_context(%{section: section} = context, _title)
+       when section in ["dashboards", "resources", "datasets"] do
+    SectionIndex.from_context(context)
+  end
+
   defp surface_from_context(%{section: "services"} = context, title) do
     %ServiceIndex{
       id: "services",
@@ -69,6 +74,9 @@ defmodule Incant.UI.Document do
   defp document_id(_context), do: "admin"
 
   defp surface_title(%{section: "services"}), do: "Services"
+  defp surface_title(%{section: "dashboards"}), do: "Dashboards"
+  defp surface_title(%{section: "resources"}), do: "Resources"
+  defp surface_title(%{section: "datasets"}), do: "Datasets"
 
   defp surface_title(%{resource: %{module: module, opts: opts}}) when not is_nil(module),
     do: Incant.Surface.title(module, opts)
