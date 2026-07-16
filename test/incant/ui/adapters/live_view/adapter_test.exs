@@ -472,6 +472,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "-12.5% vs previous"
     assert html =~ "text-[var(--incant-error)]"
     assert html =~ "text-3xl"
+    refute html =~ "col-span-"
   end
 
   test "renders dashboard table widgets with source column metadata" do

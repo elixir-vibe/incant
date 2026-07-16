@@ -429,9 +429,9 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     %Recipe{
       slots: %{
         root:
-          "col-span-2 min-w-0 rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-3",
+          "min-w-0 rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-3",
         framed:
-          "col-span-2 min-w-0 overflow-hidden rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]",
+          "min-w-0 overflow-hidden rounded-lg border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)]",
         title_row: "flex items-center justify-between gap-3",
         header:
           "flex items-center justify-between gap-3 border-b border-[var(--incant-border-muted)] p-3",
@@ -462,7 +462,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         kind: %{
           stat: %{
             root:
-              "col-span-1 p-3 transition-colors hover:border-[var(--incant-border-accented)] hover:shadow-sm sm:p-4"
+              "p-3 transition-colors hover:border-[var(--incant-border-accented)] hover:shadow-sm sm:p-4"
           },
           default: %{}
         },

@@ -21,9 +21,6 @@ const liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
 });
 
-liveSocket.connect();
-window.liveSocket = liveSocket;
-
 const themeStorageKey = "incant-theme";
 const mobileNavigation = window.matchMedia("(max-width: 1023px)");
 const shell = (): HTMLElement | null => document.querySelector<HTMLElement>("[data-incant-shell]");
@@ -159,3 +156,12 @@ document.addEventListener("keydown", (event) => {
     closeNavigation({ restoreFocus: true });
   }
 });
+
+window.addEventListener("phx:page-loading-stop", () => {
+  applyTheme(preferredTheme());
+  scheduleFlashDismissal();
+  closeNavigation();
+});
+
+liveSocket.connect();
+window.liveSocket = liveSocket;
