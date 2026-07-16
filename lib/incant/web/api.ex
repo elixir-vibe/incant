@@ -51,7 +51,7 @@ defmodule Incant.Web.API do
     with {:ok, session} <- fetch_service_session(conn, service),
          {:ok, opts} <- surface_opts(conn.query_params) do
       session
-      |> Incant.Session.list_surfaces(opts)
+      |> contract_surfaces(opts)
       |> API.Document.new(links: %{self: conn.request_path}, meta: %{service: service})
       |> json(conn, 200)
     else
@@ -61,7 +61,7 @@ defmodule Incant.Web.API do
 
   get "/services/:service/surfaces/:surface" do
     with {:ok, session} <- fetch_service_session(conn, service),
-         {:ok, surface_data} <- Incant.Session.fetch_surface(session, surface, []) do
+         {:ok, surface_data} <- contract_surface(session, surface) do
       surface_data
       |> API.Document.new(
         links: surface_links(service, surface),
@@ -75,7 +75,8 @@ defmodule Incant.Web.API do
 
   get "/services/:service/surfaces/:surface/rows" do
     with {:ok, session} <- fetch_service_session(conn, service),
-         {:ok, result} <- Incant.Session.index(session, surface, conn.query_params, %{}, []) do
+         {:ok, table} <- API.QueryRequest.cast_table(conn.query_params),
+         {:ok, result} <- Incant.Session.index(session, surface, table, %{}, []) do
       result
       |> API.Document.new(
         links: %{self: conn.request_path},
@@ -120,7 +121,7 @@ defmodule Incant.Web.API do
 
   get "/services/:service/surfaces/:surface/actions" do
     with {:ok, session} <- fetch_service_session(conn, service),
-         {:ok, surface_data} <- Incant.Session.fetch_surface(session, surface, []) do
+         {:ok, surface_data} <- contract_surface(session, surface) do
       surface_data
       |> surface_actions()
       |> API.Document.new(
@@ -135,7 +136,7 @@ defmodule Incant.Web.API do
 
   get "/services/:service/surfaces/:surface/actions/:action" do
     with {:ok, session} <- fetch_service_session(conn, service),
-         {:ok, surface_data} <- Incant.Session.fetch_surface(session, surface, []),
+         {:ok, surface_data} <- contract_surface(session, surface),
          {:ok, action_data} <- fetch_surface_action(surface_data, action) do
       action_data
       |> API.Document.new(
@@ -238,6 +239,27 @@ defmodule Incant.Web.API do
     conn.private
     |> Map.get(:incant_api_registry, @default_registry)
     |> RegistryServer.list_entries()
+  end
+
+  defp contract_surfaces(session, opts) do
+    contract = Incant.Session.contract(session)
+
+    case Keyword.get(opts, :kind, :all) do
+      :resource -> contract.resources
+      :dashboard -> contract.dashboards
+      :dataset -> contract.datasets
+      :all -> contract.resources ++ contract.dashboards ++ contract.datasets
+    end
+  end
+
+  defp contract_surface(session, surface_id) do
+    session
+    |> contract_surfaces([])
+    |> Enum.find(&(to_string(&1.id) == to_string(surface_id)))
+    |> case do
+      nil -> {:error, {:unknown_surface, surface_id}}
+      surface -> {:ok, surface}
+    end
   end
 
   defp surface_opts(%{"kind" => "resource"}), do: {:ok, [kind: :resource]}

@@ -548,7 +548,7 @@ defmodule Incant.Live.Admin do
     case Incant.Session.index(
            context.session,
            selected_id(context.resource),
-           context.table_state,
+           Map.take(context.table_state, [:page, :page_size, :search, :sort, :filters]),
            %{},
            []
          ) do

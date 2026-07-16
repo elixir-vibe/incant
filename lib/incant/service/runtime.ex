@@ -2,6 +2,7 @@ defmodule Incant.Service.Runtime do
   @moduledoc false
 
   alias Incant.{ActionResult, Live}
+  alias Incant.Service.Index
 
   def describe(admin, _context \\ %{}) do
     {:ok, Incant.Admin.describe(admin)}
@@ -9,8 +10,8 @@ defmodule Incant.Service.Runtime do
 
   def index(admin, surface_id, params \\ %{}, context \\ %{}) do
     with {:ok, surface} <- fetch_surface(admin, surface_id),
-         :resource <- surface.kind do
-      table = Map.get(params, :table, params)
+         :resource <- surface.kind,
+         {:ok, table} <- Index.cast_params(params) do
       {:ok, Live.Rows.page(surface.spec, table, service_context(admin, surface, context))}
     else
       {:error, reason} -> {:error, reason}

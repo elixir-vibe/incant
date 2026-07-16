@@ -62,7 +62,7 @@ defmodule Incant.Service.Session do
   def index(%__MODULE__{} = session, surface_id, params \\ %{}, context \\ %{}, opts \\ []) do
     request = %Index{
       surface_id: to_string(surface_id),
-      params: params,
+      params: Index.dump_params(params),
       context: context(session, context)
     }
 

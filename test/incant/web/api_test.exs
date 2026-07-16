@@ -38,10 +38,19 @@ defmodule Incant.Web.APITest do
     end
   end
 
+  defmodule OperationsDashboard do
+    use Incant.Dashboard
+
+    stat(:users, query: &__MODULE__.users/2)
+
+    def users(_variables, _context), do: 2
+  end
+
   defmodule Admin do
     use Incant.Admin, service: :accounts, version: "1", rpc: true
 
     resource(UserResource)
+    dashboard(OperationsDashboard)
   end
 
   defmodule Server do
@@ -79,7 +88,7 @@ defmodule Incant.Web.APITest do
                  "id" => "accounts",
                  "service" => "accounts",
                  "version" => "1",
-                 "surfaces" => %{"resources" => 1}
+                 "surfaces" => %{"dashboards" => 1, "resources" => 1}
                }
              ],
              "links" => %{"self" => "/services"}
@@ -95,6 +104,22 @@ defmodule Incant.Web.APITest do
              Jason.decode!(conn.resp_body)
   end
 
+  test "returns portable dashboard surfaces", %{registry: registry} do
+    conn = call_api(conn(:get, "/services/accounts/surfaces?kind=dashboard"), registry)
+
+    assert conn.status == 200
+
+    assert %{
+             "data" => [
+               %{
+                 "id" => "operations_dashboard",
+                 "kind" => "dashboard",
+                 "widgets" => [%{"id" => "users", "type" => "stat"}]
+               }
+             ]
+           } = Jason.decode!(conn.resp_body)
+  end
+
   test "returns a service contract", %{registry: registry} do
     conn = call_api(conn(:get, "/services/accounts"), registry)
 
@@ -107,6 +132,27 @@ defmodule Incant.Web.APITest do
              },
              "links" => %{"surfaces" => "/incant/services/accounts/surfaces"}
            } = Jason.decode!(conn.resp_body)
+  end
+
+  test "uses the explicit portable table-query contract", %{registry: registry} do
+    conn =
+      call_api(
+        conn(:get, "/services/accounts/surfaces/user_resource/rows?page=2&page_size=1"),
+        registry
+      )
+
+    assert conn.status == 200
+
+    assert %{"data" => %{"page" => 2, "page_size" => 1, "total" => 2}} =
+             Jason.decode!(conn.resp_body)
+
+    invalid =
+      call_api(
+        conn(:get, "/services/accounts/surfaces/user_resource/rows?unknown=true"),
+        registry
+      )
+
+    assert invalid.status == 400
   end
 
   test "queries resource surfaces", %{registry: registry} do
