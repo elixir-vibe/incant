@@ -18,6 +18,7 @@ defmodule Incant.Filter do
     auto: Incant.Filters.Text,
     text: Incant.Filters.Text,
     select: Incant.Filters.Select,
+    combobox: Incant.Filters.Select,
     multi_select: Incant.Filters.MultiSelect,
     date_range: Incant.Filters.DateRange,
     boolean: Incant.Filters.Boolean,

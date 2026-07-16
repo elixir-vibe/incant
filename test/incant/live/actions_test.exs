@@ -42,6 +42,45 @@ defmodule Incant.Live.ActionsTest do
              Actions.run(resource, "archive", "1", %{})
   end
 
+  test "rejects row actions that do not apply to the current row" do
+    callback = fn _params, _assigns -> :ok end
+
+    resource = %Metadata{
+      index: fn _params -> [%{id: 1, enabled: true}] end,
+      table: %Table{
+        actions: [
+          %Action{
+            name: :enable,
+            opts: [available_if: [enabled: false], callback: callback]
+          }
+        ]
+      }
+    }
+
+    assert Actions.run(resource, "enable", "1", %{}) ==
+             {:error, "Action enable is not available for this row"}
+  end
+
+  test "supports callback-based row action availability" do
+    callback = fn _params, _assigns -> :ok end
+    available = fn row, %{actor: actor} -> row.owner_id == actor.id end
+
+    resource = %Metadata{
+      index: fn _params -> [%{id: 1, owner_id: 7}] end,
+      table: %Table{
+        actions: [
+          %Action{name: :archive, opts: [available_if: available, callback: callback]}
+        ]
+      }
+    }
+
+    assert %ActionResult.Toast{message: "archive action completed for 1"} =
+             Actions.run(resource, "archive", "1", %{}, %{actor: %{id: 7}})
+
+    assert Actions.run(resource, "archive", "1", %{}, %{actor: %{id: 8}}) ==
+             {:error, "Action archive is not available for this row"}
+  end
+
   test "normalizes missing callbacks to semantic errors" do
     resource = %Metadata{
       index: fn _params -> [%{id: 1, name: "Incant Pro"}] end,

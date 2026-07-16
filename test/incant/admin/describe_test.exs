@@ -83,7 +83,7 @@ defmodule Incant.Admin.DescribeTest do
   end
 
   defmodule Admin do
-    use Incant.Admin, service: :llm_proxy, version: "1"
+    use Incant.Admin, service: :llm_proxy, version: "1", title: "LLM Proxy"
 
     resource(ProductResource)
     dashboard(OperationsDashboard)
@@ -97,6 +97,7 @@ defmodule Incant.Admin.DescribeTest do
     assert contract.service == :llm_proxy
     assert contract.version == "1"
     assert contract.module == inspect(Admin)
+    assert contract.opts.title == "LLM Proxy"
 
     assert [%{id: "product_resource", title: "Products"} = resource] = contract.resources
     assert resource.opts == %{title: "Products"}

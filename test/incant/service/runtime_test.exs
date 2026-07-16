@@ -64,6 +64,23 @@ defmodule Incant.Service.RuntimeTest do
     dashboard(OperationsDashboard)
   end
 
+  test "serializes row-dependent action availability" do
+    resource = %{
+      table: %Incant.Table{
+        columns: [%Incant.Table.Column{name: :enabled}],
+        actions: [
+          %Incant.Table.Action{name: :enable, opts: [available_if: [enabled: false]]},
+          %Incant.Table.Action{name: :disable, opts: [available_if: [enabled: true]]}
+        ]
+      }
+    }
+
+    row = Incant.Service.Row.from_resource(resource, %{id: 3, enabled: true})
+    external = row |> JSONCodec.dump() |> Incant.Service.Row.from_external()
+
+    assert external.available_actions == ["disable"]
+  end
+
   test "passes action input through to callbacks without flattening it into assigns" do
     assert {:ok, %ActionResult.Job{meta: %{input: %{code: "abc", verifier: "secret"}}}} =
              Runtime.run_action(Admin, "operation_resource", "echo_input", %{

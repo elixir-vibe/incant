@@ -6,6 +6,7 @@ defmodule Incant.Live.Actions do
   def run(resource, action_name, id, assigns, context \\ %{}) do
     with {:ok, action} <- fetch_action(resource.table.actions, action_name),
          {:ok, row} <- fetch_row(resource, id, context),
+         :ok <- available(action, row, context),
          :ok <- authorize(context, :run_action, action, %{id: id, row: row}) do
       params = %{action: action.name, id: id, row: row, resource: resource}
       dispatch(action, params, assigns)
@@ -44,6 +45,12 @@ defmodule Incant.Live.Actions do
       nil -> {:error, "No row matches #{id}"}
       row -> {:ok, row}
     end
+  end
+
+  defp available(action, row, context) do
+    if Incant.Table.Action.available?(action, row, context),
+      do: :ok,
+      else: {:error, "Action #{action.name} is not available for this row"}
   end
 
   defp authorize(%{admin: admin, actor: actor} = context, action_name, action, extra) do

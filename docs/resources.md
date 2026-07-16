@@ -150,7 +150,20 @@ table do
 end
 ```
 
-`action/2` and `row/2` both declare row actions. `bulk/2` declares actions that operate on selected rows. `page/2` declares resource-level actions.
+`action/2` and `row/2` both declare row actions. `bulk/2` declares actions that operate on selected rows. `page/2` declares resource-level actions. Row actions may declare when they apply without conflating applicability with authorization:
+
+```elixir
+action :disable,
+  available_if: [enabled: true],
+  confirm: "Disable this provider token?",
+  callback: &__MODULE__.disable/2
+
+action :enable,
+  available_if: &__MODULE__.can_enable?/2,
+  callback: &__MODULE__.enable/2
+```
+
+Incant evaluates `available_if` while building each service row and again before execution. Declarative keyword/map conditions compare row fields exactly; callbacks receive the row and action context.
 
 Callbacks receive action-specific context such as `%{action:, id:, row:, selected_ids:, resource:}` and the LiveView assigns. They can return semantic action results:
 
@@ -169,6 +182,32 @@ Shorthand returns are normalized for convenience: `:ok`, a message string, `{:ok
 ## Application-side query resources
 
 Use `index/2` for the resource collection and `read/2` for one record. These callbacks live in the application namespace, so Ecto queries, storage facades, authorization scoping, pagination, and transactions remain application responsibility.
+
+A callback may return a plain list for a small collection. Incant then performs in-memory search, filtering, sorting, and pagination. Large collections should return the existing `%Incant.Result{}` with authoritative rows and count; Incant does not process or paginate those rows a second time:
+
+```elixir
+%Incant.Result{
+  rows: rows,
+  total_count: total,
+  meta: %{page: page, page_size: page_size}
+}
+```
+
+Additional bounded filter options can travel in the same result metadata without introducing a separate option model:
+
+```elixir
+%Incant.Result{
+  rows: rows,
+  total_count: total,
+  meta: %{
+    page: page,
+    page_size: page_size,
+    options: %{"model" => model_options}
+  }
+}
+```
+
+Declare the corresponding autocomplete filter with `filter :model, :combobox, options_from: :model`. The option values use the same existing `{label, value}` or `%{label:, value:}` representations as selects.
 
 ```elixir
 defmodule MyApp.Admin.Resources.Product do

@@ -122,6 +122,63 @@ defmodule Incant.UI.DocumentTest do
     assert document.surface.table.row_detail.id == "activity"
   end
 
+  test "builds autocomplete filters from page metadata without a new option entity" do
+    resource = %Incant.Resource.Metadata{
+      module: ProductResource,
+      opts: [title: "Products"],
+      table: %Incant.Table{
+        filters: [
+          %Incant.Table.Filter{name: :model, type: :combobox, opts: [options_from: :model]}
+        ]
+      }
+    }
+
+    document =
+      context(
+        resource: resource,
+        resources: [resource],
+        pagination: %{
+          meta: %{
+            options: %{
+              "model" => [
+                %{label: "GPT-5.3 Codex Spark", value: "openai-codex/gpt-5.3-codex-spark"}
+              ]
+            }
+          }
+        }
+      )
+      |> Incant.UI.Document.from_context(page_title: "Products")
+
+    assert [%Incant.UI.Controls.Combobox{options: [option]}] =
+             document.surface.filter_bar.filters
+
+    assert option == %{
+             label: "GPT-5.3 Codex Spark",
+             value: "openai-codex/gpt-5.3-codex-spark"
+           }
+  end
+
+  test "uses semantic labels for boolean columns" do
+    resource = %Incant.Resource.Metadata{
+      module: ProductResource,
+      opts: [title: "Products"],
+      table: %Incant.Table{
+        columns: [
+          %Incant.Table.Column{
+            name: :enabled,
+            opts: [as: :boolean, true_label: "Enabled", false_label: "Disabled"]
+          }
+        ]
+      }
+    }
+
+    document =
+      context(resource: resource, resources: [resource], rows: [%{id: 1, enabled: true}])
+      |> Incant.UI.Document.from_context(page_title: "Products")
+
+    assert [%{cells: [%{display: "Enabled", format: :boolean}]}] = document.surface.table.rows
+  end
+
   test "builds resource detail document" do
     resource = Incant.metadata(ProductResource)
 

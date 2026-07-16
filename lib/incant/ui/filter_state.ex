@@ -3,7 +3,7 @@ defmodule Incant.UI.FilterState do
   Typed filter state normalized from portable URL and service filter values.
   """
 
-  alias Incant.UI.Controls.{DateRange, MultiSelect, Select}
+  alias Incant.UI.Controls.{Combobox, DateRange, MultiSelect, Select}
   alias __MODULE__.{Condition, Definition}
 
   defmodule Definition do
@@ -72,6 +72,7 @@ defmodule Incant.UI.FilterState do
   defp control_type(%DateRange{}), do: :date_range
   defp control_type(%MultiSelect{}), do: :multi_select
   defp control_type(%Select{}), do: :select
+  defp control_type(%Combobox{}), do: :combobox
   defp control_type(control), do: (control.source && control.source.type) || :text
 
   defp active_value?(nil), do: false
@@ -102,6 +103,10 @@ defmodule Incant.UI.FilterState do
   end
 
   defp display_value(%Select{value: value, options: options}), do: option_label(options, value)
+
+  defp display_value(%Combobox{value: value, options: options}),
+    do: option_label(options, value)
+
   defp display_value(%{value: value}) when value in [true, "true", 1, "1"], do: "Enabled"
   defp display_value(%{value: value}) when value in [false, "false", 0, "0"], do: "Disabled"
   defp display_value(%{value: value}), do: to_string(value)

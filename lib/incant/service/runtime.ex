@@ -22,7 +22,12 @@ defmodule Incant.Service.Runtime do
     with {:ok, surface} <- fetch_surface(admin, surface_id),
          :resource <- surface.kind,
          {:ok, page} <- index(admin, surface_id, params, context) do
-      {:ok, page |> Incant.Service.Page.from_resource_page(surface.spec) |> JSONCodec.dump()}
+      service_context = service_context(admin, surface, context)
+
+      {:ok,
+       page
+       |> Incant.Service.Page.from_resource_page(surface.spec, service_context)
+       |> JSONCodec.dump()}
     else
       {:error, reason} -> {:error, reason}
       other -> {:error, {:unsupported_surface_kind, other}}
@@ -46,7 +51,12 @@ defmodule Incant.Service.Runtime do
     with {:ok, surface} <- fetch_surface(admin, surface_id),
          :resource <- surface.kind,
          {:ok, row} <- read(admin, surface_id, id, context) do
-      {:ok, Incant.Service.Row.from_resource(surface.spec, row) |> JSONCodec.dump()}
+      service_context = service_context(admin, surface, context)
+
+      {:ok,
+       surface.spec
+       |> Incant.Service.Row.from_resource(row, service_context)
+       |> JSONCodec.dump()}
     else
       {:error, reason} -> {:error, reason}
       other -> {:error, {:unsupported_surface_kind, other}}

@@ -4,7 +4,7 @@ defmodule Incant.Admin.Describe do
   alias Incant.Admin.Contract
 
   @public_opts %{
-    admin: [:service, :version],
+    admin: [:service, :version, :title],
     resource: [:id, :as, :title, :readonly, :inferred],
     table: [:density],
     form: [:layout],
@@ -25,7 +25,9 @@ defmodule Incant.Admin.Describe do
       :sortable,
       :sensitive,
       :secret,
-      :redacted
+      :redacted,
+      :true_label,
+      :false_label
     ],
     typed: [:id, :label, :default, :options],
     field: [
@@ -39,7 +41,7 @@ defmodule Incant.Admin.Describe do
       :secret,
       :redacted
     ],
-    filter: [:id, :label, :placeholder, :options],
+    filter: [:id, :label, :placeholder, :options, :options_from],
     action: [:id, :label, :confirm, :destructive, :async, :result],
     widget: [
       :id,

@@ -40,21 +40,26 @@ defmodule Incant.Live.Rows do
       error_page(error, table_state)
   end
 
-  def page(resource, table_state, context) do
-    rows = all(resource, table_state, context)
-    page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
-    page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
-    total = length(rows)
-    total_pages = max(ceil(total / page_size), 1)
-    page = min(page, total_pages)
+  def page(%{index: index} = resource, table_state, context) when not is_nil(index) do
+    case load_index(resource, table_state, context) do
+      %Incant.Result{} = result -> result_page(result, table_state)
+      rows -> rows_page(process_rows(rows, resource, table_state), table_state)
+    end
+  rescue
+    error in [
+      ArgumentError,
+      FunctionClauseError,
+      Protocol.UndefinedError,
+      RuntimeError,
+      UndefinedFunctionError
+    ] ->
+      error_page(error, table_state)
+  end
 
-    %{
-      rows: paginate(rows, %{page: page, page_size: page_size}),
-      page: page,
-      page_size: page_size,
-      total: total,
-      total_pages: total_pages
-    }
+  def page(resource, table_state, context) do
+    resource
+    |> all(table_state, context)
+    |> rows_page(table_state)
   rescue
     error in [
       ArgumentError,
@@ -69,9 +74,53 @@ defmodule Incant.Live.Rows do
   defp all(resource, table_state, context) do
     resource
     |> raw(table_state, [], context)
+    |> process_rows(resource, table_state)
+  end
+
+  defp process_rows(rows, resource, table_state) do
+    rows
     |> search(resource.table.search, Map.get(table_state, :search))
     |> filter(resource.table.filters, Map.get(table_state, :filters, %{}))
     |> sort(Map.get(table_state, :sort))
+  end
+
+  defp rows_page(rows, table_state) do
+    page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
+    page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
+    total = length(rows)
+    total_pages = max(ceil(total / page_size), 1)
+    page = min(page, total_pages)
+
+    %{
+      rows: paginate(rows, %{page: page, page_size: page_size}),
+      page: page,
+      page_size: page_size,
+      total: total,
+      total_pages: total_pages,
+      meta: %{}
+    }
+  end
+
+  defp result_page(%Incant.Result{} = result, table_state) do
+    page = Incant.Params.positive_integer(Map.get(result.meta, :page, table_state[:page]), 1)
+
+    page_size =
+      Incant.Params.positive_integer(
+        Map.get(result.meta, :page_size, table_state[:page_size]),
+        25
+      )
+
+    total = result.total_count || length(result.rows)
+    total_pages = max(ceil(total / page_size), 1)
+
+    %{
+      rows: result.rows,
+      page: min(page, total_pages),
+      page_size: page_size,
+      total: total,
+      total_pages: total_pages,
+      meta: Map.drop(result.meta, [:page, :page_size])
+    }
   end
 
   def one(resource, id, context \\ %{})
@@ -142,10 +191,10 @@ defmodule Incant.Live.Rows do
   def raw(nil, _table_state, _opts, _context), do: []
 
   def raw(%{index: index} = resource, table_state, _opts, context) when not is_nil(index) do
-    index
-    |> Incant.Callback.call(%{table: table_state}, context)
-    |> Incant.Tabular.to_rows()
-    |> scope_rows(resource, context)
+    case load_index(resource, table_state, context) do
+      %Incant.Result{rows: rows} -> rows
+      rows -> rows
+    end
   end
 
   def raw(%{repo: repo, schema: schema} = resource, table_state, opts, context)
@@ -158,6 +207,20 @@ defmodule Incant.Live.Rows do
   end
 
   def raw(_resource, _table_state, _opts, _context), do: []
+
+  defp load_index(resource, table_state, context) do
+    result = Incant.Callback.call(resource.index, %{table: table_state}, context)
+
+    case result do
+      %Incant.Result{} = result ->
+        %{result | rows: result.rows |> Incant.Tabular.to_rows() |> scope_rows(resource, context)}
+
+      rows ->
+        rows
+        |> Incant.Tabular.to_rows()
+        |> scope_rows(resource, context)
+    end
+  end
 
   def id(%Incant.Service.Row{id: id}), do: id_string(id)
   def id(row), do: row |> field(:id) |> id_string()
@@ -398,9 +461,7 @@ defmodule Incant.Live.Rows do
     page = Incant.Params.positive_integer(Map.get(table_state, :page), 1)
     page_size = Incant.Params.positive_integer(Map.get(table_state, :page_size), 25)
 
-    rows
-    |> Enum.drop((page - 1) * page_size)
-    |> Enum.take(page_size)
+    Enum.slice(rows, (page - 1) * page_size, page_size)
   end
 
   defp sort_parts("-" <> field), do: {:desc, field}

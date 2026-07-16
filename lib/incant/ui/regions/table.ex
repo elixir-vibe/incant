@@ -26,7 +26,7 @@ defmodule Incant.UI.Regions.Table do
 
   defmodule Row do
     @moduledoc false
-    defstruct [:id, cells: [], actions: [], detail: nil, event: nil, source: nil]
+    defstruct [:id, :actions, cells: [], detail: nil, event: nil, source: nil]
   end
 
   defmodule RowDetail do
@@ -48,7 +48,7 @@ defmodule Incant.UI.Regions.Table do
     resource = context.resource
 
     columns = Enum.map(resource.table.columns, &column_from_metadata/1)
-    rows = Enum.map(context.rows || [], &row_from_record(&1, resource))
+    rows = Enum.map(context.rows || [], &row_from_record(&1, resource, context))
 
     %__MODULE__{
       id: "resource.table",
@@ -95,14 +95,23 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
-  defp row_from_record(record, resource) do
+  defp row_from_record(record, resource, context) do
     %Row{
       id: Incant.Live.Rows.id(record),
       cells: Enum.map(resource.table.columns, &cell_from_record(record, &1)),
-      actions: resource.table.actions,
+      actions: available_actions(resource.table.actions, record, context),
       detail: row_detail_from_metadata(resource.table.row_detail),
       source: Incant.Sensitive.redact_row(record, resource)
     }
+  end
+
+  defp available_actions(actions, %Incant.Service.Row{available_actions: available}, _context)
+       when is_list(available) do
+    Enum.filter(actions, &(to_string(&1.name) in available))
+  end
+
+  defp available_actions(actions, row, context) do
+    Enum.filter(actions, &Incant.Table.Action.available?(&1, row, context))
   end
 
   defp row_detail_from_metadata(nil), do: nil
@@ -138,15 +147,21 @@ defmodule Incant.UI.Regions.Table do
     value = Incant.Live.Rows.field(record, column.name)
     display_value = Incant.Sensitive.redact(value, column.opts)
 
+    format = column.opts[:as] || column.opts[:format]
+
     %Cell{
       column: to_string(column.name),
       value: display_value,
-      display: Incant.Live.Format.value(display_value, column.opts[:format]),
+      display: cell_display(display_value, format, column.opts),
       tone: column.opts[:tone],
-      format: column.opts[:as] || column.opts[:format],
+      format: format,
       source: column
     }
   end
+
+  defp cell_display(true, :boolean, opts), do: opts[:true_label] || "Yes"
+  defp cell_display(false, :boolean, opts), do: opts[:false_label] || "No"
+  defp cell_display(value, format, _opts), do: Incant.Live.Format.value(value, format)
 
   defp dataset_column(column) do
     %Column{

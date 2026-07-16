@@ -99,6 +99,43 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ ~s(name="table[page_size]")
   end
 
+  test "renders autocomplete filter values with a native keyboard-accessible list" do
+    control = %Incant.UI.Controls.Combobox{
+      id: "filters.model",
+      name: "model",
+      label: "Model",
+      role: :filter,
+      value: "",
+      options: [
+        %{label: "GPT-5.3 Codex Spark", value: "openai-codex/gpt-5.3-codex-spark"}
+      ],
+      source: %{type: :combobox}
+    }
+
+    filter_bar = %Incant.UI.Regions.FilterBar{
+      id: "resource.filters",
+      filters: [control],
+      state: Incant.UI.FilterState.new(nil, [control])
+    }
+
+    env =
+      Incant.UI.Env.new(
+        %Incant.Live.Context{base_path: "/admin", table_state: %{page_size: 25}},
+        %{admin: nil}
+      )
+
+    html =
+      %{filter_bar: filter_bar, env: env}
+      |> Incant.UI.Adapters.LiveView.Controls.table_filter_bar()
+      |> rendered_to_string()
+
+    assert html =~ ~s(list="incant-filter-model-options")
+    assert html =~ ~s(aria-autocomplete="list")
+    assert html =~ ~s(autocomplete="off")
+    assert html =~ ~s(value="openai-codex/gpt-5.3-codex-spark")
+    assert html =~ "GPT-5.3 Codex Spark"
+  end
+
   test "renders table column labels instead of raw ids" do
     table = %Incant.UI.Regions.Table{
       columns: [
@@ -269,7 +306,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Table.table()
       |> rendered_to_string()
 
-    assert html =~ "●"
+    refute html =~ "●"
     assert html =~ "Yes"
     assert html =~ "font-mono text-xs"
     assert html =~ ~s(title="27dca8e9-9d57")
@@ -892,6 +929,13 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "26–31 of 31"
     assert html =~ ~s(name="table[page_size]")
     assert html =~ ~s(aria-label="Rows per page")
+    assert html =~ ~s(aria-label="First page")
+    assert html =~ ~s(aria-label="Previous page")
+    assert html =~ ~s(aria-label="Page number")
+    assert html =~ ~s(max="2")
+    assert html =~ ">of 2</span>"
+    assert html =~ ~s(aria-label="Next page")
+    assert html =~ ~s(aria-label="Last page")
     refute html =~ ~s(phx-value-target="status")
   end
 

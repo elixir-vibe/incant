@@ -53,6 +53,7 @@ defmodule Incant.Live.Admin do
   def handle_params(params, _uri, %{assigns: %{live_action: :services}} = socket) do
     context = %Incant.Live.Context{
       admin: socket.assigns.admin,
+      contract: socket.assigns.contract,
       session: socket.assigns.incant_session,
       base_path: socket.assigns.base_path,
       resources: [],
@@ -67,6 +68,7 @@ defmodule Incant.Live.Admin do
     {:noreply,
      socket
      |> assign(:params, params)
+     |> assign(:page_title, browser_page_title(context))
      |> assign(:context, context)}
   end
 
@@ -105,6 +107,7 @@ defmodule Incant.Live.Admin do
     context =
       %Incant.Live.Context{
         admin: socket.assigns.admin,
+        contract: socket.assigns.contract,
         session: socket.assigns.incant_session,
         base_path: socket.assigns.base_path,
         resources: visible_resources,
@@ -129,6 +132,7 @@ defmodule Incant.Live.Admin do
     {:noreply,
      socket
      |> assign(:params, params)
+     |> assign(:page_title, browser_page_title(context))
      |> assign(:context, context)}
   end
 
@@ -219,7 +223,17 @@ defmodule Incant.Live.Admin do
     {:noreply, push_patch(socket, to: current_path(socket.assigns, params))}
   end
 
+  defp paginate(%{meta: %{"page" => page}}, socket),
+    do: paginate(%{value: page}, socket)
+
   defp paginate(%{value: page}, socket) do
+    total_pages = Map.get(socket.assigns.context.pagination, :total_pages, 1)
+
+    page =
+      page
+      |> Incant.Params.positive_integer(1)
+      |> min(total_pages)
+
     params =
       socket.assigns.params
       |> Map.put("page", page)
@@ -838,6 +852,8 @@ defmodule Incant.Live.Admin do
   defp form_changeset(resource, record, _mode),
     do: Incant.Live.FormState.changeset(resource, record)
 
+  defp page_title(%{section: "services"}), do: "Services"
+
   defp page_title(%{section: "resource", resource: resource})
        when not is_nil(resource) do
     surface_title(resource)
@@ -853,7 +869,73 @@ defmodule Incant.Live.Admin do
     dataset.title || short_module(dataset.module)
   end
 
-  defp page_title(_assigns), do: "Incant"
+  defp page_title(_assigns), do: "Admin"
+
+  defp browser_page_title(%{authorization: authorization} = context)
+       when authorization not in [nil, :ok],
+       do: join_title(["Access denied", admin_title(context)])
+
+  defp browser_page_title(%{section: "resource", resource: resource} = context)
+       when not is_nil(resource) do
+    resource_title = surface_title(resource)
+
+    page =
+      cond do
+        context.form_mode == :new ->
+          "New #{singularize(resource_title)}"
+
+        context.form_mode == :edit ->
+          "Edit #{singularize(resource_title)}"
+
+        not is_nil(context.selected_row) ->
+          join_title([Incant.Live.Rows.title(context.selected_row, resource), resource_title])
+
+        true ->
+          resource_title
+      end
+
+    join_title([page, admin_title(context)])
+  end
+
+  defp browser_page_title(context), do: join_title([page_title(context), admin_title(context)])
+
+  defp admin_title(%{contract: %{opts: opts, service: service}}) do
+    option(opts, :title) || humanize(service)
+  end
+
+  defp admin_title(%{admin: %{opts: opts}}), do: option(opts, :title)
+  defp admin_title(_context), do: nil
+
+  defp join_title(parts) do
+    parts
+    |> Enum.reject(&(&1 in [nil, "", "Incant"]))
+    |> Enum.uniq()
+    |> Enum.join(" · ")
+  end
+
+  defp singularize(title) do
+    cond do
+      String.ends_with?(title, "ies") -> String.replace_suffix(title, "ies", "y")
+      String.ends_with?(title, "s") -> String.trim_trailing(title, "s")
+      true -> title
+    end
+  end
+
+  defp humanize(nil), do: nil
+
+  defp humanize(value) do
+    value
+    |> to_string()
+    |> String.replace(["_", "-"], " ")
+    |> String.capitalize()
+  end
+
+  defp option(opts, key) when is_list(opts) or is_map(opts) do
+    opts = Map.new(opts)
+    Map.get(opts, key, Map.get(opts, to_string(key)))
+  end
+
+  defp option(_opts, _key), do: nil
 
   defp selected_id(%Incant.Resource.Metadata{id: id}), do: id
 

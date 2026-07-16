@@ -6,7 +6,7 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
   import Incant.UI.Adapters.LiveView.Helpers
 
   alias Incant.UI.Adapters.LiveView.Theme
-  alias Incant.UI.Controls.{Boolean, DateRange, MultiSelect, Select, Text}
+  alias Incant.UI.Controls.{Boolean, Combobox, DateRange, MultiSelect, Select, Text}
   alias Incant.UI.FilterState
   alias Incant.UI.FilterState.Definition
   alias Incant.UI.Regions.FilterBar
@@ -233,6 +233,36 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
     """
   end
 
+  def filter_editor(%{control: %Combobox{} = control} = assigns) do
+    assigns =
+      assigns
+      |> assign(:control, control)
+      |> assign(:list_id, filter_editor_id(control.name) <> "-options")
+
+    ~H"""
+    <.form :let={_form} for={%{}} as={:table} phx-submit="incant:event" phx-value-op="filter_commit" class={Theme.slot(:filters, :editor_form)}>
+      <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name)}>
+        Value
+        <input
+          id={filter_editor_id(@control.name)}
+          type="text"
+          name={control_name(@control)}
+          value={@control.value}
+          list={@list_id}
+          autocomplete="off"
+          aria-autocomplete="list"
+          placeholder={@control.placeholder || "Type to search"}
+          class={Theme.slot(:field, :input)}
+        />
+        <datalist id={@list_id}>
+          <option :for={option <- @control.options || []} value={option.value}>{option.label}</option>
+        </datalist>
+      </label>
+      <button type="submit" class={Theme.slot(:button, :base, variant: :primary, size: :sm)} data-incant-filter-apply>Apply filter</button>
+    </.form>
+    """
+  end
+
   def filter_editor(%{control: %Select{} = control} = assigns) do
     assigns = assign(assigns, :control, control)
 
@@ -386,6 +416,7 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
   defp filter_type_label(:date_range), do: "Date range"
   defp filter_type_label(:multi_select), do: "Multiple choice"
   defp filter_type_label(:select), do: "Choice"
+  defp filter_type_label(:combobox), do: "Autocomplete"
   defp filter_type_label(:boolean), do: "Yes or no"
   defp filter_type_label(_type), do: "Text"
 

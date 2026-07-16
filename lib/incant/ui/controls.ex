@@ -21,6 +21,10 @@ defmodule Incant.UI.Controls do
     struct!(Incant.UI.Controls.Select, filter_select_attrs(filter, value, context))
   end
 
+  def from_table_filter(%{type: :combobox} = filter, value, context) do
+    struct!(Incant.UI.Controls.Combobox, filter_select_attrs(filter, value, context))
+  end
+
   def from_table_filter(%{type: :multi_select} = filter, value, context) do
     struct!(Incant.UI.Controls.MultiSelect, filter_select_attrs(filter, value, context))
   end
@@ -125,6 +129,8 @@ defmodule Incant.UI.Controls do
     options
     |> resolve_options(source, context)
     |> Enum.map(fn
+      %{label: label, value: value} -> %{label: to_string(label), value: value}
+      %{"label" => label, "value" => value} -> %{label: to_string(label), value: value}
       {label, value} -> %{label: to_string(label), value: value}
       value -> %{label: humanize(value), value: value}
     end)
@@ -145,10 +151,25 @@ defmodule Incant.UI.Controls do
       label: filter.opts[:label] || humanize(filter.name),
       role: :filter,
       value: value,
-      options: options(filter.opts[:options] || [], filter, context),
+      options: filter_options(filter, context),
       clearable: true,
       source: filter
     }
+  end
+
+  defp filter_options(filter, context) do
+    case filter.opts[:options_from] do
+      nil ->
+        options(filter.opts[:options] || [], filter, context)
+
+      key ->
+        context
+        |> Map.get(:pagination, %{})
+        |> Map.get(:meta, %{})
+        |> then(&Map.get(&1, :options, Map.get(&1, "options", %{})))
+        |> then(&Map.get(&1, key, Map.get(&1, to_string(key), [])))
+        |> options(filter, context)
+    end
   end
 
   defp variable_attrs(variable, context, opts) do

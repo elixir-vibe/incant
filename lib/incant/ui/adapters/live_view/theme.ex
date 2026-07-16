@@ -338,7 +338,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         viewport: "overflow-x-auto",
         root: "w-full min-w-full text-sm",
         head:
-          "border-b border-[var(--incant-border)] bg-[var(--incant-bg-muted)] text-left text-[11px] uppercase tracking-wide text-[var(--incant-text-muted)]",
+          "border-b border-[var(--incant-border)] bg-[var(--incant-bg-muted)] text-left text-[11px] text-[var(--incant-text-muted)]",
         header_cell: "h-8 px-3 font-medium",
         sort_button:
           "inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
@@ -346,7 +346,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         row: "h-9 hover:bg-[var(--incant-bg-muted)]",
         cell: "px-3 py-1.5 text-[var(--incant-text-toned)]",
         cell_content: "block",
-        boolean: "inline-flex items-center gap-1.5 text-xs",
+        boolean: "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
         empty: "px-3 py-8 text-center text-sm text-[var(--incant-text-muted)]",
         empty_action:
           "mt-2 inline-flex h-8 items-center rounded-md border border-[var(--incant-border)] px-3 text-xs font-medium text-[var(--incant-text-toned)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
@@ -360,7 +360,10 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         pagination_actions: "ml-auto flex flex-wrap items-center justify-end gap-1",
         page_size: "mr-1 inline-flex items-center gap-1.5",
         page_size_select:
-          "h-7 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1.5 text-xs text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]"
+          "h-7 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1.5 text-xs text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]",
+        page_jump: "inline-flex items-center gap-1",
+        page_input:
+          "h-7 w-12 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1 text-center text-xs tabular-nums text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]"
       },
       variants: %{
         align: %{
@@ -385,8 +388,13 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
           false => %{}
         },
         value: %{
-          true => %{boolean: "text-[var(--incant-success)]"},
-          false => %{boolean: "text-[var(--incant-text-muted)]"}
+          true => %{
+            boolean:
+              "bg-[color-mix(in_oklab,var(--incant-success)_12%,transparent)] text-[var(--incant-success)]"
+          },
+          false => %{
+            boolean: "bg-[var(--incant-bg-accented)] text-[var(--incant-text-muted)]"
+          }
         },
         clickable: %{
           true => %{row: "cursor-pointer"},
