@@ -212,6 +212,8 @@ defmodule Incant.Live.RowsTest do
     assert inspect(rows_query) =~ ~r/order_by: \[desc: \w+\.timestamp, desc: \w+\.id\]/
     assert rows_query.limit != nil
     assert rows_query.offset != nil
+    assert inspect(rows_query) =~ "select: map("
+    assert inspect(rows_query) =~ "[:id, :name, :timestamp]"
 
     assert_receive {:options_query, options_query}
     assert inspect(options_query) =~ "distinct: true"

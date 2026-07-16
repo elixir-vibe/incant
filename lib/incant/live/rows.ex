@@ -147,6 +147,7 @@ defmodule Incant.Live.Rows do
       resource
       |> queryable(%{}, false, context)
       |> filter_by_id(resource, id)
+      |> select_resource_fields(resource)
 
     repo
     |> apply(:one, [queryable])
@@ -200,7 +201,10 @@ defmodule Incant.Live.Rows do
 
   def raw(%{repo: repo, schema: schema} = resource, table_state, opts, context)
       when not is_nil(repo) and not is_nil(schema) do
-    queryable = queryable(resource, table_state, Keyword.get(opts, :paginate, false), context)
+    queryable =
+      resource
+      |> queryable(table_state, Keyword.get(opts, :paginate, false), context)
+      |> select_resource_fields(resource)
 
     repo
     |> apply(:all, [queryable])
@@ -337,6 +341,28 @@ defmodule Incant.Live.Rows do
   end
 
   defp scope_rows(rows, _resource, _context), do: rows
+
+  defp select_resource_fields(%Ecto.Query{select: nil} = queryable, resource) do
+    fields =
+      [primary_key(resource) | Enum.map(resource.table.columns, & &1.name)]
+      |> Enum.concat(action_condition_fields(resource.table.actions))
+      |> Enum.filter(&(not is_nil(schema_field_type(resource.schema, &1))))
+      |> Enum.uniq()
+
+    select(queryable, [row], map(row, ^fields))
+  end
+
+  defp select_resource_fields(queryable, _resource), do: queryable
+
+  defp action_condition_fields(actions) do
+    Enum.flat_map(actions, fn action ->
+      case metadata_opt(action.opts, :available_if, nil) do
+        conditions when is_list(conditions) -> Keyword.keys(conditions)
+        conditions when is_map(conditions) -> Map.keys(conditions)
+        _predicate -> []
+      end
+    end)
+  end
 
   defp filter_by_id(%Ecto.Query{} = queryable, resource, id) do
     primary_key = primary_key(resource)
