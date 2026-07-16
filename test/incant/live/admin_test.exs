@@ -22,6 +22,15 @@ defmodule Incant.Live.AdminTest do
     resource(UserResource)
   end
 
+  test "root layout uses the assigned browser title instead of duplicating Incant" do
+    template = File.read!("lib/incant/web/layouts/root.html.heex")
+
+    assert template =~
+             ~s(<.live_title suffix=" · Incant">{assigns[:page_title] || "Admin"}</.live_title>)
+
+    refute template =~ ~s(<.live_title suffix=" · Incant">Incant</.live_title>)
+  end
+
   test "assigns branded browser titles for resource routes" do
     socket = mounted_socket(:resource)
 
