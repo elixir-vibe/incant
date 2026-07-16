@@ -449,7 +449,11 @@ defmodule Incant.Live.Rows do
 
     expression =
       Enum.reduce(fields, dynamic(false), fn field_name, expression ->
-        dynamic([row], ^expression or ilike(field(row, ^field_name), ^pattern))
+        dynamic(
+          [row],
+          ^expression or
+            fragment("lower(?) LIKE lower(?)", field(row, ^field_name), ^pattern)
+        )
       end)
 
     where(queryable, ^expression)

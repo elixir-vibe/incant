@@ -42,7 +42,12 @@ defmodule Incant.Filters.Text do
       Shared.apply_query_callback(filter, queryable, value, context)
     else
       pattern = "%#{value}%"
-      where(queryable, [row], ilike(field(row, ^filter.name), ^pattern))
+
+      where(
+        queryable,
+        [row],
+        fragment("lower(?) LIKE lower(?)", field(row, ^filter.name), ^pattern)
+      )
     end
   rescue
     _error in [ArgumentError, Ecto.QueryError] -> queryable

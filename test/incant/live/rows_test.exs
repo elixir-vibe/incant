@@ -204,7 +204,8 @@ defmodule Incant.Live.RowsTest do
            ]
 
     assert_receive {:count_query, count_query}
-    assert inspect(count_query) =~ "ilike"
+    assert inspect(count_query) =~ "lower("
+    assert inspect(count_query) =~ "LIKE lower("
     assert count_query.order_bys == []
 
     assert_receive {:rows_query, rows_query}
