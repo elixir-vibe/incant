@@ -857,6 +857,9 @@ defmodule Incant.Live.Admin do
     do: Incant.Live.FormState.changeset(resource, record)
 
   defp page_title(%{section: "services"}), do: "Services"
+  defp page_title(%{section: "dashboards"}), do: "Dashboards"
+  defp page_title(%{section: "resources"}), do: "Resources"
+  defp page_title(%{section: "datasets"}), do: "Datasets"
 
   defp page_title(%{section: "resource", resource: resource})
        when not is_nil(resource) do

@@ -40,6 +40,13 @@ defmodule Incant.Live.AdminTest do
     assert socket.assigns.page_title == "Users · Accounts"
   end
 
+  test "assigns section-index browser titles" do
+    socket = mounted_socket(:resources)
+
+    assert {:noreply, socket} = Incant.Live.Admin.handle_params(%{}, "/admin/resources", socket)
+    assert socket.assigns.page_title == "Resources · Accounts"
+  end
+
   test "includes record and operation context in browser titles" do
     detail_socket = mounted_socket(:resource_detail)
 
