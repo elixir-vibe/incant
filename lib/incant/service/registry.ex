@@ -16,6 +16,14 @@ defmodule Incant.Service.Registry do
   alias Incant.Service.Entry
 
   @default_env "HOSTKIT_RPC_BINDINGS"
+  @binding_keys %{
+    "listener" => :listener,
+    "modules" => :modules,
+    "socket" => :socket,
+    "unit" => :unit,
+    "upstream" => :upstream
+  }
+  @binding_atom_keys Map.values(@binding_keys)
 
   @type t :: %__MODULE__{
           source: {:env, String.t(), Path.t()} | {:file, Path.t()} | :bindings,
@@ -96,7 +104,29 @@ defmodule Incant.Service.Registry do
 
   defp normalize_decoded_bindings(other), do: {:error, {:invalid_bindings, other}}
 
-  defp normalize_binding(%{modules: modules} = binding) when is_list(modules) do
+  defp normalize_binding(binding) when is_map(binding) do
+    with {:ok, binding} <- canonical_binding_keys(binding) do
+      normalize_binding_modules(binding)
+    end
+  end
+
+  defp normalize_binding(other), do: {:error, {:invalid_binding, other}}
+
+  defp canonical_binding_keys(binding) do
+    Enum.reduce_while(binding, {:ok, %{}}, fn {key, value}, {:ok, canonical} ->
+      case canonical_binding_key(key) do
+        {:ok, key} -> {:cont, {:ok, Map.put(canonical, key, value)}}
+        :error -> {:halt, {:error, {:invalid_binding_key, key}}}
+      end
+    end)
+  end
+
+  defp canonical_binding_key(key) when is_binary(key), do: Map.fetch(@binding_keys, key)
+
+  defp canonical_binding_key(key) when key in @binding_atom_keys, do: {:ok, key}
+  defp canonical_binding_key(_key), do: :error
+
+  defp normalize_binding_modules(%{modules: modules} = binding) when is_list(modules) do
     if Enum.all?(modules, &(is_atom(&1) or is_binary(&1))) do
       module_names = SafeRPC.Atoms.names(modules)
 
@@ -117,8 +147,7 @@ defmodule Incant.Service.Registry do
     end
   end
 
-  defp normalize_binding(binding) when is_map(binding), do: {:ok, binding}
-  defp normalize_binding(other), do: {:error, {:invalid_binding, other}}
+  defp normalize_binding_modules(binding), do: {:ok, binding}
 
   defp fetch_env(env) do
     case System.fetch_env(env) do

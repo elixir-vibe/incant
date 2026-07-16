@@ -54,8 +54,8 @@ defmodule Incant.Service.RegistryTest do
 
     bindings = %{
       "accounts" => %{
-        socket: socket,
-        modules: [Atom.to_string(Admin)]
+        "socket" => socket,
+        "modules" => [Atom.to_string(Admin)]
       }
     }
 
