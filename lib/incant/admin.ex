@@ -110,6 +110,7 @@ defmodule Incant.Admin do
   defp rpc_definitions(%Metadata{opts: opts} = metadata) do
     if Keyword.get(opts, :rpc, false) do
       contract = Incant.Admin.Describe.describe(metadata)
+      escaped_contract = Macro.escape(contract)
 
       quote do
         @rpc true
@@ -117,7 +118,7 @@ defmodule Incant.Admin do
         @spec describe(Incant.Service.Describe.t(), map(), term()) ::
                 {:ok, Incant.Admin.Contract.t()} | {:error, term()}
         def describe(%Incant.Service.Describe{context: context}, meta, state) do
-          _safe_rpc_boundary_contract = unquote(Macro.escape(contract))
+          _safe_rpc_boundary_contract = unquote(escaped_contract)
           describe(__incant_rpc_context__(context, meta, state))
         end
 
@@ -145,7 +146,7 @@ defmodule Incant.Admin do
         @doc "Read one item from an Incant surface."
         @spec read(Incant.Service.Read.t(), map(), term()) :: {:ok, term()} | {:error, term()}
         def read(%Incant.Service.Read{} = request, meta, state) do
-          _safe_rpc_boundary_contract = unquote(Macro.escape(contract))
+          _safe_rpc_boundary_contract = unquote(escaped_contract)
 
           read(
             request.surface_id,

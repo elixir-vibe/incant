@@ -6,7 +6,8 @@ defmodule Incant.Live.Format do
   def value(value, format) do
     do_value(value, format_name(format))
   rescue
-    _error -> fallback(value)
+    _error in [ArgumentError, ArithmeticError, FunctionClauseError, Protocol.UndefinedError] ->
+      fallback(value)
   end
 
   defp do_value(nil, _format), do: ""
@@ -145,7 +146,8 @@ defmodule Incant.Live.Format do
   defp relative_or_fallback({:ok, value}, _fallback), do: relative(value)
   defp relative_or_fallback(:error, value), do: fallback(value)
 
-  defp delimit_number_string("-" <> rest), do: "-" <> delimit_number_string(rest)
+  defp delimit_number_string("-" <> rest),
+    do: IO.iodata_to_binary(["-", delimit_number_string(rest)])
 
   defp delimit_number_string(value) when is_binary(value) do
     case String.split(value, ".", parts: 2) do
@@ -157,7 +159,7 @@ defmodule Incant.Live.Format do
   defp delimit_integer(value) when is_integer(value),
     do: value |> Integer.to_string() |> delimit_integer()
 
-  defp delimit_integer("-" <> rest), do: "-" <> delimit_integer(rest)
+  defp delimit_integer("-" <> rest), do: IO.iodata_to_binary(["-", delimit_integer(rest)])
 
   defp delimit_integer(value) when is_binary(value) do
     value

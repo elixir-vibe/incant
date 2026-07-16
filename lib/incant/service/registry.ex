@@ -63,7 +63,7 @@ defmodule Incant.Service.Registry do
   @doc "Decodes a trusted local HostKit/SafeRPC binding ETF term."
   @spec decode_bindings(binary()) :: {:ok, SafeRPC.local_bindings()} | {:error, term()}
   def decode_bindings(binary) when is_binary(binary) do
-    {:ok, :erlang.binary_to_term(binary)}
+    {:ok, :erlang.binary_to_term(binary, [:safe])}
   rescue
     error in [ArgumentError] -> {:error, error}
   end

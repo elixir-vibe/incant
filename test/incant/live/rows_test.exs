@@ -14,6 +14,8 @@ defmodule Incant.Live.RowsTest do
     def all({:scoped, schema, actor}), do: [%{id: 1, schema: schema, actor: actor}]
     def all(schema), do: [%{id: 1, schema: schema}]
 
+    def one(%Ecto.Query{select: %{expr: {:count, _meta, []}}}), do: 42
+
     def one(%Ecto.Query{} = query),
       do: %{id: 1, params: query.wheres |> List.first() |> Map.get(:params)}
 

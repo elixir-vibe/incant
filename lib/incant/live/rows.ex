@@ -410,43 +410,41 @@ defmodule Incant.Live.Rows do
       |> exclude(:select)
       |> select([_row], count())
 
-    case apply(repo, :one, [count_query]) do
-      count when is_integer(count) -> count
-      _other -> nil
-    end
-  rescue
-    _error -> nil
+    integer_repo_result(fn -> apply(repo, :one, [count_query]) end)
   end
 
   defp direct_count(_repo, _queryable), do: nil
 
   defp aggregate_count(repo, queryable) do
-    case apply(repo, :aggregate, [queryable, :count]) do
-      count when is_integer(count) -> count
-      _other -> nil
+    if function_exported?(repo, :aggregate, 2) do
+      integer_repo_result(fn -> apply(repo, :aggregate, [queryable, :count]) end)
     end
-  rescue
-    _error -> nil
   end
 
   defp subquery_count(repo, %Ecto.Query{} = queryable, resource) do
-    count_query =
-      queryable
-      |> exclude(:order_by)
-      |> exclude(:select)
-      |> select_resource_fields(resource)
-      |> subquery()
-      |> select([_row], count())
+    if function_exported?(repo, :one, 1) do
+      count_query =
+        queryable
+        |> exclude(:order_by)
+        |> exclude(:select)
+        |> select_resource_fields(resource)
+        |> subquery()
+        |> select([_row], count())
 
-    case apply(repo, :one, [count_query]) do
+      integer_repo_result(fn -> apply(repo, :one, [count_query]) end)
+    end
+  end
+
+  defp subquery_count(_repo, _queryable, _resource), do: nil
+
+  defp integer_repo_result(call) do
+    case call.() do
       count when is_integer(count) -> count
       _other -> nil
     end
   rescue
-    _error -> nil
+    _error in [FunctionClauseError, UndefinedFunctionError] -> nil
   end
-
-  defp subquery_count(_repo, _queryable, _resource), do: nil
 
   defp paginate_query(queryable, %{page: page, page_size: page_size}) do
     page = Incant.Params.positive_integer(page, 1)

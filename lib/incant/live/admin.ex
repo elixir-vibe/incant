@@ -736,9 +736,10 @@ defmodule Incant.Live.Admin do
   end
 
   defp maybe_put_submitted(params, submitted, key) do
-    if Map.has_key?(submitted, key),
-      do: Map.put(params, key, Map.get(submitted, key)),
-      else: params
+    case Map.fetch(submitted, key) do
+      {:ok, value} -> Map.put(params, key, value)
+      :error -> params
+    end
   end
 
   defp merge_submitted_filters(params, nil), do: params

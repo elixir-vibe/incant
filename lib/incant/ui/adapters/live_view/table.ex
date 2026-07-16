@@ -99,35 +99,45 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         <span :if={@table.bulk_actions != []} class={Theme.slot(:table, :toolbar_hint)}>
           {selected_count(@table)} selected
         </span>
-        <button
+        <.table_action_button
           :for={action <- @table.bulk_actions}
-          type="button"
-          class={Theme.slot(:button, :base, variant: :outline, size: :xs)}
-          phx-click="incant:event"
-          phx-value-op="bulk_action"
-          phx-value-target={action.name}
+          action={action}
+          op="bulk_action"
           disabled={selected_count(@table) == 0}
-          data-confirm={confirm_message(action)}
-          phx-disable-with={action_label(action) <> "…"}
-        >
-          {action_label(action)}
-        </button>
+        />
       </div>
       <div class={Theme.slot(:table, :toolbar_group)}>
-        <button
+        <.table_action_button
           :for={action <- @table.page_actions}
-          type="button"
-          class={Theme.slot(:button, :base, variant: :outline, size: :xs)}
-          phx-click="incant:event"
-          phx-value-op="page_action"
-          phx-value-target={action.name}
-          data-confirm={confirm_message(action)}
-          phx-disable-with={action_label(action) <> "…"}
-        >
-          {action_label(action)}
-        </button>
+          action={action}
+          op="page_action"
+        />
       </div>
     </div>
+    """
+  end
+
+  attr(:action, :map, required: true)
+  attr(:op, :string, required: true)
+  attr(:value, :any, default: nil)
+  attr(:disabled, :boolean, default: false)
+  attr(:variant, :atom, default: :outline)
+
+  def table_action_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={Theme.slot(:button, :base, variant: @variant, size: :xs)}
+      phx-click="incant:event"
+      phx-value-op={@op}
+      phx-value-target={@action.name}
+      phx-value-value={@value}
+      disabled={@disabled}
+      data-confirm={confirm_message(@action)}
+      phx-disable-with={action_label(@action) <> "…"}
+    >
+      {action_label(@action)}
+    </button>
     """
   end
 
@@ -171,11 +181,80 @@ defmodule Incant.UI.Adapters.LiveView.Table do
         <.link :if={action.name == :edit && @row.id && form_enabled?(@env.context.resource)} patch={resource_edit_path(@env.base_path, @env.context.resource, @row.id)} class={Theme.slot(:button, :base, variant: :ghost, size: :xs)}>
           {action_label(action)}
         </.link>
-        <button :if={action.name != :edit || !form_enabled?(@env.context.resource)} type="button" class={Theme.slot(:button, :base, variant: :ghost, size: :xs)} phx-click="incant:event" phx-value-op="row_action" phx-value-target={action.name} phx-value-value={@row.id} data-confirm={confirm_message(action)} phx-disable-with={action_label(action) <> "…"}>
-          {action_label(action)}
-        </button>
+        <.table_action_button
+          :if={action.name != :edit || !form_enabled?(@env.context.resource)}
+          action={action}
+          op="row_action"
+          value={@row.id}
+          variant={:ghost}
+        />
       <% end %>
     </div>
+    """
+  end
+
+  attr(:pagination, :map, required: true)
+
+  def page_size_control(assigns) do
+    ~H"""
+    <.form :let={_form} for={%{}} as={:table} phx-change="incant:event" phx-value-op="filter_commit">
+      <label class={Theme.slot(:table, :page_size)}>
+        <span>Rows</span>
+        <select name="table[page_size]" aria-label="Rows per page" class={Theme.slot(:table, :page_size_select)}>
+          <option :for={size <- [10, 25, 50, 100]} value={size} selected={size == @pagination.page_size}>{size}</option>
+        </select>
+      </label>
+    </.form>
+    """
+  end
+
+  attr(:pagination, :map, required: true)
+
+  def page_jump_control(assigns) do
+    ~H"""
+    <.form
+      :let={_form}
+      for={%{}}
+      phx-submit="incant:event"
+      phx-value-op="paginate"
+      class={Theme.slot(:table, :page_jump)}
+    >
+      <label for="incant-table-page">Page</label>
+      <input
+        id="incant-table-page"
+        name="page"
+        type="number"
+        inputmode="numeric"
+        min="1"
+        max={@pagination.total_pages}
+        value={@pagination.page}
+        aria-label="Page number"
+        class={Theme.slot(:table, :page_input)}
+      />
+      <span>of {@pagination.total_pages}</span>
+    </.form>
+    """
+  end
+
+  attr(:value, :any, required: true)
+  attr(:disabled, :boolean, required: true)
+  attr(:label, :string, required: true)
+  attr(:class, :any, default: nil)
+  slot(:inner_block, required: true)
+
+  def pagination_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      phx-click="incant:event"
+      phx-value-op="paginate"
+      phx-value-value={@value}
+      disabled={@disabled}
+      aria-label={@label}
+      class={[Theme.slot(:button, :base, variant: :outline, size: :xs), @class]}
+    >
+      {render_slot(@inner_block)}
+    </button>
     """
   end
 
@@ -184,79 +263,30 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     <div class={Theme.slot(:table, :pagination)}>
       <div>{pagination_range(@pagination)}</div>
       <div class={Theme.slot(:table, :pagination_actions)}>
-        <.form :let={_form} for={%{}} as={:table} phx-change="incant:event" phx-value-op="filter_commit">
-          <label class={Theme.slot(:table, :page_size)}>
-            <span>Rows</span>
-            <select name="table[page_size]" aria-label="Rows per page" class={Theme.slot(:table, :page_size_select)}>
-              <option :for={size <- [10, 25, 50, 100]} value={size} selected={size == @pagination.page_size}>{size}</option>
-            </select>
-          </label>
-        </.form>
-        <button
-          type="button"
-          phx-click="incant:event"
-          phx-value-op="paginate"
-          phx-value-value="1"
+        <.page_size_control pagination={@pagination} />
+        <.pagination_button
+          value="1"
           disabled={@pagination.page <= 1}
-          aria-label="First page"
-          class={[Theme.slot(:button, :base, variant: :outline, size: :xs), "hidden sm:inline-flex"]}
-        >
-          «
-        </button>
-        <button
-          type="button"
-          phx-click="incant:event"
-          phx-value-op="paginate"
-          phx-value-value={@pagination.page - 1}
+          label="First page"
+          class="hidden sm:inline-flex"
+        >«</.pagination_button>
+        <.pagination_button
+          value={@pagination.page - 1}
           disabled={@pagination.page <= 1}
-          aria-label="Previous page"
-          class={Theme.slot(:button, :base, variant: :outline, size: :xs)}
-        >
-          ‹
-        </button>
-        <.form
-          :let={_form}
-          for={%{}}
-          phx-submit="incant:event"
-          phx-value-op="paginate"
-          class={Theme.slot(:table, :page_jump)}
-        >
-          <label for="incant-table-page">Page</label>
-          <input
-            id="incant-table-page"
-            name="page"
-            type="number"
-            inputmode="numeric"
-            min="1"
-            max={@pagination.total_pages}
-            value={@pagination.page}
-            aria-label="Page number"
-            class={Theme.slot(:table, :page_input)}
-          />
-          <span>of {@pagination.total_pages}</span>
-        </.form>
-        <button
-          type="button"
-          phx-click="incant:event"
-          phx-value-op="paginate"
-          phx-value-value={@pagination.page + 1}
+          label="Previous page"
+        >‹</.pagination_button>
+        <.page_jump_control pagination={@pagination} />
+        <.pagination_button
+          value={@pagination.page + 1}
           disabled={@pagination.page >= @pagination.total_pages}
-          aria-label="Next page"
-          class={Theme.slot(:button, :base, variant: :outline, size: :xs)}
-        >
-          ›
-        </button>
-        <button
-          type="button"
-          phx-click="incant:event"
-          phx-value-op="paginate"
-          phx-value-value={@pagination.total_pages}
+          label="Next page"
+        >›</.pagination_button>
+        <.pagination_button
+          value={@pagination.total_pages}
           disabled={@pagination.page >= @pagination.total_pages}
-          aria-label="Last page"
-          class={[Theme.slot(:button, :base, variant: :outline, size: :xs), "hidden sm:inline-flex"]}
-        >
-          »
-        </button>
+          label="Last page"
+          class="hidden sm:inline-flex"
+        >»</.pagination_button>
       </div>
     </div>
     """

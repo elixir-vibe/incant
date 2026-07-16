@@ -351,7 +351,7 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def table_columns(%{"columns" => columns}) when is_list(columns), do: columns
 
   def table_columns([row | _]) when is_map(row),
-    do: row |> Map.keys() |> Enum.map(&to_string/1) |> Enum.sort()
+    do: row |> Enum.map(fn {key, _value} -> to_string(key) end) |> Enum.sort()
 
   def table_columns(_rows), do: []
 

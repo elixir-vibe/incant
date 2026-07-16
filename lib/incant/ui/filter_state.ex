@@ -97,9 +97,7 @@ defmodule Incant.UI.FilterState do
   end
 
   defp display_value(%MultiSelect{value: values, options: options}) when is_list(values) do
-    values
-    |> Enum.map(&option_label(options, &1))
-    |> Enum.join(", ")
+    Enum.map_join(values, ", ", &option_label(options, &1))
   end
 
   defp display_value(%Select{value: value, options: options}), do: option_label(options, value)
