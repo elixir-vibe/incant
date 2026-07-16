@@ -193,6 +193,25 @@ A callback may return a plain list for a small collection. Incant then performs 
 }
 ```
 
+For Ecto-backed callbacks, `Incant.Ecto` removes repetitive allowlisted sorting and exact pagination while leaving filters, joins, and projections application-owned:
+
+```elixir
+query = Incant.Ecto.sort(query, table_state, [:name, :inserted_at],
+  default: {:inserted_at, :desc}
+)
+
+{query, page} = Incant.Ecto.page(query, MyApp.Repo, table_state)
+rows = query |> select([product], %{id: product.id, name: product.name}) |> MyApp.Repo.all()
+
+%Incant.Result{
+  rows: rows,
+  total_count: page.total,
+  meta: Map.take(page, [:page, :page_size])
+}
+```
+
+The requested sort field must be in the explicit allowlist. A stable `:id` tie-breaker is applied by default.
+
 Additional bounded filter options can travel in the same result metadata without introducing a separate option model:
 
 ```elixir
