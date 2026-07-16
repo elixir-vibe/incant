@@ -497,14 +497,14 @@ defmodule Incant.Live.Rows do
         resource.table.filters
         |> Enum.filter(&(metadata_opt(&1.opts, :options, nil) == :distinct))
         |> Map.new(fn filter ->
-          {to_string(filter.name), distinct_options(repo, queryable, resource, filter)}
+          {to_string(filter.name), distinct_options(repo, queryable, resource, filter, context)}
         end)
     end
   rescue
     _error in [ArgumentError, Ecto.QueryError, RuntimeError, UndefinedFunctionError] -> %{}
   end
 
-  defp distinct_options(repo, queryable, resource, filter) do
+  defp distinct_options(repo, queryable, resource, filter, context) do
     if schema_field_type(resource.schema, filter.name) do
       field_name = filter.name
       limit = metadata_opt(filter.opts, :option_limit, 100)
@@ -518,10 +518,20 @@ defmodule Incant.Live.Rows do
       |> select([row], field(row, ^field_name))
       |> limit(^limit)
       |> then(&apply(repo, :all, [&1]))
-      |> Enum.map(&%{label: to_string(&1), value: &1})
+      |> Enum.map(&distinct_option(&1, filter, context))
     else
       []
     end
+  end
+
+  defp distinct_option(value, filter, context) do
+    label =
+      case metadata_opt(filter.opts, :option_label, nil) do
+        nil -> to_string(value)
+        callback -> Incant.Callback.call(callback, value, context)
+      end
+
+    %{label: to_string(label), value: value}
   end
 
   defp schema_field_type(schema, field_name) when is_atom(schema) and is_atom(field_name) do

@@ -121,10 +121,5 @@ defmodule Incant.UI.FilterState do
   defp map_value(map, "from"), do: Map.get(map, "from", Map.get(map, :from, ""))
   defp map_value(map, "to"), do: Map.get(map, "to", Map.get(map, :to, ""))
 
-  defp humanize(value) do
-    value
-    |> to_string()
-    |> String.replace(["_", "-"], " ")
-    |> String.capitalize()
-  end
+  defp humanize(value), do: Incant.Naming.label(value)
 end

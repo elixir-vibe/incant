@@ -34,6 +34,63 @@ end
 
 See also [Authorization](authorization.md) for policy scoping and [Design and theming](design.md) for table styling.
 
+## Naming and labels
+
+Incant infers sentence-style labels and title-style surface names through `Incant.Naming`. Common technical terms such as API, ID, LLM, OAuth, RPC, and URL are defaults, not fixed policy. Extend, override, or remove them globally:
+
+```elixir
+config :incant, :naming,
+  use_defaults: true,
+  terms: %{
+    openai: "OpenAI",
+    live_view: "LiveView",
+    quack_db: "QuackDB",
+    ram: false
+  }
+```
+
+An admin can add service-specific phrases without sending the vocabulary across RPC:
+
+```elixir
+use Incant.Admin,
+  title: "LLM Proxy",
+  naming: [
+    terms: %{
+      openai_codex: "OpenAI Codex",
+      req_llm: "ReqLLM"
+    }
+  ]
+```
+
+The owning service resolves inferred labels into its portable contract. The central renderer preserves those labels exactly. Explicit DSL text always wins and is never reformatted:
+
+```elixir
+column :key_id, label: "API key"
+filter :provider, :select, label: "Vendor"
+action :disable, label: "Disable token", callback: :disable
+row_detail :payload, label: "Request and response"
+```
+
+Option declarations accept value-to-label maps, ordered keywords, rich option maps, legacy tuples, and inferred values. All forms normalize to portable `%{label:, value:}` maps:
+
+```elixir
+filter :provider, :select,
+  options: %{
+    "openai" => "OpenAI",
+    "openai-codex" => "OpenAI Codex"
+  }
+
+filter :status, :select,
+  options: [draft: "Draft", pending: "Pending review", active: "Active"]
+
+filter :region, :select,
+  options: [
+    %{value: "legacy", label: "Legacy", disabled: true}
+  ]
+```
+
+Maps are sorted by label; keywords and lists preserve declaration order. Dynamic distinct options preserve their stored value as the default label and may provide a service-owned `option_label` callback when domain formatting is required.
+
 Use `secret: true`, `sensitive: true`, or `redacted: true` on columns and form fields that must not expose raw values through table/detail models or portable contracts:
 
 ```elixir

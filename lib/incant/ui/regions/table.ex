@@ -259,10 +259,5 @@ defmodule Incant.UI.Regions.Table do
 
   defp existing_atom(_column), do: nil
 
-  defp humanize(value) do
-    value
-    |> to_string()
-    |> String.replace(["_", "-"], " ")
-    |> String.capitalize()
-  end
+  defp humanize(value), do: Incant.Naming.label(value)
 end

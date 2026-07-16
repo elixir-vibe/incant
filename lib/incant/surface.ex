@@ -30,6 +30,6 @@ defmodule Incant.Surface do
   @doc "Builds a human title from explicit opts, metadata title, or module name."
   @spec title(module(), keyword(), String.t() | nil) :: String.t()
   def title(module, opts \\ [], title \\ nil) do
-    opts[:title] || title || module |> Module.split() |> List.last()
+    opts[:title] || title || module |> Module.split() |> List.last() |> Incant.Naming.title()
   end
 end

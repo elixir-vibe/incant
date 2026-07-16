@@ -108,9 +108,6 @@ defmodule Incant.Resource.Infer do
     schema
     |> Module.split()
     |> List.last()
-    |> Macro.underscore()
-    |> String.replace("_", " ")
-    |> String.split()
-    |> Enum.map_join(" ", &String.capitalize/1)
+    |> Incant.Naming.title()
   end
 end

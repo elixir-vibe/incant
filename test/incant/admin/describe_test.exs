@@ -106,16 +106,31 @@ defmodule Incant.Admin.DescribeTest do
     refute Map.has_key?(resource.opts, :repo)
 
     assert resource.table.columns == [
-             %{id: "name", name: :name, opts: %{link: true}},
-             %{id: "status", name: :status, opts: %{as: :badge}}
+             %{id: "name", name: :name, opts: %{label: "Name", link: true}},
+             %{id: "status", name: :status, opts: %{label: "Status", as: :badge}}
            ]
 
     assert [
-             %{id: "status", opts: %{options: [:draft, :active]}},
-             %{id: "model", type: :combobox, opts: %{options_from: :model}}
+             %{
+               id: "status",
+               opts: %{
+                 label: "Status",
+                 options: [
+                   %{label: "Draft", value: "draft"},
+                   %{label: "Active", value: "active"}
+                 ]
+               }
+             },
+             %{
+               id: "model",
+               type: :combobox,
+               opts: %{label: "Model", options_from: :model}
+             }
            ] = resource.table.filters
 
-    assert [%{id: "archive", opts: %{confirm: true}}] = resource.table.actions
+    assert [%{id: "archive", opts: %{label: "Archive", confirm: true}}] =
+             resource.table.actions
+
     refute Map.has_key?(hd(resource.table.actions).opts, :callback)
 
     assert [%{id: "operations_dashboard", title: "Operations"} = dashboard] = contract.dashboards

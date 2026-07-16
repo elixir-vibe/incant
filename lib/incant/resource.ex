@@ -92,7 +92,7 @@ defmodule Incant.Resource do
           %Filter{
             name: name,
             type: type,
-            opts: normalize_filter_opts(name, filter_opts),
+            opts: normalize_filter_opts(env.module, name, filter_opts),
             query: query
           }
         end),
@@ -152,9 +152,14 @@ defmodule Incant.Resource do
   def normalize_callback(module, callback) when is_atom(callback), do: {module, callback}
   def normalize_callback(_module, callback), do: callback
 
-  def normalize_filter_opts(name, opts) do
-    if Keyword.get(opts, :options) == :distinct,
-      do: Keyword.put_new(opts, :options_from, name),
+  def normalize_filter_opts(module, name, opts) do
+    opts =
+      if Keyword.get(opts, :options) == :distinct,
+        do: Keyword.put_new(opts, :options_from, name),
+        else: opts
+
+    if Keyword.has_key?(opts, :option_label),
+      do: Keyword.update!(opts, :option_label, &normalize_callback(module, &1)),
       else: opts
   end
 

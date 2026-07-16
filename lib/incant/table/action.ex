@@ -18,8 +18,10 @@ defmodule Incant.Table.Action do
   defstruct [:name, scope: :row, opts: []]
 
   @doc "Returns whether a row action currently applies to a row."
-  @spec available?(t(), term(), map()) :: boolean()
-  def available?(%__MODULE__{opts: opts}, row, context \\ %{}) do
+  @spec available?(t() | map(), term(), map()) :: boolean()
+  def available?(action, row, context \\ %{})
+
+  def available?(%{opts: opts}, row, context) do
     case option(opts, :available_if) do
       nil -> true
       conditions when is_list(conditions) -> matches?(row, conditions)

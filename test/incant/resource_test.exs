@@ -119,8 +119,10 @@ defmodule Incant.ResourceTest do
 
     table default_sort: [title: :asc] do
       column(:title)
-      filter(:title, :combobox, options: :distinct)
+      filter(:title, :combobox, options: :distinct, option_label: :label_title)
     end
+
+    def label_title(value, _context), do: "Title: #{value}"
   end
 
   defmodule ConventionCallbackResource do
@@ -161,6 +163,7 @@ defmodule Incant.ResourceTest do
     assert [filter] = metadata.table.filters
     assert filter.opts[:options] == :distinct
     assert filter.opts[:options_from] == :title
+    assert filter.opts[:option_label] == {DistinctOptionsResource, :label_title}
   end
 
   test "resource callbacks use conventional index/2 and read/2 when defined" do

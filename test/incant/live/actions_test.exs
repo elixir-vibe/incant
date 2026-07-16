@@ -15,6 +15,15 @@ defmodule Incant.Live.ActionsTest do
     def authorize(:run_page_action, _actor, _context), do: {:error, :no_page_actions}
   end
 
+  test "evaluates portable action maps from older remote contracts" do
+    assert Action.available?(%{id: "delete", opts: %{}}, %{enabled: true})
+
+    refute Action.available?(
+             %{id: "enable", opts: %{available_if: %{enabled: false}}},
+             %{enabled: true}
+           )
+  end
+
   test "reports missing action" do
     resource = %Metadata{table: %Table{actions: []}}
 

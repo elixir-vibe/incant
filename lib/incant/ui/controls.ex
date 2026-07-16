@@ -128,12 +128,7 @@ defmodule Incant.UI.Controls do
   defp options(options, source, context) do
     options
     |> resolve_options(source, context)
-    |> Enum.map(fn
-      %{label: label, value: value} -> %{label: to_string(label), value: value}
-      %{"label" => label, "value" => value} -> %{label: to_string(label), value: value}
-      {label, value} -> %{label: to_string(label), value: value}
-      value -> %{label: humanize(value), value: value}
-    end)
+    |> Incant.Options.normalize()
   end
 
   defp resolve_options(nil, _source, _context), do: []
@@ -188,10 +183,5 @@ defmodule Incant.UI.Controls do
       else: attrs
   end
 
-  defp humanize(value) do
-    value
-    |> to_string()
-    |> String.replace(["_", "-"], " ")
-    |> String.capitalize()
-  end
+  defp humanize(value), do: Incant.Naming.label(value)
 end

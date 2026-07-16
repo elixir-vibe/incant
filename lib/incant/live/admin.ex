@@ -922,13 +922,7 @@ defmodule Incant.Live.Admin do
   end
 
   defp humanize(nil), do: nil
-
-  defp humanize(value) do
-    value
-    |> to_string()
-    |> String.replace(["_", "-"], " ")
-    |> String.capitalize()
-  end
+  defp humanize(value), do: Incant.Naming.title(value)
 
   defp option(opts, key) when is_list(opts) or is_map(opts) do
     opts = Map.new(opts)

@@ -123,10 +123,5 @@ defmodule Incant.Live.Components do
     end)
   end
 
-  defp humanize(value) do
-    value
-    |> to_string()
-    |> String.replace(["_", "-"], " ")
-    |> String.capitalize()
-  end
+  defp humanize(value), do: Incant.Naming.label(value)
 end

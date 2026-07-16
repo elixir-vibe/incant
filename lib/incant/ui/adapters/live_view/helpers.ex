@@ -404,10 +404,5 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def short_module(nil), do: "Admin"
   def short_module(module), do: module |> Module.split() |> List.last()
 
-  def humanize(value) do
-    value
-    |> to_string()
-    |> String.replace(["_", "-"], " ")
-    |> String.capitalize()
-  end
+  def humanize(value), do: Incant.Naming.label(value)
 end

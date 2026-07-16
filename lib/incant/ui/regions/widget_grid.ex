@@ -103,10 +103,5 @@ defmodule Incant.UI.Regions.WidgetGrid do
   defp option(options, key, default) when is_list(options), do: Keyword.get(options, key, default)
   defp option(_options, _key, default), do: default
 
-  defp humanize(value) do
-    value
-    |> to_string()
-    |> String.replace(["_", "-"], " ")
-    |> String.capitalize()
-  end
+  defp humanize(value), do: Incant.Naming.label(value)
 end

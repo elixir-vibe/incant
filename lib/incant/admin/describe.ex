@@ -76,6 +76,7 @@ defmodule Incant.Admin.Describe do
       plugins: Enum.map(admin.plugins, &inspect/1),
       opts: opts
     }
+    |> Incant.Naming.resolve_contract(Incant.Naming.for_admin(admin))
   end
 
   defp metadata(%Incant.Admin.Metadata{} = metadata), do: metadata
@@ -217,7 +218,11 @@ defmodule Incant.Admin.Describe do
 
     opts
     |> Keyword.take(allowed)
-    |> Map.new(fn {key, value} -> {key, public_value(value)} end)
+    |> Map.new(fn
+      {:options, :distinct} -> {:options, :distinct}
+      {:options, value} -> {:options, value |> Incant.Options.prepare() |> public_value()}
+      {key, value} -> {key, public_value(value)}
+    end)
   end
 
   defp public_opts(%{} = map, scope), do: map |> Map.to_list() |> public_opts(scope)
