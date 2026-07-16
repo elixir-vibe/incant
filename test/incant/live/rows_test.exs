@@ -32,9 +32,7 @@ defmodule Incant.Live.RowsTest do
       ["gpt-5", "gpt-5-mini"]
     end
 
-    def aggregate(%Ecto.Query{} = query, :count), do: aggregate(query, :count, :id)
-
-    def aggregate(%Ecto.Query{} = query, :count, :id) do
+    def one(%Ecto.Query{} = query) do
       send(self(), {:count_query, query})
       31
     end
@@ -287,7 +285,7 @@ defmodule Incant.Live.RowsTest do
     assert %{id: 1, params: [{^uuid, {0, :id}}]} = Rows.one(resource, uuid, %{})
   end
 
-  test "falls back to subquery count when aggregate count fails" do
+  test "uses an explicit count query for schema-backed resources" do
     resource = %Metadata{repo: GroupedRepo, schema: QueryProduct, table: %Table{}}
 
     page = Rows.page(resource, %{search: "", filters: %{}, sort: "", page: "1", page_size: "5"})

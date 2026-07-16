@@ -398,29 +398,55 @@ defmodule Incant.Live.Rows do
   defp query_count(%{repo: repo} = resource, table_state, context) do
     queryable = queryable(resource, table_state, false, context)
 
-    aggregate_count(repo, queryable) || subquery_count(repo, queryable) ||
+    direct_count(repo, queryable) || aggregate_count(repo, queryable) ||
+      subquery_count(repo, queryable, resource) ||
       length(raw(resource, table_state, [], context))
   end
 
-  defp aggregate_count(repo, queryable) do
-    apply(repo, :aggregate, [queryable, :count])
-  rescue
-    _error in [ArgumentError, FunctionClauseError, UndefinedFunctionError, RuntimeError] -> nil
-  end
-
-  defp subquery_count(repo, %Ecto.Query{} = queryable) do
+  defp direct_count(repo, %Ecto.Query{} = queryable) do
     count_query =
       queryable
       |> exclude(:order_by)
-      |> subquery()
-      |> select([row], count(row))
+      |> exclude(:select)
+      |> select([_row], count())
 
-    apply(repo, :one, [count_query])
+    case apply(repo, :one, [count_query]) do
+      count when is_integer(count) -> count
+      _other -> nil
+    end
   rescue
-    _error in [ArgumentError, FunctionClauseError, UndefinedFunctionError, Ecto.QueryError] -> nil
+    _error -> nil
   end
 
-  defp subquery_count(_repo, _queryable), do: nil
+  defp direct_count(_repo, _queryable), do: nil
+
+  defp aggregate_count(repo, queryable) do
+    case apply(repo, :aggregate, [queryable, :count]) do
+      count when is_integer(count) -> count
+      _other -> nil
+    end
+  rescue
+    _error -> nil
+  end
+
+  defp subquery_count(repo, %Ecto.Query{} = queryable, resource) do
+    count_query =
+      queryable
+      |> exclude(:order_by)
+      |> exclude(:select)
+      |> select_resource_fields(resource)
+      |> subquery()
+      |> select([_row], count())
+
+    case apply(repo, :one, [count_query]) do
+      count when is_integer(count) -> count
+      _other -> nil
+    end
+  rescue
+    _error -> nil
+  end
+
+  defp subquery_count(_repo, _queryable, _resource), do: nil
 
   defp paginate_query(queryable, %{page: page, page_size: page_size}) do
     page = Incant.Params.positive_integer(page, 1)
