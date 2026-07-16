@@ -258,9 +258,9 @@ defmodule Incant.Live.Rows do
   def field(%Incant.Service.Row{} = row, field) do
     field = to_string(field)
 
-    row.cells
-    |> Enum.find_value(fn %Incant.Service.Cell{column: column, value: value} ->
-      if column == field, do: value
+    Enum.reduce_while(row.cells, nil, fn %Incant.Service.Cell{column: column, value: value},
+                                         _acc ->
+      if column == field, do: {:halt, value}, else: {:cont, nil}
     end)
   end
 

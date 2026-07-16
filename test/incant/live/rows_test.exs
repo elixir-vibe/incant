@@ -70,6 +70,15 @@ defmodule Incant.Live.RowsTest do
     end
   end
 
+  test "reads false values from transported service rows" do
+    row = %Incant.Service.Row{
+      id: "1",
+      cells: [%Incant.Service.Cell{column: "enabled", value: false}]
+    }
+
+    assert Rows.field(row, :enabled) == false
+  end
+
   test "loads rows from index callbacks" do
     resource = %Metadata{index: fn _params -> [%{id: 1, name: "Incant Pro"}] end, table: %Table{}}
 
