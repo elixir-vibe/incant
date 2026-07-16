@@ -96,6 +96,24 @@ defmodule Incant.ResourceTest do
     def read(id, _context), do: %{id: id, title: "Fetched"}
   end
 
+  defmodule AtomActionResource do
+    use Incant.Resource, schema: Post
+
+    table do
+      action(:enable, callback: :enable, available_if: :disabled?)
+
+      actions do
+        bulk(:archive, callback: :archive)
+        page(:sync, callback: :sync)
+      end
+    end
+
+    def enable(_params, _assigns), do: :ok
+    def disabled?(_row, _context), do: true
+    def archive(_params, _assigns), do: :ok
+    def sync(_params, _assigns), do: :ok
+  end
+
   defmodule ConventionCallbackResource do
     use Incant.Resource, schema: Post
 
@@ -114,6 +132,17 @@ defmodule Incant.ResourceTest do
     assert metadata.read == {AtomCallbackResource, :read}
     assert Incant.Live.Rows.raw(metadata, %{}, [], %{}) == [%{id: "1", title: "Atom"}]
     assert Incant.Live.Rows.one(metadata, "9", %{}) == %{id: "9", title: "Fetched"}
+  end
+
+  test "action callbacks and predicates can be declared by atom" do
+    metadata = Incant.metadata(AtomActionResource)
+
+    assert [enable] = metadata.table.actions
+    assert enable.opts[:callback] == {AtomActionResource, :enable}
+    assert enable.opts[:available_if] == {AtomActionResource, :disabled?}
+
+    assert hd(metadata.table.bulk_actions).opts[:callback] == {AtomActionResource, :archive}
+    assert hd(metadata.table.page_actions).opts[:callback] == {AtomActionResource, :sync}
   end
 
   test "resource callbacks use conventional index/2 and read/2 when defined" do

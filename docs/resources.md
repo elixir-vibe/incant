@@ -156,14 +156,14 @@ end
 action :disable,
   available_if: [enabled: true],
   confirm: "Disable this provider token?",
-  callback: &__MODULE__.disable/2
+  callback: :disable
 
 action :enable,
-  available_if: &__MODULE__.can_enable?/2,
-  callback: &__MODULE__.enable/2
+  available_if: :can_enable?,
+  callback: :enable
 ```
 
-Incant evaluates `available_if` while building each service row and again before execution. Declarative keyword/map conditions compare row fields exactly; callbacks receive the row and action context.
+Incant evaluates `available_if` while building each service row and again before execution. Declarative keyword/map conditions compare row fields exactly; callbacks receive the row and action context. Atom callbacks resolve against the owning resource module; functions and `{Module, :function}` remain available for explicit cross-module calls.
 
 Callbacks receive action-specific context such as `%{action:, id:, row:, selected_ids:, resource:}` and the LiveView assigns. They can return semantic action results:
 

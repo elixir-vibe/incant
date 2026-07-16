@@ -93,15 +93,15 @@ defmodule Incant.Resource do
         end),
       actions:
         Enum.map(actions, fn {name, action_opts} ->
-          %Action{name: name, scope: :row, opts: action_opts}
+          %Action{name: name, scope: :row, opts: normalize_action_opts(env.module, action_opts)}
         end),
       bulk_actions:
         Enum.map(bulk_actions, fn {name, action_opts} ->
-          %Action{name: name, scope: :bulk, opts: action_opts}
+          %Action{name: name, scope: :bulk, opts: normalize_action_opts(env.module, action_opts)}
         end),
       page_actions:
         Enum.map(page_actions, fn {name, action_opts} ->
-          %Action{name: name, scope: :page, opts: action_opts}
+          %Action{name: name, scope: :page, opts: normalize_action_opts(env.module, action_opts)}
         end),
       row_detail: Module.get_attribute(env.module, :incant_row_detail),
       search: Module.get_attribute(env.module, :incant_search),
@@ -146,6 +146,14 @@ defmodule Incant.Resource do
 
   def normalize_callback(module, callback) when is_atom(callback), do: {module, callback}
   def normalize_callback(_module, callback), do: callback
+
+  def normalize_action_opts(module, opts) do
+    Enum.reduce([:callback, :available_if], opts, fn key, opts ->
+      if Keyword.has_key?(opts, key),
+        do: Keyword.update!(opts, key, &normalize_callback(module, &1)),
+        else: opts
+    end)
+  end
 
   defmacro table(opts \\ [], do: block) do
     quote do
