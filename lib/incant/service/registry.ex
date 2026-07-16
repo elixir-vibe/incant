@@ -63,10 +63,62 @@ defmodule Incant.Service.Registry do
   @doc "Decodes a trusted local HostKit/SafeRPC binding ETF term."
   @spec decode_bindings(binary()) :: {:ok, SafeRPC.local_bindings()} | {:error, term()}
   def decode_bindings(binary) when is_binary(binary) do
-    {:ok, :erlang.binary_to_term(binary, [:safe])}
+    binary
+    |> :erlang.binary_to_term([:safe])
+    |> normalize_decoded_bindings()
   rescue
     error in [ArgumentError] -> {:error, error}
   end
+
+  defp normalize_decoded_bindings(bindings) when is_map(bindings) do
+    bindings
+    |> Enum.reduce_while({:ok, %{}}, fn {key, binding}, {:ok, normalized} ->
+      case normalize_binding(binding) do
+        {:ok, binding} -> {:cont, {:ok, Map.put(normalized, key, binding)}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp normalize_decoded_bindings(bindings) when is_list(bindings) do
+    bindings
+    |> Enum.reduce_while({:ok, []}, fn binding, {:ok, normalized} ->
+      case normalize_binding(binding) do
+        {:ok, binding} -> {:cont, {:ok, [binding | normalized]}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+    |> case do
+      {:ok, normalized} -> {:ok, Enum.reverse(normalized)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp normalize_decoded_bindings(other), do: {:error, {:invalid_bindings, other}}
+
+  defp normalize_binding(%{modules: modules} = binding) when is_list(modules) do
+    if Enum.all?(modules, &(is_atom(&1) or is_binary(&1))) do
+      module_names = SafeRPC.Atoms.names(modules)
+
+      with :ok <-
+             SafeRPC.Atoms.prepare(module_names,
+               allow: [~r/^Elixir\.[A-Z][A-Za-z0-9_.]*$/]
+             ) do
+        normalized_modules =
+          Enum.map(modules, fn
+            module when is_atom(module) -> module
+            module when is_binary(module) -> String.to_existing_atom(module)
+          end)
+
+        {:ok, %{binding | modules: normalized_modules}}
+      end
+    else
+      {:error, {:invalid_modules, modules}}
+    end
+  end
+
+  defp normalize_binding(binding) when is_map(binding), do: {:ok, binding}
+  defp normalize_binding(other), do: {:error, {:invalid_binding, other}}
 
   defp fetch_env(env) do
     case System.fetch_env(env) do

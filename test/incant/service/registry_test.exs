@@ -55,7 +55,7 @@ defmodule Incant.Service.RegistryTest do
     bindings = %{
       "accounts" => %{
         socket: socket,
-        modules: [Admin]
+        modules: [Atom.to_string(Admin)]
       }
     }
 
@@ -67,7 +67,11 @@ defmodule Incant.Service.RegistryTest do
     assert {:ok, %Incant.Service.Registry{source: {:file, ^path}, entries: [entry]}} =
              Incant.Service.Registry.load_file(path)
 
-    assert %Incant.Service.Entry{key: "accounts", contract: %Incant.Admin.Contract{}} = entry
+    assert %Incant.Service.Entry{
+             key: "accounts",
+             client: %Incant.Service.Client{module: Admin},
+             contract: %Incant.Admin.Contract{}
+           } = entry
 
     File.rm(path)
     GenServer.stop(server)
@@ -105,6 +109,13 @@ defmodule Incant.Service.RegistryTest do
 
   test "decode_bindings rejects invalid ETF" do
     assert {:error, %ArgumentError{}} = Incant.Service.Registry.decode_bindings("not etf")
+  end
+
+  test "decode_bindings rejects module names outside the bounded vocabulary" do
+    binary = :erlang.term_to_binary(%{"accounts" => %{modules: ["not a module"]}})
+
+    assert {:error, {:atom_not_allowed, "not a module"}} =
+             Incant.Service.Registry.decode_bindings(binary)
   end
 
   defp restore_env(name, nil), do: System.delete_env(name)
