@@ -439,11 +439,14 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
       |> Incant.UI.Adapters.LiveView.Table.table()
       |> rendered_to_string()
 
-    assert html =~ ~s(data-confirm="Are you sure?")
+    assert html =~ ~s(data-incant-confirm=)
+    assert html =~ ~s(&quot;Are you sure you want to delete?&quot;)
+    assert html =~ ~s(&quot;title&quot;:&quot;Delete?&quot;)
+    assert html =~ ~s(&quot;destructive&quot;:false)
     assert html =~ ~s(phx-disable-with="Delete…")
-    assert html =~ ~s(data-confirm="Disable this token?")
-    assert html =~ ~s(data-confirm="Resync now?")
-    refute html =~ ~s(data-confirm="false")
+    assert html =~ ~s(&quot;Disable this token?&quot;)
+    assert html =~ ~s(&quot;Resync now?&quot;)
+    refute html =~ ~s(data-confirm=)
   end
 
   test "renders operator-friendly empty table copy" do

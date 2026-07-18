@@ -64,13 +64,32 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def form_enabled?(resource), do: not is_nil(resource.repo) and not is_nil(resource.changeset)
   def action_label(action), do: action.opts[:label] || humanize(action.name)
 
-  def confirm_message(%{opts: opts}) do
+  def confirm_message(%{opts: opts} = action) do
     case opts[:confirm] do
-      true -> "Are you sure?"
+      true -> "Are you sure you want to #{String.downcase(action_label(action))}?"
       message when is_binary(message) -> message
       _other -> nil
     end
   end
+
+  def confirm_payload(%{opts: opts} = action) do
+    case confirm_message(action) do
+      nil ->
+        nil
+
+      message ->
+        Jason.encode!(%{
+          title: "#{action_label(action)}?",
+          message: message,
+          confirm: action_label(action),
+          destructive: opts_get(opts, :destructive, false)
+        })
+    end
+  end
+
+  defp opts_get(opts, key, default) when is_list(opts), do: Keyword.get(opts, key, default)
+  defp opts_get(opts, key, default) when is_map(opts), do: Map.get(opts, key, default)
+  defp opts_get(_opts, _key, default), do: default
 
   def cell_class(cell) do
     [

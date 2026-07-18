@@ -38,6 +38,23 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:confirm) do
+    %Recipe{
+      slots: %{
+        dialog:
+          "fixed inset-x-3 bottom-3 top-auto z-50 m-0 w-auto max-w-none overflow-hidden rounded-xl border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-0 text-[var(--incant-text-toned)] shadow-2xl backdrop:bg-black/40 sm:inset-auto sm:left-1/2 sm:top-1/3 sm:w-[26rem] sm:-translate-x-1/2",
+        header:
+          "flex items-start justify-between gap-4 border-b border-[var(--incant-border-muted)] px-4 py-3",
+        title: "text-base font-semibold text-[var(--incant-text-highlighted)]",
+        close:
+          "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xl text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
+        body: "px-4 py-3 text-sm text-[var(--incant-text-toned)]",
+        footer:
+          "flex min-h-14 items-center justify-end gap-2 border-t border-[var(--incant-border-muted)] px-4 py-2.5"
+      }
+    }
+  end
+
   def recipe(:toast) do
     %Recipe{
       slots: %{
@@ -241,6 +258,10 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
           outline: %{
             base:
               "border border-[var(--incant-border)] text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]"
+          },
+          danger: %{
+            base:
+              "bg-[var(--incant-error)] text-[var(--incant-text-inverted)] hover:brightness-95"
           }
         },
         size: %{

@@ -86,7 +86,41 @@ defmodule Incant.UI.Adapters.LiveView do
         </div>
       </main>
       <.flash_region flashes={@flashes} />
+      <.confirm_dialog />
     </div>
+    """
+  end
+
+  def confirm_dialog(assigns) do
+    ~H"""
+    <dialog
+      id="incant-confirm-dialog"
+      class={Theme.slot(:confirm, :dialog)}
+      aria-labelledby="incant-confirm-title"
+      aria-describedby="incant-confirm-message"
+      aria-modal="true"
+      data-incant-confirm-dialog
+    >
+      <div class={Theme.slot(:confirm, :header)}>
+        <h3 id="incant-confirm-title" class={Theme.slot(:confirm, :title)} data-incant-confirm-title></h3>
+        <button type="button" class={Theme.slot(:confirm, :close)} aria-label="Cancel" data-incant-confirm-cancel>×</button>
+      </div>
+      <p id="incant-confirm-message" class={Theme.slot(:confirm, :body)} data-incant-confirm-message></p>
+      <div class={Theme.slot(:confirm, :footer)}>
+        <button type="button" class={Theme.slot(:button, :base, variant: :outline, size: :sm)} data-incant-confirm-cancel>
+          Cancel
+        </button>
+        <button
+          type="button"
+          class={Theme.slot(:button, :base, variant: :primary, size: :sm)}
+          data-incant-confirm-accept
+          data-primary-class={Theme.slot(:button, :base, variant: :primary, size: :sm) |> List.flatten() |> Enum.join(" ")}
+          data-danger-class={Theme.slot(:button, :base, variant: :danger, size: :sm) |> List.flatten() |> Enum.join(" ")}
+        >
+          Confirm
+        </button>
+      </div>
+    </dialog>
     """
   end
 

@@ -32,6 +32,70 @@ function eventElement(event: Event): Element | null {
   return event.target instanceof Element ? event.target : null;
 }
 
+interface ConfirmPayload {
+  title?: string;
+  message?: string;
+  confirm?: string;
+  destructive?: boolean;
+}
+
+let confirmSource: HTMLElement | null = null;
+let confirmBypass = false;
+
+function confirmDialog(): HTMLDialogElement | null {
+  return document.querySelector<HTMLDialogElement>("[data-incant-confirm-dialog]");
+}
+
+function confirmPart<T extends HTMLElement>(selector: string): T | null {
+  return confirmDialog()?.querySelector<T>(selector) ?? null;
+}
+
+function openConfirmDialog(source: HTMLElement, payload: ConfirmPayload): void {
+  const dialog = confirmDialog();
+  if (!dialog?.showModal) return;
+
+  const title = confirmPart("[data-incant-confirm-title]");
+  const message = confirmPart("[data-incant-confirm-message]");
+  const accept = confirmPart<HTMLButtonElement>("[data-incant-confirm-accept]");
+
+  if (title) title.textContent = payload.title || "Are you sure?";
+  if (message) {
+    message.textContent = payload.message || "";
+    message.classList.toggle("hidden", !payload.message);
+  }
+  if (accept) {
+    accept.textContent = payload.confirm || "Confirm";
+    const variantClass = payload.destructive ? accept.dataset.dangerClass : accept.dataset.primaryClass;
+    if (variantClass) accept.className = variantClass;
+  }
+
+  confirmSource = source;
+  wireDialogCancel(dialog, closeConfirmDialog);
+  dialog.showModal();
+  accept?.focus();
+}
+
+function closeConfirmDialog(): void {
+  confirmDialog()?.close();
+  confirmSource = null;
+}
+
+function wireDialogCancel(dialog: HTMLDialogElement | null, close: () => void): void {
+  if (!dialog || dialog.dataset.incantCancelWired === "true") return;
+  dialog.dataset.incantCancelWired = "true";
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    close();
+  });
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+    }
+  });
+}
+
 function preferredTheme(): Theme {
   const stored = window.localStorage.getItem(themeStorageKey);
   if (stored === "dark" || stored === "light") return stored;
@@ -170,9 +234,54 @@ syncNavigation(false);
 mobileNavigation.addEventListener("change", () => syncNavigation(false));
 new MutationObserver(scheduleFlashDismissal).observe(document.body, { childList: true, subtree: true });
 
+document.addEventListener(
+  "click",
+  (event) => {
+    if (confirmBypass) return;
+
+    const target = eventElement(event);
+    const trigger = target?.closest<HTMLElement>("[data-incant-confirm]");
+    if (!trigger) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    let payload: ConfirmPayload = {};
+    try {
+      payload = JSON.parse(trigger.dataset.incantConfirm || "{}") as ConfirmPayload;
+    } catch {
+      payload = { message: trigger.dataset.incantConfirm };
+    }
+    openConfirmDialog(trigger, payload);
+  },
+  { capture: true },
+);
+
 document.addEventListener("click", (event) => {
   const target = eventElement(event);
   if (!target) return;
+
+  if (target.closest("[data-incant-confirm-cancel]")) {
+    closeConfirmDialog();
+    return;
+  }
+
+  if (target.closest("[data-incant-confirm-accept]")) {
+    const source = confirmSource;
+    closeConfirmDialog();
+    if (source) {
+      confirmBypass = true;
+      source.click();
+      confirmBypass = false;
+    }
+    return;
+  }
+
+  if (target instanceof HTMLDialogElement && target.matches("[data-incant-confirm-dialog]")) {
+    closeConfirmDialog();
+    return;
+  }
 
   const comboboxOption = target.closest<HTMLButtonElement>("[data-incant-combobox-option]");
   const combobox = target.closest<HTMLElement>("[data-incant-combobox]");
@@ -187,6 +296,7 @@ document.addEventListener("click", (event) => {
   if (dialogId) {
     const dialog = document.getElementById(dialogId) as HTMLDialogElement | null;
     if (dialog?.showModal) {
+      wireDialogCancel(dialog, () => dialog.close());
       dialog.showModal();
 
       const focusId = filterOpen.dataset.incantFilterFocus;

@@ -133,7 +133,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
       phx-value-target={@action.name}
       phx-value-value={@value}
       disabled={@disabled}
-      data-confirm={confirm_message(@action)}
+      data-incant-confirm={confirm_payload(@action)}
       phx-disable-with={action_label(@action) <> "…"}
     >
       {action_label(@action)}
