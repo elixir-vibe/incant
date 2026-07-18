@@ -1033,7 +1033,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
 
     assert html =~ "Created docgen"
     assert html =~ "sk-proxy-secret-123"
-    assert html =~ "You won't be able to see it again."
+    assert html =~ "won&#39;t be able to see it again."
     assert html =~ ~s(data-incant-reveal-dialog)
     assert html =~ ~s(data-incant-reveal-copy)
     assert html =~ ~s(phx-value-op="reveal_dismiss")
