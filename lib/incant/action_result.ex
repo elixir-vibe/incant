@@ -49,6 +49,12 @@ defmodule Incant.ActionResult do
     defstruct [:surface, meta: %{}]
   end
 
+  defmodule Reveal do
+    @moduledoc "Reveal a one-time value (such as a newly created secret) to the user."
+    @type t :: %__MODULE__{title: String.t() | nil, value: String.t(), description: String.t() | nil}
+    defstruct [:title, :value, :description]
+  end
+
   @type t ::
           Toast.t()
           | Error.t()
@@ -57,6 +63,7 @@ defmodule Incant.ActionResult do
           | Download.t()
           | Job.t()
           | OpenSurface.t()
+          | Reveal.t()
 
   def normalize(result, opts \\ [])
   def normalize(%Toast{} = result, _opts), do: result
@@ -66,6 +73,7 @@ defmodule Incant.ActionResult do
   def normalize(%Download{} = result, _opts), do: result
   def normalize(%Job{} = result, _opts), do: result
   def normalize(%OpenSurface{} = result, _opts), do: result
+  def normalize(%Reveal{} = result, _opts), do: result
   def normalize(:ok, opts), do: toast(completion_message(opts))
   def normalize({:ok, result}, opts), do: normalize_ok(result, opts)
   def normalize({:error, result}, _opts), do: error(result)
@@ -86,6 +94,9 @@ defmodule Incant.ActionResult do
 
   def open_surface(surface, opts \\ []),
     do: %OpenSurface{surface: surface, meta: opts[:meta] || %{}}
+
+  def reveal(value, opts \\ []),
+    do: %Reveal{title: opts[:title], value: to_string(value), description: opts[:description]}
 
   defp normalize_ok(result, opts) do
     if result_struct?(result), do: result, else: normalize(result, opts)

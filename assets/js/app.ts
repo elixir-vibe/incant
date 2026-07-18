@@ -228,11 +228,58 @@ function scheduleFlashDismissal(): void {
   });
 }
 
+function openRevealDialogs(): void {
+  document.querySelectorAll<HTMLDialogElement>("[data-incant-reveal-open]").forEach((dialog) => {
+    if (dialog.open) return;
+    dialog.removeAttribute("data-incant-reveal-open");
+    wireDialogCancel(dialog, () => dismissRevealDialog(dialog));
+    dialog.showModal();
+    dialog.querySelector<HTMLElement>("[data-incant-reveal-dismiss]")?.focus();
+  });
+}
+
+function dismissRevealDialog(dialog: HTMLDialogElement): void {
+  dialog.close();
+  dialog.querySelector<HTMLButtonElement>("[data-incant-reveal-dismiss]")?.click();
+}
+
+async function copyText(value: string): Promise<boolean> {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch {
+      // fall through to the legacy path (non-secure contexts, denied permission)
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch {
+    copied = false;
+  }
+  textarea.remove();
+  return copied;
+}
+
+function observePageChanges(): void {
+  scheduleFlashDismissal();
+  openRevealDialogs();
+}
+
 applyTheme(preferredTheme());
-scheduleFlashDismissal();
+observePageChanges();
 syncNavigation(false);
 mobileNavigation.addEventListener("change", () => syncNavigation(false));
-new MutationObserver(scheduleFlashDismissal).observe(document.body, { childList: true, subtree: true });
+new MutationObserver(observePageChanges).observe(document.body, { childList: true, subtree: true });
 
 document.addEventListener(
   "click",
@@ -265,6 +312,23 @@ document.addEventListener("click", (event) => {
   if (target.closest("[data-incant-confirm-cancel]")) {
     closeConfirmDialog();
     return;
+  }
+
+  const revealCopy = target.closest<HTMLButtonElement>("[data-incant-reveal-copy]");
+  if (revealCopy) {
+    const value = revealCopy.dataset.incantRevealValueText || "";
+    void copyText(value).then((ok) => {
+      revealCopy.textContent = ok ? "Copied" : "Select + Ctrl+C";
+      window.setTimeout(() => {
+        revealCopy.textContent = "Copy";
+      }, 1500);
+    });
+    return;
+  }
+
+  const revealDismiss = target.closest("[data-incant-reveal-dismiss]");
+  if (revealDismiss) {
+    revealDismiss.closest<HTMLDialogElement>("dialog")?.close();
   }
 
   if (target.closest("[data-incant-confirm-accept]")) {

@@ -37,7 +37,8 @@ defmodule Incant.UI.Adapters.LiveView do
       env: env,
       nav: document.nav,
       surface: document.surface,
-      flashes: flash_entries(env.flash)
+      flashes: flash_entries(env.flash),
+      reveal: reveal_value(env)
     }
 
     ~H"""
@@ -87,7 +88,16 @@ defmodule Incant.UI.Adapters.LiveView do
       </main>
       <.flash_region flashes={@flashes} />
       <.confirm_dialog />
+      <.reveal_dialog :if={@reveal} reveal={@reveal} />
     </div>
+    """
+  end
+
+  def render(node, _env) do
+    assigns = %{node: node}
+
+    ~H"""
+    <pre class={Theme.slot(:debug, :pre)}><%= inspect(@node, pretty: true) %></pre>
     """
   end
 
@@ -124,12 +134,47 @@ defmodule Incant.UI.Adapters.LiveView do
     """
   end
 
-  def render(node, _env) do
-    assigns = %{node: node}
+  attr(:reveal, Incant.ActionResult.Reveal, required: true)
 
+  def reveal_dialog(assigns) do
     ~H"""
-    <pre class={Theme.slot(:debug, :pre)}><%= inspect(@node, pretty: true) %></pre>
+    <dialog
+      id="incant-reveal-dialog"
+      class={Theme.slot(:confirm, :dialog)}
+      aria-labelledby="incant-reveal-title"
+      aria-describedby="incant-reveal-description"
+      aria-modal="true"
+      data-incant-reveal-dialog
+      data-incant-reveal-open
+    >
+      <div class={Theme.slot(:confirm, :header)}>
+        <h3 id="incant-reveal-title" class={Theme.slot(:confirm, :title)}>
+          {@reveal.title || "Created"}
+        </h3>
+      </div>
+      <div class={Theme.slot(:confirm, :body)}>
+        <code class="mt-1 block break-all rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-muted)] px-3 py-2 font-mono text-sm text-[var(--incant-text-highlighted)]" data-incant-reveal-value>{@reveal.value}</code>
+        <p id="incant-reveal-description" class="mt-2 text-xs text-[var(--incant-text-muted)]">
+          {@reveal.description || "Copy this value now. You won't be able to see it again."}
+        </p>
+      </div>
+      <div class={Theme.slot(:confirm, :footer)}>
+        <button type="button" class={Theme.slot(:button, :base, variant: :outline, size: :sm)} data-incant-reveal-copy data-incant-reveal-value-text={@reveal.value}>
+          Copy
+        </button>
+        <button type="button" class={Theme.slot(:button, :base, variant: :primary, size: :sm)} data-incant-reveal-dismiss phx-click="incant:event" phx-value-op="reveal_dismiss">
+          Done
+        </button>
+      </div>
+    </dialog>
     """
+  end
+
+  defp reveal_value(env) do
+    case env.assigns do
+      %{reveal: %Incant.ActionResult.Reveal{} = reveal} -> reveal
+      _other -> nil
+    end
   end
 
   attr(:flashes, :list, required: true)

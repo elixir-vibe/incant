@@ -1006,4 +1006,54 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "4"
     assert html =~ "Resources"
   end
+
+  test "renders reveal dialog for one-time action secrets" do
+    context = %Incant.Live.Context{
+      base_path: "/",
+      section: "services",
+      resources: [],
+      datasets: [],
+      dashboards: [],
+      services: []
+    }
+
+    document = Incant.UI.Document.from_context(context)
+
+    env =
+      Incant.UI.Env.new(context, %{
+        admin: nil,
+        reveal: %Incant.ActionResult.Reveal{
+          title: "Created docgen",
+          value: "sk-proxy-secret-123",
+          description: "Copy this value now. You won't be able to see it again."
+        }
+      })
+
+    html = document |> Incant.UI.render(env) |> rendered_to_string()
+
+    assert html =~ "Created docgen"
+    assert html =~ "sk-proxy-secret-123"
+    assert html =~ "You won't be able to see it again."
+    assert html =~ ~s(data-incant-reveal-dialog)
+    assert html =~ ~s(data-incant-reveal-copy)
+    assert html =~ ~s(phx-value-op="reveal_dismiss")
+  end
+
+  test "hides reveal dialog without a reveal assign" do
+    context = %Incant.Live.Context{
+      base_path: "/",
+      section: "services",
+      resources: [],
+      datasets: [],
+      dashboards: [],
+      services: []
+    }
+
+    document = Incant.UI.Document.from_context(context)
+    env = Incant.UI.Env.new(context, %{admin: nil})
+
+    html = document |> Incant.UI.render(env) |> rendered_to_string()
+
+    refute html =~ ~s(data-incant-reveal-dialog)
+  end
 end

@@ -146,6 +146,9 @@ defmodule Incant.Live.Admin do
   defp handle_incant_event(%{op: :filter_commit} = event, socket),
     do: filter_commit(event, socket)
 
+  defp handle_incant_event(%{op: :reveal_dismiss}, socket),
+    do: {:noreply, assign(socket, :reveal, nil)}
+
   defp handle_incant_event(%{op: :filter_clear} = event, socket),
     do: filter_clear(event, socket)
 
@@ -370,8 +373,25 @@ defmodule Incant.Live.Admin do
     {:noreply, put_flash(socket, :info, label || "Download is ready")}
   end
 
-  defp action_result(socket, %Incant.ActionResult.Job{label: label}) do
-    {:noreply, put_flash(socket, :info, label || "Background job started")}
+  defp action_result(socket, %Incant.ActionResult.Reveal{} = reveal) do
+    {:noreply, assign(socket, :reveal, reveal)}
+  end
+
+  defp action_result(socket, %Incant.ActionResult.Job{label: label, meta: meta}) do
+    socket = put_flash(socket, :info, label || "Background job started")
+
+    case meta do
+      %{token: token} when is_binary(token) ->
+        {:noreply,
+         assign(socket, :reveal, %Incant.ActionResult.Reveal{
+           title: label || "Created",
+           value: token,
+           description: "Copy this value now. You won't be able to see it again."
+         })}
+
+      _other ->
+        {:noreply, socket}
+    end
   end
 
   defp action_result(socket, %Incant.ActionResult.OpenSurface{}) do
