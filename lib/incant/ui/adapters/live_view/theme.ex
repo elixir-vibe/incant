@@ -31,7 +31,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         breadcrumb_separator: "text-[var(--incant-text-dimmed)]",
         topbar_actions: "ml-auto flex items-center gap-1",
         icon_button:
-          "inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--incant-text-muted)] transition-colors hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+          "inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--incant-text-muted)] transition-colors hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         mobile_nav_toggle: "lg:hidden",
         body: "mx-auto max-w-[1180px] p-4 lg:p-5"
       }
@@ -86,7 +86,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     %Recipe{
       slots: %{
         base:
-          "block rounded-r-md border-l-[3px] border-transparent px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]"
+          "block rounded-r-md border-l-[3px] border-transparent px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]"
       },
       variants: %{
         active: %{
@@ -126,7 +126,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         date_range: "flex flex-wrap items-center gap-2",
         preset_group: "flex items-center gap-1",
         preset:
-          "inline-flex h-7 items-center rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+          "inline-flex h-7 items-center rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         date_fields: "flex items-center gap-1 [&>input]:h-7 [&>input]:w-36 [&>input]:text-xs"
       },
       variants: %{
@@ -218,7 +218,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         group: "space-y-3",
         inline: "grid grid-cols-2 gap-2",
         input:
-          "h-8 w-full rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm font-normal normal-case tracking-normal text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] transition-colors focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_12%,transparent)]",
+          "h-8 w-full rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm font-normal normal-case tracking-normal text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] transition-colors focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[var(--incant-primary)]",
         error: "text-xs font-normal normal-case tracking-normal text-[var(--incant-error)]"
       },
       variants: %{
@@ -243,7 +243,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     %Recipe{
       slots: %{
         base:
-          "inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)] disabled:pointer-events-none disabled:opacity-40"
+          "inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)] disabled:pointer-events-none disabled:opacity-40"
       },
       variants: %{
         variant: %{
@@ -298,7 +298,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         toolbar: "flex min-h-9 flex-wrap items-center gap-2",
         search_form: "min-w-48 flex-1 sm:max-w-72",
         search:
-          "h-10 w-full rounded-md sm:h-8 border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]",
+          "h-10 w-full rounded-md sm:h-8 border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] outline-none placeholder:text-[var(--incant-text-dimmed)] focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[var(--incant-primary)]",
         chips: "flex min-w-0 flex-wrap items-center gap-1.5",
         chip:
           "inline-flex h-10 max-w-full sm:h-8 items-stretch overflow-hidden rounded-md border border-[color-mix(in_oklab,var(--incant-primary)_28%,var(--incant-border))] bg-[color-mix(in_oklab,var(--incant-primary)_8%,var(--incant-bg-elevated))] text-xs text-[var(--incant-text-toned)]",
@@ -308,7 +308,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         chip_remove:
           "inline-flex w-7 shrink-0 items-center justify-center border-l border-[var(--incant-border-muted)] text-base text-[var(--incant-text-muted)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--incant-primary)]",
         trigger:
-          "inline-flex h-10 items-center sm:h-8 gap-1.5 rounded-md border border-dashed border-[var(--incant-border)] px-2.5 text-xs font-medium text-[var(--incant-text-toned)] hover:border-[var(--incant-primary)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+          "inline-flex h-10 items-center sm:h-8 gap-1.5 rounded-md border border-dashed border-[var(--incant-border)] px-2.5 text-xs font-medium text-[var(--incant-text-toned)] hover:border-[var(--incant-primary)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         count:
           "inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--incant-primary)] px-1 text-[10px] text-[var(--incant-text-inverted)]",
         clear_all:
@@ -363,14 +363,14 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         toolbar_hint: "text-xs text-[var(--incant-text-muted)]",
         checkbox_cell: "w-8 px-3 py-1.5",
         checkbox:
-          "h-3.5 w-3.5 rounded border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] text-[var(--incant-primary)] focus:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+          "h-3.5 w-3.5 rounded border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] text-[var(--incant-primary)] focus:ring-[var(--incant-primary)]",
         viewport: "overflow-x-auto",
         root: "w-full min-w-full text-sm",
         head:
           "border-b border-[var(--incant-border)] bg-[var(--incant-bg-muted)] text-left text-[11px] text-[var(--incant-text-muted)]",
         header_cell: "h-8 px-3 font-medium",
         sort_button:
-          "flex w-full items-center gap-1 rounded py-0.5 hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--incant-primary)_18%,transparent)]",
+          "flex w-full items-center gap-1 rounded py-0.5 hover:text-[var(--incant-text-highlighted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
         body: "divide-y divide-[var(--incant-border-muted)]",
         row: "h-9 hover:bg-[var(--incant-bg-muted)]",
         cell: "px-3 py-1.5 text-[var(--incant-text-toned)]",
@@ -390,11 +390,11 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         page_size:
           "mr-1 inline-flex items-center gap-1.5 border-r border-[var(--incant-border-muted)] pr-3",
         page_size_select:
-          "h-7 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1.5 text-xs text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]",
+          "h-7 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1.5 text-xs text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[var(--incant-primary)]",
         page_jump:
           "inline-flex h-7 items-center gap-1 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2",
         page_input:
-          "h-7 w-12 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1 text-center text-xs tabular-nums text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--incant-primary)_15%,transparent)]"
+          "h-7 w-12 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-1 text-center text-xs tabular-nums text-[var(--incant-text-toned)] outline-none focus:border-[var(--incant-primary)] focus:ring-2 focus:ring-[var(--incant-primary)]"
       },
       variants: %{
         align: %{
