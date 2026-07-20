@@ -408,6 +408,14 @@ document.addEventListener("click", (event) => {
     fields?.classList.remove("hidden");
     fields?.querySelector<HTMLInputElement>("input")?.focus();
   }
+
+  const applyRangeButton = target.closest("[data-incant-date-range-apply]");
+  if (applyRangeButton) {
+    applyRangeButton
+      .closest("[data-incant-date-range-fields]")
+      ?.querySelectorAll<HTMLInputElement>("input")
+      .forEach((input) => input.dispatchEvent(new Event("change", { bubbles: true })));
+  }
 });
 
 document.addEventListener("focusin", (event) => {

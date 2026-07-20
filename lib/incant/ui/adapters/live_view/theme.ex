@@ -127,7 +127,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         preset_group: "flex items-center gap-1",
         preset:
           "inline-flex h-7 items-center rounded-md px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)]",
-        date_fields: "flex items-center gap-1 [&>input]:h-7 [&>input]:w-36 [&>input]:text-xs"
+        date_fields: "flex flex-wrap items-end gap-2 [&>label]:w-32 [&_input]:h-7 [&_input]:text-xs"
       },
       variants: %{
         active: %{

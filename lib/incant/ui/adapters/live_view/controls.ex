@@ -345,8 +345,17 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
         <button type="button" class={Theme.slot(:dashboard, :preset, active: @custom?)} data-incant-date-range-custom>Custom</button>
       </div>
       <div class={[Theme.slot(:dashboard, :date_fields), !@custom? && "hidden"]} data-incant-date-range-fields>
-        <input type="date" name={control_name(@control, "from")} value={map_value(@control.value, "from")} aria-label={"#{@control.label} from"} class={Theme.slot(:field, :input)} />
-        <input type="date" name={control_name(@control, "to")} value={map_value(@control.value, "to")} aria-label={"#{@control.label} to"} class={Theme.slot(:field, :input)} />
+        <label class="flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium text-[var(--incant-text-muted)]">
+          <span>From</span>
+          <input type="date" name={control_name(@control, "from")} value={map_value(@control.value, "from")} aria-label={"#{@control.label} from"} class={Theme.slot(:field, :input)} />
+        </label>
+        <label class="flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium text-[var(--incant-text-muted)]">
+          <span>To</span>
+          <input type="date" name={control_name(@control, "to")} value={map_value(@control.value, "to")} aria-label={"#{@control.label} to"} class={Theme.slot(:field, :input)} />
+        </label>
+        <button type="button" class={Theme.slot(:button, :base, variant: :outline, size: :sm)} data-incant-date-range-apply>
+          Apply
+        </button>
       </div>
     </div>
     """

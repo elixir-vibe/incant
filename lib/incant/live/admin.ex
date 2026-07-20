@@ -776,11 +776,13 @@ defmodule Incant.Live.Admin do
 
   defp reject_empty_values(map) do
     Enum.reduce(map, %{}, fn {key, value}, acc ->
-      value = if is_map(value), do: reject_empty_values(value), else: value
+      value = if plain_map?(value), do: reject_empty_values(value), else: value
 
       if value in [nil, "", [], %{}], do: acc, else: Map.put(acc, key, value)
     end)
   end
+
+  defp plain_map?(value), do: is_map(value) and not is_struct(value)
 
   defp table_query_params(params),
     do:
