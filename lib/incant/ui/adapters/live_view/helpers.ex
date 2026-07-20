@@ -61,7 +61,12 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     context |> Map.from_struct() |> Map.merge(%{row: row}) |> Map.merge(extra)
   end
 
-  def form_enabled?(resource), do: not is_nil(resource.repo) and not is_nil(resource.changeset)
+  def form_enabled?(resource) do
+    not is_nil(resource_field(resource, :repo)) and not is_nil(resource_field(resource, :changeset))
+  end
+
+  defp resource_field(%{} = resource, key), do: Map.get(resource, key)
+  defp resource_field(_resource, _key), do: nil
   def action_label(action), do: action.opts[:label] || humanize(action.name)
 
   def confirm_message(%{opts: opts} = action) do
@@ -359,7 +364,7 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     do: value |> Kernel.*(1.0) |> Float.round(2) |> :erlang.float_to_binary(decimals: 2)
 
   def table_columns(%Incant.UI.Regions.WidgetGrid.Widget{source: %{opts: opts}, value: value}) do
-    case Keyword.get(opts, :columns) do
+    case opt(opts, :columns) do
       columns when is_list(columns) and columns != [] -> columns
       _other -> table_columns(value)
     end

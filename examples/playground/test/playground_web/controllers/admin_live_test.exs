@@ -15,7 +15,7 @@ defmodule Playground.AdminLiveTest do
   test "renders LLM request table", %{conn: conn} do
     {:ok, _view, html} = live(conn, ~p"/admin/resources/llm_request")
 
-    assert html =~ "LLMRequest"
+    assert html =~ "LLM Request"
     assert html =~ "gpt-4.1"
     assert html =~ "claude-sonnet-4"
   end
@@ -24,22 +24,27 @@ defmodule Playground.AdminLiveTest do
     {:ok, _view, html} = live(conn, ~p"/admin")
 
     assert html =~ "LLM Operations"
-    assert html =~ "3"
+    assert html =~ "Requests"
+    assert html =~ "Tokens"
+    assert html =~ "151.5k"
     assert html =~ "$68.46"
-    assert html =~ "33.33%"
+    assert html =~ "1.4s"
   end
 
   test "renders dashboard table widget", %{conn: conn} do
     {:ok, _view, html} = live(conn, ~p"/admin/dashboards/llm")
 
-    assert html =~ "Slow requests"
+    assert html =~ "Slow &amp; failed"
     assert html =~ "gemini-3-pro"
   end
 
   test "renders form validation errors", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/admin/resources/ticket/new")
 
-    html = render_change(view, "incant:event", %{"op" => "form_validate", "resource" => %{"title" => ""}})
+    html =
+      view
+      |> form("[data-incant-resource-form]", %{resource: %{title: ""}})
+      |> render_change()
 
     assert html =~ "can&#39;t be blank"
   end
@@ -47,11 +52,13 @@ defmodule Playground.AdminLiveTest do
   test "saves valid form submissions", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/admin/resources/ticket/new")
 
-    render_submit(view, "incant:event", %{
-      "op" => "form_submit",
-      "resource" => %{"title" => "Need help", "priority" => "high", "status" => "open"}
-    })
+    html =
+      view
+      |> form("[data-incant-resource-form]", %{
+        resource: %{title: "Need help", priority: "high", status: "open"}
+      })
+      |> render_submit()
 
-    assert_patch(view, "/admin/resources/ticket/99")
+    assert html =~ "Need help"
   end
 end

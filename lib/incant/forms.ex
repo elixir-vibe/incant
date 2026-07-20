@@ -26,6 +26,44 @@ defmodule Incant.Forms do
   def fields(_resource), do: []
 
   @doc """
+  Resolves the concrete resource metadata used for form fields, records, and
+  changesets.
+
+  Local sessions render portable surface maps that lack the repo, changeset
+  callback, and schema needed by forms, so resolve the real metadata from the
+  local admin's declared resources. Returns `nil` when the resource is not
+  form-capable.
+  """
+  def source_resource(%{kind: :resource} = surface, %{admin: admin}) do
+    resolve_local_resource(admin, surface) || nil
+  end
+
+  def source_resource(resource, _context) do
+    if fields(resource) != [], do: resource
+  end
+
+  defp resolve_local_resource(nil, _surface), do: nil
+
+  defp resolve_local_resource(admin, %{module: module}) do
+    admin
+    |> local_resource_modules()
+    |> Enum.find_value(fn resource_module ->
+      if inspect(resource_module) == to_string(module) or
+           Atom.to_string(resource_module) == to_string(module) do
+        Incant.metadata(resource_module)
+      end
+    end)
+  end
+
+  defp resolve_local_resource(_admin, _surface), do: nil
+
+  defp local_resource_modules(%{resources: resources, exposed: exposed}) do
+    resources ++ Enum.map(exposed, &elem(&1, 0))
+  end
+
+  defp local_resource_modules(_admin), do: []
+
+  @doc """
   Builds an empty record for a resource form.
   """
   def new_record(%{schema: schema}) when is_atom(schema) and not is_nil(schema) do
@@ -37,10 +75,11 @@ defmodule Incant.Forms do
   @doc """
   Builds a changeset for a resource when a changeset callback is configured.
   """
-  def changeset(%{changeset: nil}, _record, _attrs), do: nil
-
   def changeset(resource, record, attrs) do
-    Incant.Callback.call(resource.changeset, record, attrs)
+    case Map.get(resource, :changeset) do
+      nil -> nil
+      callback -> Incant.Callback.call(callback, record, attrs)
+    end
   end
 
   defp schema_field(schema, field) do

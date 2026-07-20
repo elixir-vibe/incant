@@ -6,15 +6,17 @@ defmodule Playground.Admin.Resources.LLMRequest do
 
   alias Playground.LLM
 
-  data(&LLM.list_requests/1)
+  alias Playground.LLM
+
+  index(&LLM.list_requests/1)
 
   table density: :compact, saved_views: true do
     column(:inserted_at, format: :relative)
     column(:provider, as: :badge)
     column(:model, link: true)
-    column(:tokens, align: :right)
-    column(:cost_usd, format: :currency)
-    column(:latency_ms, align: :right)
+    column(:tokens, label: "Tokens", format: :compact_number, align: :right)
+    column(:cost_usd, label: "Cost", format: :money, align: :right)
+    column(:latency_ms, label: "Latency", format: :duration_ms, align: :right)
     column(:status, as: :badge)
 
     filter(:provider, :multi_select, options: [:openai, :anthropic, :google])

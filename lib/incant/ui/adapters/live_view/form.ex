@@ -22,11 +22,10 @@ defmodule Incant.UI.Adapters.LiveView.Form do
 
     ~H"""
     <div class={Theme.slot(:panel, :root, kind: :form)}>
-      <.form for={@phoenix_form} phx-change="incant:event" phx-submit="incant:event" class={Theme.slot(:panel, :body, kind: :form)}>
-        <input type="hidden" name="op" value="form_validate" />
+      <.form for={@phoenix_form} id={@form.id} data-incant-resource-form phx-change="incant:event" phx-submit="incant:event" phx-value-op="form_validate" class={Theme.slot(:panel, :body, kind: :form)}>
         <.form_control :for={field <- @form.fields} field={field} />
         <div class={Theme.slot(:panel, :form_actions)}>
-          <button type="submit" name="op" value="form_submit" class={Theme.slot(:button, :base, variant: :primary)}>Save</button>
+          <button type="submit" phx-value-op="form_submit" class={Theme.slot(:button, :base, variant: :primary)}>Save</button>
           <.link patch={form_back_path(@env)} class={Theme.slot(:button, :base, variant: :ghost)}>Cancel</.link>
         </div>
       </.form>

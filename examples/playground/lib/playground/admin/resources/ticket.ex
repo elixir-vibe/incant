@@ -8,7 +8,7 @@ defmodule Playground.Admin.Resources.Ticket do
   alias Playground.Support
   alias Playground.Support.Ticket
 
-  data(&Support.list_tickets/1)
+  index(&Support.list_tickets/1)
   changeset(&Ticket.changeset/2)
 
   form do

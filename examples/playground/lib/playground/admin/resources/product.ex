@@ -6,7 +6,7 @@ defmodule Playground.Admin.Resources.Product do
 
   alias Playground.Catalog
 
-  data(&Catalog.list_products/1)
+  index(&Catalog.list_products/1)
 
   form do
     field(:name)
@@ -15,7 +15,9 @@ defmodule Playground.Admin.Resources.Product do
     field(:inventory, :number)
   end
 
-  table density: :compact, saved_views: true do
+  table density: :compact,
+        saved_views: true,
+        empty_state: "No products yet. Create one with the form above." do
     column(:name, link: true)
     column(:status, as: :badge)
     column(:price, format: :money)
@@ -25,7 +27,7 @@ defmodule Playground.Admin.Resources.Product do
     filter(:status, :select, options: [:draft, :active, :archived])
     filter(:inserted_at, :date_range)
 
-    action(:archive, confirm: true, tone: :danger, callback: &Catalog.archive_product/1)
+    action(:archive, confirm: "Archive this product?", destructive: true, callback: &Catalog.archive_product/1)
 
     search([:name])
   end

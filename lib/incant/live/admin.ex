@@ -406,7 +406,8 @@ defmodule Incant.Live.Admin do
     context = socket.assigns.context
 
     with :ok <- authorize_form(context, attrs) do
-      changeset = Incant.Live.FormState.validate(context.resource, context.form_record, attrs)
+      resource = Incant.Forms.source_resource(context.resource, context)
+      changeset = Incant.Live.FormState.validate(resource, context.form_record, attrs)
       {:noreply, assign_context(socket, :form_changeset, changeset)}
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, authorization_message(reason))}
@@ -417,9 +418,11 @@ defmodule Incant.Live.Admin do
     context = socket.assigns.context
 
     with :ok <- authorize_form(context, attrs) do
+      resource = Incant.Forms.source_resource(context.resource, context)
+
       case Incant.Live.FormState.save(
              context.form_mode,
-             context.resource,
+             resource,
              context.form_record,
              attrs
            ) do
@@ -867,17 +870,27 @@ defmodule Incant.Live.Admin do
   end
 
   defp form_record(_resource, _id, nil, _context), do: nil
-  defp form_record(%{kind: :resource}, _id, _mode, _context), do: nil
-  defp form_record(resource, _id, :new, _context), do: Incant.Forms.new_record(resource)
 
-  defp form_record(resource, id, :edit, context),
-    do: Incant.Live.Rows.one(resource, id, context) || %{}
+  defp form_record(resource, _id, :new, context),
+    do: Incant.Forms.new_record(form_source_resource(resource, context))
+
+  defp form_record(resource, id, :edit, context) do
+    source = form_source_resource(resource, context)
+    Incant.Live.Rows.one(source, id, context) || %{}
+  end
 
   defp form_changeset(_resource, _record, nil), do: nil
-  defp form_changeset(%{kind: :resource}, _record, _mode), do: nil
 
-  defp form_changeset(resource, record, _mode),
-    do: Incant.Live.FormState.changeset(resource, record)
+  defp form_changeset(resource, record, _mode) do
+    case form_source_resource(resource, %{}) do
+      nil -> nil
+      source -> Incant.Live.FormState.changeset(source, record)
+    end
+  end
+
+  defp form_source_resource(resource, context) do
+    Incant.Forms.source_resource(resource, context) || resource
+  end
 
   defp page_title(%{section: "services"}), do: "Services"
   defp page_title(%{section: "dashboards"}), do: "Dashboards"

@@ -13,16 +13,17 @@ defmodule Incant.Live.FormState do
 
   def save(_mode, %{repo: nil}, _record, _attrs), do: {:error, "Resource repo is not configured"}
 
-  def save(_mode, %{changeset: nil}, _record, _attrs),
-    do: {:error, "Resource changeset is not configured"}
-
   def save(mode, resource, record, attrs) when mode in [:new, :edit] do
-    changeset = changeset(resource, record, attrs)
-    repo_action = if mode == :new, do: :insert, else: :update
+    if is_nil(Map.get(resource, :changeset)) do
+      {:error, "Resource changeset is not configured"}
+    else
+      changeset = changeset(resource, record, attrs)
+      repo_action = if mode == :new, do: :insert, else: :update
 
-    resource.repo
-    |> apply(repo_action, [changeset])
-    |> normalize_save_result(mode)
+      resource.repo
+      |> apply(repo_action, [changeset])
+      |> normalize_save_result(mode)
+    end
   end
 
   defp normalize_save_result({:ok, record}, mode), do: {:ok, success_message(mode), record}

@@ -43,6 +43,12 @@ defmodule Playground.LLM do
 
   def total_requests(_variables, _context), do: length(list_requests())
 
+  def total_tokens(_variables, _context) do
+    list_requests()
+    |> Enum.map(& &1.tokens)
+    |> Enum.sum()
+  end
+
   def total_cost(_variables, _context) do
     list_requests()
     |> Enum.map(& &1.cost_usd)
