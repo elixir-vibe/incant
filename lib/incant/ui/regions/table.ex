@@ -61,7 +61,7 @@ defmodule Incant.UI.Regions.Table do
       page_actions: resource.table.page_actions,
       row_detail: row_detail_from_metadata(resource.table.row_detail),
       selection: selection_from_metadata(resource.table, context.table_state.selected_ids),
-      empty_state: empty_state(context.pagination, context.table_state),
+      empty_state: empty_state(context.pagination, context.table_state, resource.table.opts),
       density: resource.table.opts[:density] || :compact
     }
   end
@@ -208,12 +208,19 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
-  defp empty_state(%{error: error}, _table_state) when is_binary(error),
+  defp empty_state(%{error: error}, _table_state, _opts) when is_binary(error),
     do: "Resource query failed: #{error}"
 
-  defp empty_state(_pagination, table_state),
-    do: empty_results_message(table_state, "No records yet.")
+  defp empty_state(_pagination, table_state, opts),
+    do: empty_results_message(table_state, empty_state_message(opts))
 
+  defp empty_state_message(opts) when is_list(opts),
+    do: Keyword.get(opts, :empty_state, "No records yet.")
+
+  defp empty_state_message(opts) when is_map(opts),
+    do: Map.get(opts, :empty_state, "No records yet.")
+
+  defp empty_state_message(_opts), do: "No records yet."
   defp dataset_empty_state(%{meta: %{error: reason}}, _table_state),
     do: "Dataset query failed: #{inspect(reason)}"
 
