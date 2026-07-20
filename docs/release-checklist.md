@@ -24,7 +24,7 @@ Incant is still experimental. Use this checklist before publishing a Hex release
 
 ## Current status
 
-Latest local release-prep smoke:
+Verified before tagging a release:
 
 - `mix ci` passes.
 - `cd examples/playground && mix test` passes.
