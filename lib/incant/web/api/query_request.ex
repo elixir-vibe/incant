@@ -1,5 +1,11 @@
 defmodule Incant.Web.API.QueryRequest do
-  @moduledoc false
+  @moduledoc """
+  Typed request contract for standalone Incant resource queries.
+
+  The standalone HTTP API decodes JSON bodies into this struct at the HTTP
+  boundary before dispatching to the queried resource. Library/embedded
+  consumers do not interact with this module.
+  """
 
   use JSONCodec, fast_path: :json, strict: true
 

@@ -1,5 +1,11 @@
 defmodule Incant.Web.Endpoint do
-  @moduledoc false
+  @moduledoc """
+  Phoenix endpoint for standalone Incant deployments.
+
+  Only started when `serve?: true` is configured. Library/embedded consumers
+  mount Incant surfaces in their own Phoenix router and do not start this
+  endpoint.
+  """
 
   use Phoenix.Endpoint, otp_app: :incant
 

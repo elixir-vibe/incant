@@ -1,5 +1,10 @@
 defmodule Incant.Web.API.ActionRunRequest do
-  @moduledoc false
+  @moduledoc """
+  Typed request contract for running Incant actions over the standalone HTTP API.
+
+  Carries the decoded action payload plus caller context. Library/embedded
+  consumers do not interact with this module.
+  """
 
   use JSONCodec, fast_path: :json, strict: true
 

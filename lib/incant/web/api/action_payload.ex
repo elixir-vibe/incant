@@ -1,5 +1,10 @@
 defmodule Incant.Web.API.ActionPayload do
-  @moduledoc false
+  @moduledoc """
+  Action invocation payload carried inside `Incant.Web.API.ActionRunRequest`.
+
+  Holds the target record id, optional bulk selection, caller assigns, and
+  action input. Library/embedded consumers do not interact with this module.
+  """
 
   use JSONCodec, fast_path: :json, strict: true
 
