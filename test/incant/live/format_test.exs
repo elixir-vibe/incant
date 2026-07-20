@@ -10,6 +10,19 @@ defmodule Incant.Live.FormatTest do
     assert Format.value(Decimal.new("1234567.89"), :number) == "1,234,567.89"
   end
 
+  test "formats compact numbers with scaled suffixes" do
+    assert Format.value(0, :compact_number) == "0"
+    assert Format.value(537, :compact_number) == "537"
+    assert Format.value(1_500, :compact_number) == "1,500"
+    assert Format.value(12_749, :compact_number) == "12.7k"
+    assert Format.value(117_338_154, :compact_number) == "117.3M"
+    assert Format.value(2_752_554, :compact_number) == "2.8M"
+    assert Format.value(1_250_000_000, :compact_number) == "1.3B"
+    assert Format.value(1_000_000, :compact_number) == "1M"
+    assert Format.value(-2_752_554, :compact_number) == "-2.8M"
+    assert Format.value(Decimal.new("117338154"), :compact_number) == "117.3M"
+  end
+
   test "formats currency with stable decimals and separators" do
     assert Format.value(12, :money) == "$12"
     assert Format.value(12_345.6, :money) == "$12,345.60"

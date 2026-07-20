@@ -519,6 +519,51 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     refute html =~ "col-span-"
   end
 
+  test "renders stat tooltip with the full value for compact displays" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      columns: 10,
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :input_tokens,
+          type: :stat,
+          title: "Input tokens",
+          display: "117.3M",
+          full_display: "117,338,154",
+          span: 2
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    assert html =~ "117.3M"
+    assert html =~ ~s(title="117,338,154")
+  end
+
+  test "stat widget without full display renders no tooltip" do
+    grid = %Incant.UI.Regions.WidgetGrid{
+      widgets: [
+        %Incant.UI.Regions.WidgetGrid.Widget{
+          id: :requests,
+          type: :stat,
+          title: "Requests",
+          display: "1,234",
+          span: 2
+        }
+      ]
+    }
+
+    html =
+      %{grid: grid}
+      |> Incant.UI.Adapters.LiveView.Dashboard.widget_grid()
+      |> rendered_to_string()
+
+    refute html =~ "title="
+  end
+
   test "renders dashboard table widgets with source column metadata" do
     grid = %Incant.UI.Regions.WidgetGrid{
       widgets: [

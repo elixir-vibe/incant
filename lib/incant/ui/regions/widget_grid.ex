@@ -15,6 +15,7 @@ defmodule Incant.UI.Regions.WidgetGrid do
       :title,
       :value,
       :display,
+      :full_display,
       :delta,
       :span,
       :chart,
@@ -46,6 +47,7 @@ defmodule Incant.UI.Regions.WidgetGrid do
       title: option(widget.opts, :label) || humanize(widget.id),
       value: value,
       display: display_value(value, widget),
+      full_display: full_display_value(value, widget),
       delta: stat_delta(value, widget),
       span: option(widget.opts, :span),
       chart: chart_from_metadata(widget, value),
@@ -86,6 +88,20 @@ defmodule Incant.UI.Regions.WidgetGrid do
     |> stat_value()
     |> Incant.Live.Format.value(option(widget.opts, :format, :number))
   end
+
+  defp full_display_value(value, %{type: :stat} = widget) do
+    case option(widget.opts, :format, :number) do
+      :compact_number ->
+        value
+        |> stat_value()
+        |> Incant.Live.Format.value(:number)
+
+      _other ->
+        nil
+    end
+  end
+
+  defp full_display_value(_value, _widget), do: nil
 
   defp display_value(value, _widget) when is_list(value) or is_map(value), do: value
 

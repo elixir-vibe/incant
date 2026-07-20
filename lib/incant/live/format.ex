@@ -1,7 +1,7 @@
 defmodule Incant.Live.Format do
   @moduledoc false
 
-  @formats ~w(money currency number datetime date time boolean relative percent id)a
+  @formats ~w(money currency number compact_number datetime date time boolean relative percent id)a
 
   def value(value, format) do
     do_value(value, format_name(format))
@@ -14,6 +14,7 @@ defmodule Incant.Live.Format do
   defp do_value(value, :money), do: currency(value)
   defp do_value(value, :currency), do: currency(value)
   defp do_value(value, :number), do: number(value)
+  defp do_value(value, :compact_number), do: compact_number(value)
   defp do_value(value, :datetime), do: datetime(value)
   defp do_value(value, :date), do: date(value)
   defp do_value(value, :time), do: time(value)
@@ -57,6 +58,35 @@ defmodule Incant.Live.Format do
   end
 
   defp number(value), do: fallback(value)
+
+  defp compact_number(%Decimal{} = value),
+    do: value |> Decimal.to_float() |> compact_number()
+
+  defp compact_number(value) when is_integer(value) and abs(value) < 1_000,
+    do: delimit_integer(value)
+
+  defp compact_number(value) when is_number(value) do
+    abs_value = abs(value)
+
+    cond do
+      abs_value >= 1_000_000_000 -> compact_scaled(value, 1_000_000_000, "B")
+      abs_value >= 1_000_000 -> compact_scaled(value, 1_000_000, "M")
+      abs_value >= 10_000 -> compact_scaled(value, 1_000, "k")
+      true -> number(value)
+    end
+  end
+
+  defp compact_number(value), do: fallback(value)
+
+  defp compact_scaled(value, scale, suffix) do
+    scaled =
+      (value / scale)
+      |> Float.round(1)
+      |> :erlang.float_to_binary(decimals: 1)
+      |> String.trim_trailing(".0")
+
+    "#{scaled}#{suffix}"
+  end
 
   defp datetime(%DateTime{} = value), do: Calendar.strftime(value, "%Y-%m-%d %H:%M")
   defp datetime(%NaiveDateTime{} = value), do: Calendar.strftime(value, "%Y-%m-%d %H:%M")

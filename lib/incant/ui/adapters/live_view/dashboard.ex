@@ -24,7 +24,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
     ~H"""
     <div class={Theme.slot(:widget, :root, kind: :stat)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="stat">
       <p class={Theme.slot(:widget, :stat_label)}>{@widget.title}</p>
-      <div class={Theme.slot(:widget, :stat_value)}>
+      <div class={Theme.slot(:widget, :stat_value)} title={@widget.full_display}>
         <%= cond do %>
           <% @widget.error -> %>
             <span class={Theme.slot(:widget, :error)}>Unable to load widget.</span>

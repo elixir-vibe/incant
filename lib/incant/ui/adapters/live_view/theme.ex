@@ -479,7 +479,7 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         title: "mt-1 font-mono text-sm font-semibold text-[var(--incant-text-highlighted)]",
         stat_label: "text-xs font-medium text-[var(--incant-text-muted)]",
         stat_value:
-          "mt-2 text-2xl font-semibold tracking-tight tabular-nums text-[var(--incant-text-highlighted)] sm:text-3xl",
+          "mt-2 truncate text-2xl font-semibold tracking-tight tabular-nums text-[var(--incant-text-highlighted)] sm:text-3xl",
         stat_delta: "mt-2 text-xs font-medium",
         error: "text-base text-[var(--incant-error)]",
         message: "p-3 text-sm text-[var(--incant-text-muted)]",
