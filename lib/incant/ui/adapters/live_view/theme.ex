@@ -449,8 +449,9 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         list:
           "grid divide-y divide-[var(--incant-border-muted)] md:grid-cols-2 md:divide-x md:divide-y-0 xl:grid-cols-3",
         item: "px-4 py-3",
+        item_wide: "md:col-span-2 xl:col-span-3",
         label: "text-[11px] font-medium uppercase tracking-wide text-[var(--incant-text-muted)]",
-        value: "mt-1 text-sm text-[var(--incant-text-highlighted)]"
+        value: "mt-1 whitespace-pre-wrap break-words text-sm text-[var(--incant-text-highlighted)]"
       }
     }
   end

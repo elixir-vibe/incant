@@ -28,10 +28,24 @@ defmodule Incant.UI.Regions.Inspector do
         label: column.opts[:label] || humanize(column.name),
         value: display_value,
         display: Incant.Live.Format.value(display_value, column.opts[:format]),
+        full: detail_full_value(display_value),
         format: column.opts[:as] || column.opts[:format],
+        wide: detail_wide?(column),
         sensitive: Incant.Sensitive.sensitive?(column.opts)
       }
     end)
+  end
+
+  defp detail_full_value(nil), do: nil
+  defp detail_full_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
+  defp detail_full_value(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
+  defp detail_full_value(%Decimal{} = value), do: Decimal.to_string(value, :normal)
+  defp detail_full_value(value) when is_binary(value), do: value
+  defp detail_full_value(value), do: to_string(value)
+
+  defp detail_wide?(column) do
+    column.opts[:format] == :text or column.opts[:wide] == true or
+      column.name in [:user_message, :message, :body, :description, :content]
   end
 
   defp humanize(value), do: Incant.Naming.label(value)

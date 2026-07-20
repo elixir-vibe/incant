@@ -23,17 +23,28 @@ defmodule Incant.UI.Adapters.LiveView.Inspector do
         <.link patch={resource_path(@env.base_path, @env.context.resource)} class={Theme.slot(:button, :base, variant: :ghost, size: :xs)}>Back to list</.link>
       </div>
       <dl class={Theme.slot(:inspector, :list)}>
-        <div :for={field <- @inspector.fields} class={Theme.slot(:inspector, :item)}>
+        <div :for={field <- @inspector.fields} class={[Theme.slot(:inspector, :item), field[:wide] && Theme.slot(:inspector, :item_wide)]}>
           <dt class={Theme.slot(:inspector, :label)}>{field.label}</dt>
-          <dd class={Theme.slot(:inspector, :value)}>
+          <dd class={Theme.slot(:inspector, :value)} title={detail_tooltip(field)}>
             <span :if={field[:sensitive]} class={Theme.slot(:badge, :base, variant: :outline)}>
               {redacted_cell_display()}
             </span>
-            <span :if={!field[:sensitive]}>{field.display}</span>
+            <span :if={!field[:sensitive]}>{detail_display(field)}</span>
           </dd>
         </div>
       </dl>
     </div>
     """
+  end
+
+  defp detail_display(field) do
+    case field[:format] do
+      :id -> field.full || field.display
+      _other -> field.display
+    end
+  end
+
+  defp detail_tooltip(field) do
+    if field.full && field.full != detail_display(field), do: field.full
   end
 end
