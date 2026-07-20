@@ -89,6 +89,11 @@ defmodule Incant.UI.Regions.WidgetGrid do
     |> Incant.Live.Format.value(option(widget.opts, :format, :number))
   end
 
+  defp display_value(value, _widget) when is_list(value) or is_map(value), do: value
+
+  defp display_value(value, widget),
+    do: Incant.Live.Format.value(value, option(widget.opts, :format))
+
   defp full_display_value(value, %{type: :stat} = widget) do
     case option(widget.opts, :format, :number) do
       :compact_number ->
@@ -102,11 +107,6 @@ defmodule Incant.UI.Regions.WidgetGrid do
   end
 
   defp full_display_value(_value, _widget), do: nil
-
-  defp display_value(value, _widget) when is_list(value) or is_map(value), do: value
-
-  defp display_value(value, widget),
-    do: Incant.Live.Format.value(value, option(widget.opts, :format))
 
   defp stat_delta(value, %{type: :stat}) when is_map(value), do: option(value, :delta)
   defp stat_delta(_value, _widget), do: nil

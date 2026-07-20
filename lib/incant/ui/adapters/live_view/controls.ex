@@ -85,11 +85,11 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
         </button>
       </div>
 
-      <dialog id={@dialog_id} class={Theme.slot(:filters, :dialog)} aria-labelledby={@dialog_id <> "-title"} data-incant-filter-dialog>
+      <dialog id={@dialog_id} class={Theme.slot(:filters, :dialog)} aria-labelledby={@dialog_id <> "-title"} aria-describedby={@dialog_id <> "-description"} aria-modal="true" data-incant-filter-dialog>
         <div class={Theme.slot(:filters, :dialog_header)}>
           <div>
             <h3 id={@dialog_id <> "-title"} class={Theme.slot(:filters, :dialog_title)}>Filters</h3>
-            <p class={Theme.slot(:filters, :dialog_description)}>Choose a field, then apply its value.</p>
+            <p id={@dialog_id <> "-description"} class={Theme.slot(:filters, :dialog_description)}>Choose a field, then apply its value.</p>
           </div>
           <button type="button" class={Theme.slot(:filters, :dialog_close)} data-incant-filter-close aria-label="Close filters">×</button>
         </div>
