@@ -23,6 +23,17 @@ defmodule Incant.Live.FormatTest do
     assert Format.value(Decimal.new("117338154"), :compact_number) == "117.3M"
   end
 
+  test "formats millisecond durations with human units" do
+    assert Format.value(0, :duration_ms) == "0ms"
+    assert Format.value(843, :duration_ms) == "843ms"
+    assert Format.value(15_431, :duration_ms) == "15.4s"
+    assert Format.value(12_529, :duration_ms) == "12.5s"
+    assert Format.value(8_003, :duration_ms) == "8s"
+    assert Format.value(90_000, :duration_ms) == "1.5m"
+    assert Format.value(7_200_000, :duration_ms) == "2h"
+    assert Format.value(Decimal.new("15431"), :duration_ms) == "15.4s"
+  end
+
   test "formats currency with stable decimals and separators" do
     assert Format.value(12, :money) == "$12"
     assert Format.value(12_345.6, :money) == "$12,345.60"

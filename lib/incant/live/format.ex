@@ -1,7 +1,7 @@
 defmodule Incant.Live.Format do
   @moduledoc false
 
-  @formats ~w(money currency number compact_number datetime date time boolean relative percent id)a
+  @formats ~w(money currency number compact_number duration_ms datetime date time boolean relative percent id)a
 
   def value(value, format) do
     do_value(value, format_name(format))
@@ -15,6 +15,7 @@ defmodule Incant.Live.Format do
   defp do_value(value, :currency), do: currency(value)
   defp do_value(value, :number), do: number(value)
   defp do_value(value, :compact_number), do: compact_number(value)
+  defp do_value(value, :duration_ms), do: duration_ms(value)
   defp do_value(value, :datetime), do: datetime(value)
   defp do_value(value, :date), do: date(value)
   defp do_value(value, :time), do: time(value)
@@ -86,6 +87,28 @@ defmodule Incant.Live.Format do
       |> String.trim_trailing(".0")
 
     "#{scaled}#{suffix}"
+  end
+
+  defp duration_ms(%Decimal{} = value), do: value |> Decimal.to_float() |> duration_ms()
+
+  defp duration_ms(value) when is_number(value) do
+    ms = value * 1.0
+
+    cond do
+      ms < 1_000 -> "#{round(ms)}ms"
+      ms < 60_000 -> "#{format_duration_unit(ms / 1_000)}s"
+      ms < 3_600_000 -> "#{format_duration_unit(ms / 60_000)}m"
+      true -> "#{format_duration_unit(ms / 3_600_000)}h"
+    end
+  end
+
+  defp duration_ms(value), do: fallback(value)
+
+  defp format_duration_unit(value) do
+    value
+    |> Float.round(1)
+    |> :erlang.float_to_binary(decimals: 1)
+    |> String.trim_trailing(".0")
   end
 
   defp datetime(%DateTime{} = value), do: Calendar.strftime(value, "%Y-%m-%d %H:%M")
