@@ -112,6 +112,7 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def table_data_class(column) do
     [
       Theme.slot(:table, :cell, align: table_column_align(column)),
+      table_cell_nowrap?(column) && "whitespace-nowrap",
       responsive_column_class(column_priority(column))
     ]
   end
@@ -406,6 +407,31 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
 
   def table_cell_display(%{format: format}, value), do: Incant.Live.Format.value(value, format)
   def table_cell_display(_column, value), do: Incant.Live.Format.value(value, nil)
+
+  def table_cell_nowrap?(%Incant.Dashboard.Column{opts: opts}),
+    do: Keyword.get(opts, :format) in [:datetime, :date, :time]
+
+  def table_cell_nowrap?(%{format: format}), do: format in [:datetime, :date, :time]
+  def table_cell_nowrap?(_column), do: false
+
+  def table_cell_title(column, value) do
+    format = table_cell_format(column)
+    display = Incant.Live.Format.value(value, format)
+    raw = table_cell_raw(value)
+
+    if display != raw and format in [:id, :compact_number, :duration_ms], do: raw
+  end
+
+  defp table_cell_format(%Incant.Dashboard.Column{opts: opts}), do: Keyword.get(opts, :format)
+  defp table_cell_format(%{format: format}), do: format
+  defp table_cell_format(_column), do: nil
+
+  defp table_cell_raw(nil), do: ""
+  defp table_cell_raw(%DateTime{} = value), do: DateTime.to_iso8601(value)
+  defp table_cell_raw(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
+  defp table_cell_raw(%Decimal{} = value), do: Decimal.to_string(value, :normal)
+  defp table_cell_raw(value) when is_binary(value), do: value
+  defp table_cell_raw(value), do: to_string(value)
 
   defp elem_or_nil({:ok, value}), do: value
   defp elem_or_nil(:error), do: nil

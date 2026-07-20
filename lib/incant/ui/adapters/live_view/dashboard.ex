@@ -131,7 +131,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
           </thead>
           <tbody class={Theme.slot(:table, :body)}>
             <tr :if={@rows == []}><td colspan={length(table_columns(@widget))} class={Theme.slot(:table, :empty)}>No rows to display.</td></tr>
-            <tr :for={row <- @rows} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)}>{table_cell_display(column, table_cell(row, column))}</td></tr>
+            <tr :for={row <- @rows} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)} title={table_cell_title(column, table_cell(row, column))}>{table_cell_display(column, table_cell(row, column))}</td></tr>
           </tbody>
         </table>
       </div>
