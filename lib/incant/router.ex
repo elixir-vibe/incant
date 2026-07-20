@@ -48,7 +48,13 @@ defmodule Incant.Router do
             live(unquote(path <> "/:service/dashboards"), Incant.Live.Admin, :dashboards)
             live(unquote(path <> "/:service/resources"), Incant.Live.Admin, :resources)
             live(unquote(path <> "/:service/datasets"), Incant.Live.Admin, :datasets)
-            live(unquote(path <> "/:service/dashboards/:dashboard"), Incant.Live.Admin, :dashboard)
+
+            live(
+              unquote(path <> "/:service/dashboards/:dashboard"),
+              Incant.Live.Admin,
+              :dashboard
+            )
+
             live(unquote(path <> "/:service/datasets/:dataset"), Incant.Live.Admin, :dataset)
             live(unquote(path <> "/:service/resources/:resource"), Incant.Live.Admin, :resource)
 

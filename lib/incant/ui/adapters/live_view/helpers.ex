@@ -62,7 +62,8 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   end
 
   def form_enabled?(resource) do
-    not is_nil(resource_field(resource, :repo)) and not is_nil(resource_field(resource, :changeset))
+    not is_nil(resource_field(resource, :repo)) and
+      not is_nil(resource_field(resource, :changeset))
   end
 
   defp resource_field(%{} = resource, key), do: Map.get(resource, key)
