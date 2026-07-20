@@ -1,4 +1,14 @@
 {
+  "name": "incant",
+  "version": "0.1.0",
+  "description": "Incant admin UI adapter frontend (theme, dialogs, controls)",
+  "type": "module",
+  "main": "assets/js/incant.ts",
+  "exports": {
+    ".": "./assets/js/incant.ts",
+    "./standalone": "./assets/js/app.ts",
+    "./css": "./assets/css/app.css"
+  },
   "devDependencies": {
     "@oxlint-tsgolint/linux-x64": "0.24.0"
   }

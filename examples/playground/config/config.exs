@@ -26,7 +26,11 @@ config :volt,
   outdir: "priv/static/assets",
   root: "assets",
   target: :es2022,
-  resolve_dirs: [Path.expand("../deps", __DIR__), Mix.Project.build_path()],
+  resolve_dirs: [
+    Path.expand("../deps", __DIR__),
+    Path.expand("../../../..", __DIR__),
+    Mix.Project.build_path()
+  ],
   aliases: %{"@" => "."},
   tailwind: [
     css: "assets/css/app.css",

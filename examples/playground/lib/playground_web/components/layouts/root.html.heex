@@ -8,6 +8,8 @@
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={Volt.static_path(Playground.Endpoint, "/assets/css/app.css")} />
+    <script defer src={~p"/assets/vendor/topbar.js"}>
+    </script>
     <script defer phx-track-static type="module" src={Volt.static_path(Playground.Endpoint, "/assets/js/app.js")}>
     </script>
     <script>
