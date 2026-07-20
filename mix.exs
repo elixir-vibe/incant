@@ -54,6 +54,7 @@ defmodule Incant.MixProject do
       extras: [
         "README.md",
         "CHANGELOG.md",
+        "LICENSE",
         "CONVENTIONS.md",
         "PLAN.md",
         "REFERENCES.md",
