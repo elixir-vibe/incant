@@ -158,7 +158,9 @@ defmodule Mix.Tasks.Incant.Install do
     defmodule #{namespace}.Admin.Resources.Sample do
       use Incant.Resource
 
-      data fn _params ->
+      index(&__MODULE__.rows/1)
+
+      def rows(_params) do
         [
           %{id: 1, name: "First row", status: :active},
           %{id: 2, name: "Second row", status: :draft}

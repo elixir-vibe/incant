@@ -54,12 +54,19 @@ defmodule Incant.Install.Patcher do
     with {:ok, ast} <- Sourceror.parse_string(content) do
       route = quoted!(~s(incant "/admin", #{namespace}.Admin))
 
-      ast
-      |> Macro.prewalk(fn
-        {:scope, meta, args} = node -> insert_route_in_scope(node, meta, args, route)
-        node -> node
-      end)
-      |> Sourceror.to_string()
+      {ast, inserted?} =
+        Macro.prewalk(ast, false, fn
+          {:scope, meta, args} = node, false ->
+            case insert_route_in_scope(node, meta, args, route) do
+              ^node -> {node, false}
+              updated -> {updated, true}
+            end
+
+          node, acc ->
+            {node, acc}
+        end)
+
+      if inserted?, do: Sourceror.to_string(ast)
     end
   rescue
     _error in [ArgumentError, FunctionClauseError, MatchError] -> nil
