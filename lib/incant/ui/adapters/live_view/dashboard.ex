@@ -22,7 +22,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(%{widget: %{type: :stat}} = assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root, kind: :stat)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="stat">
+    <div class={[Theme.slot(:widget, :root, kind: :stat), widget_span_class(@widget)]} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="stat">
       <p class={Theme.slot(:widget, :stat_label)}>{@widget.title}</p>
       <div class={Theme.slot(:widget, :stat_value)} title={@widget.full_display}>
         <%= cond do %>
@@ -43,7 +43,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(%{widget: %{type: :timeseries}} = assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="timeseries">
+    <div class={[Theme.slot(:widget, :root), widget_span_class(@widget)]} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="timeseries">
       <div class={Theme.slot(:widget, :title_row)}>
         <div>
           <p class={Theme.slot(:widget, :eyebrow)}>Timeseries</p>
@@ -70,7 +70,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(%{widget: %{type: :chart}} = assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="chart">
+    <div class={[Theme.slot(:widget, :root), widget_span_class(@widget)]} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="chart">
       <div class={Theme.slot(:widget, :title_row)}>
         <div>
           <p class={Theme.slot(:widget, :eyebrow)}>{@widget.chart.type || "Chart"}</p>
@@ -114,7 +114,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
       |> assign(:total_rows, length(rows))
 
     ~H"""
-    <div class={Theme.slot(:widget, :framed)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="table">
+    <div class={[Theme.slot(:widget, :framed), widget_span_class(@widget)]} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind="table">
       <div class={Theme.slot(:widget, :header)}>
         <div>
           <p class={Theme.slot(:widget, :eyebrow)}>Table</p>
@@ -144,7 +144,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
 
   def widget(assigns) do
     ~H"""
-    <div class={Theme.slot(:widget, :root)} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind={@widget.type}>
+    <div class={[Theme.slot(:widget, :root), widget_span_class(@widget)]} style={widget_style(@widget)} data-incant-widget data-incant-widget-kind={@widget.type}>
       <p class={Theme.slot(:widget, :eyebrow)}>{@widget.type}</p>
       <h3 class={Theme.slot(:widget, :title)}>{@widget.title}</h3>
     </div>

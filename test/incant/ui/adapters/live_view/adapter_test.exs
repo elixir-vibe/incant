@@ -516,7 +516,7 @@ defmodule Incant.UI.Adapters.LiveView.AdapterTest do
     assert html =~ "-12.5% vs previous"
     assert html =~ "text-[var(--incant-error)]"
     assert html =~ "text-3xl"
-    refute html =~ "col-span-"
+    assert html =~ "col-span-1 xl:col-span-2"
   end
 
   test "renders stat tooltip with the full value for compact displays" do

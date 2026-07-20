@@ -260,6 +260,36 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     end
   end
 
+  def widget_span_class(widget) do
+    base = if match?(%{type: :stat}, widget), do: "col-span-1", else: "col-span-2"
+
+    case widget.span do
+      nil -> base
+      span when is_integer(span) and span >= 1 and span <= 12 -> "#{base} xl:col-span-#{span}"
+      _other -> base
+    end
+  end
+
+  # Literal span classes so the Tailwind scanner emits them; spans are
+  # computed server-side and would otherwise be purged.
+  @doc false
+  def widget_span_safelist do
+    [
+      "xl:col-span-1",
+      "xl:col-span-2",
+      "xl:col-span-3",
+      "xl:col-span-4",
+      "xl:col-span-5",
+      "xl:col-span-6",
+      "xl:col-span-7",
+      "xl:col-span-8",
+      "xl:col-span-9",
+      "xl:col-span-10",
+      "xl:col-span-11",
+      "xl:col-span-12"
+    ]
+  end
+
   def chart_axis_label(nil), do: "—"
   def chart_axis_label({field, _opts}), do: to_string(field)
   def chart_axis_label(field), do: to_string(field)

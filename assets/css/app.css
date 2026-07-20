@@ -2,6 +2,10 @@
 
 @source "../../lib";
 
+/* Dashboard widget spans are computed server-side; safelist the responsive
+   column classes they can produce. */
+@source inline("xl:col-span-1 xl:col-span-2 xl:col-span-3 xl:col-span-4 xl:col-span-5 xl:col-span-6 xl:col-span-7 xl:col-span-8 xl:col-span-9 xl:col-span-10 xl:col-span-11 xl:col-span-12");
+
 :root {
   --incant-primary: var(--color-violet-600);
   --incant-secondary: var(--color-blue-600);
@@ -84,15 +88,4 @@
 
 [data-incant-widget] {
   min-width: 0;
-  grid-column: span 2 / span 2;
-}
-
-[data-incant-widget-kind="stat"] {
-  grid-column: span 1 / span 1;
-}
-
-@media (min-width: 1280px) {
-  [data-incant-widget] {
-    grid-column: span var(--incant-widget-span, 1) / span var(--incant-widget-span, 1);
-  }
 }
