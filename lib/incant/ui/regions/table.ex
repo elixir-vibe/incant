@@ -221,6 +221,7 @@ defmodule Incant.UI.Regions.Table do
     do: Map.get(opts, :empty_state, "No records yet.")
 
   defp empty_state_message(_opts), do: "No records yet."
+
   defp dataset_empty_state(%{meta: %{error: reason}}, _table_state),
     do: "Dataset query failed: #{inspect(reason)}"
 

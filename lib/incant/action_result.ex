@@ -51,7 +51,11 @@ defmodule Incant.ActionResult do
 
   defmodule Reveal do
     @moduledoc "Reveal a one-time value (such as a newly created secret) to the user."
-    @type t :: %__MODULE__{title: String.t() | nil, value: String.t(), description: String.t() | nil}
+    @type t :: %__MODULE__{
+            title: String.t() | nil,
+            value: String.t(),
+            description: String.t() | nil
+          }
     defstruct [:title, :value, :description]
   end
 
