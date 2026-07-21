@@ -161,6 +161,7 @@ defmodule Incant.UI.Regions.Table do
 
   defp cell_display(true, :boolean, opts), do: opts[:true_label] || "Yes"
   defp cell_display(false, :boolean, opts), do: opts[:false_label] || "No"
+  defp cell_display(value, :badge, _opts), do: Incant.Naming.label(value)
   defp cell_display(value, format, _opts), do: Incant.Live.Format.value(value, format)
 
   defp dataset_column(column) do

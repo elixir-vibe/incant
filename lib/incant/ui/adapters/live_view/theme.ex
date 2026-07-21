@@ -211,6 +211,26 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
     }
   end
 
+  def recipe(:multi_select) do
+    %Recipe{
+      slots: %{
+        root: "relative",
+        trigger:
+          "flex h-9 w-full cursor-pointer list-none items-center gap-2 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] hover:border-[var(--incant-border-accented)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)] [&::-webkit-details-marker]:hidden",
+        trigger_label: "shrink-0 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]",
+        trigger_value: "min-w-0 flex-1 truncate text-left",
+        chevron: "h-4 w-4 shrink-0 text-[var(--incant-text-muted)]",
+        menu:
+          "absolute left-0 top-full z-30 mt-1 max-h-64 min-w-full overflow-y-auto rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] p-1 shadow-xl",
+        option:
+          "flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm text-[var(--incant-text-toned)] hover:bg-[var(--incant-bg-accented)] hover:text-[var(--incant-text-highlighted)]",
+        checkbox:
+          "h-3.5 w-3.5 rounded border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] text-[var(--incant-primary)] focus:ring-[var(--incant-primary)]",
+        option_label: "min-w-0 flex-1 truncate"
+      }
+    }
+  end
+
   def recipe(:field) do
     %Recipe{
       slots: %{

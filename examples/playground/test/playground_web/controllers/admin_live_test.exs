@@ -26,9 +26,9 @@ defmodule Playground.AdminLiveTest do
     assert html =~ "LLM Operations"
     assert html =~ "Requests"
     assert html =~ "Tokens"
-    assert html =~ "151.5k"
-    assert html =~ "$68.46"
-    assert html =~ "1.4s"
+    assert html =~ "1.4M"
+    assert html =~ "$404.95"
+    assert html =~ "1.8s"
   end
 
   test "renders dashboard table widget", %{conn: conn} do

@@ -166,7 +166,7 @@ defmodule Incant.UI.Adapters.LiveView.Table do
     <span :if={!cell_sensitive?(@cell) && boolean_cell?(@cell)} class={Theme.slot(:table, :boolean, value: boolean_value?(@cell))}>
       {@cell.display}
     </span>
-    <span :if={!cell_sensitive?(@cell) && !boolean_cell?(@cell) && @cell.format == :badge} class={Theme.slot(:badge, :base, variant: :soft)}>{@cell.value}</span>
+    <span :if={!cell_sensitive?(@cell) && !boolean_cell?(@cell) && @cell.format == :badge} class={Theme.slot(:badge, :base, variant: :soft)}>{@cell.display}</span>
     <span :if={!cell_sensitive?(@cell) && !boolean_cell?(@cell) && @cell.format != :badge} class={cell_content_class(@cell)}>{@cell.display}</span>
     """
   end

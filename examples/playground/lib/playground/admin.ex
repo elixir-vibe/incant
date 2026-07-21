@@ -2,7 +2,14 @@ defmodule Playground.Admin do
   @moduledoc false
 
   use Incant.Admin,
-    theme: Playground.Admin.Themes.Default
+    theme: Playground.Admin.Themes.Default,
+    naming: [
+      terms: %{
+        openai: "OpenAI",
+        anthropic: "Anthropic",
+        google: "Google"
+      }
+    ]
 
   resource(Playground.Admin.Resources.Product)
   resource(Playground.Admin.Resources.LLMRequest)

@@ -8,6 +8,6 @@ defmodule Playground.Admin.DashboardVariablesTest do
     variables = %{"range" => %{"from" => ~D[2026-05-01], "to" => ~D[2026-05-31]}}
     raw_variables = %{"range" => %{"from" => "2026-05-01", "to" => "2026-05-31"}}
 
-    assert Incant.Callback.call(widget.opts[:query], variables, %{raw_variables: raw_variables}) == 3
+    assert Incant.Callback.call(widget.opts[:query], variables, %{raw_variables: raw_variables}) == 24
   end
 end

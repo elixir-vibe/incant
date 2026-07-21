@@ -200,16 +200,14 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
   end
 
   def filter_editor(%{control: %MultiSelect{} = control} = assigns) do
-    assigns = assign(assigns, :values, selected_values(control.value))
+    assigns =
+      assigns
+      |> assign(:control, control)
+      |> assign(:values, selected_values(control.value))
 
     ~H"""
     <.form :let={_form} for={%{}} as={:table} phx-submit="incant:event" phx-value-op="filter_commit" class={Theme.slot(:filters, :editor_form)}>
-      <label class={Theme.slot(:filters, :editor_field)} for={filter_editor_id(@control.name)}>
-        Values
-        <select id={filter_editor_id(@control.name)} name={control_name(@control) <> "[]"} multiple class={Theme.slot(:field, :input, height: :tall)}>
-          <option :for={option <- @control.options || []} value={option.value} selected={to_string(option.value) in @values}>{option.label}</option>
-        </select>
-      </label>
+      <.multi_select control={@control} values={@values} id_prefix="filter-editor" />
       <button type="submit" class={Theme.slot(:button, :base, variant: :primary, size: :sm)} data-incant-filter-apply>Apply filter</button>
     </.form>
     """
@@ -392,15 +390,13 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
   end
 
   def control(%{control: %MultiSelect{} = control} = assigns) do
-    assigns = assign(assigns, :values, selected_values(control.value))
+    assigns =
+      assigns
+      |> assign(:control, control)
+      |> assign(:values, selected_values(control.value))
 
     ~H"""
-    <label class={Theme.slot(:field, :root)}>
-      {@control.label || @control.name}
-      <select name={control_name(@control) <> "[]"} multiple class={Theme.slot(:field, :input, height: :tall)}>
-        <option :for={option <- @control.options || []} value={option.value} selected={to_string(option.value) in @values}>{option.label}</option>
-      </select>
-    </label>
+    <.multi_select control={@control} values={@values} id_prefix="dashboard-variable" />
     """
   end
 
@@ -437,6 +433,52 @@ defmodule Incant.UI.Adapters.LiveView.Controls do
       <input type="text" name={control_name(@control)} value={@control.value} placeholder={@control.placeholder || @control.label} class={Theme.slot(:field, :input)} />
     </label>
     """
+  end
+
+  attr(:control, :map, required: true)
+  attr(:values, :list, required: true)
+  attr(:id_prefix, :string, default: "multi-select")
+
+  def multi_select(assigns) do
+    ~H"""
+    <details class={Theme.slot(:multi_select, :root)} data-incant-multi-select>
+      <summary class={Theme.slot(:multi_select, :trigger)}>
+        <span class={Theme.slot(:multi_select, :trigger_label)}>
+          {@control.label || @control.name}
+        </span>
+        <span class={Theme.slot(:multi_select, :trigger_value)}>
+          {multi_select_summary(@control, @values)}
+        </span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class={Theme.slot(:multi_select, :chevron)}>
+          <path stroke-linecap="round" d="m6 9 6 6 6-6" />
+        </svg>
+      </summary>
+      <div class={Theme.slot(:multi_select, :menu)} role="group" aria-label={@control.label || @control.name}>
+        <label :for={option <- @control.options || []} class={Theme.slot(:multi_select, :option)}>
+          <input
+            type="checkbox"
+            name={control_name(@control) <> "[]"}
+            value={option.value}
+            checked={to_string(option.value) in @values}
+            class={Theme.slot(:multi_select, :checkbox)}
+          />
+          <span class={Theme.slot(:multi_select, :option_label)}>{option.label}</span>
+        </label>
+      </div>
+    </details>
+    """
+  end
+
+  defp multi_select_summary(control, values) do
+    labels =
+      (control.options || [])
+      |> Enum.filter(&(to_string(&1.value) in values))
+      |> Enum.map(& &1.label)
+
+    case labels do
+      [] -> "Any"
+      _ -> Enum.join(labels, ", ")
+    end
   end
 
   defp date_range_custom?(value), do: is_map(value)
