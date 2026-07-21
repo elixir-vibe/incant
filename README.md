@@ -16,10 +16,10 @@ end
 
 ## Why Incant
 
-- **Code-first, not click-first.** Resources, dashboards, and themes are ordinary Elixir modules you can diff, test, and review — no admin state hidden in a database.
-- **A real UI out of the box.** The default LiveView adapter renders dense, responsive tables, detail views, forms, filters, and dashboards, in light and dark mode.
-- **Describe intent, not markup.** A semantic UI document layer means your definitions are inspectable metadata, testable without a browser.
-- **Fits your app.** Mount it in any Phoenix router, run it as a standalone service, or drive it from another node over RPC.
+- **Your admin lives in code, not a database.** Resources, dashboards, and themes are ordinary Elixir modules — version-controlled, diffable, and testable like the rest of your app.
+- **No templates to write.** Declare a table's columns, filters, and actions once and Incant renders a dense, responsive LiveView UI — sorting, pagination, search, and dark mode included.
+- **Formatted by default.** Numbers render as `151.5k`, durations as `1.4s`, money as `$68.46`, ids as `27dca8e9…`, and enum values through your naming vocabulary (`openai` → `OpenAI`).
+- **Runs where you do.** Mount it in any Phoenix router, or run it as a standalone service and drive admin surfaces in other apps over RPC.
 
 ## Quick start
 
@@ -92,7 +92,7 @@ Values are formatted for you — compact numbers (`151.5k`), human durations (`1
 - [Design tokens and themes](docs/design.md)
 - [Architecture](docs/architecture.md) and the [docs index](docs/README.md)
 
-See [PLAN.md](PLAN.md) for the product thesis, [CONVENTIONS.md](CONVENTIONS.md) for the recommended application structure, and [examples/playground](examples/playground/README.md) for a runnable example app.
+See [PLAN.md](PLAN.md) for the product thesis, [docs/conventions.md](docs/conventions.md) for the recommended application structure, and [examples/playground](examples/playground/README.md) for a runnable example app.
 
 ## Development
 

@@ -20,7 +20,7 @@ Incant is still experimental. Use this checklist before publishing a Hex release
 - Keep `README.md` focused on quick start and links.
 - Keep detailed guides under `docs/`.
 - Verify examples compile or are clearly marked conceptual.
-- Update `PLAN.md`, `CONVENTIONS.md`, and `REFERENCES.md` when product direction changes.
+- Update `PLAN.md`, `docs/conventions.md`, and `REFERENCES.md` when product direction changes.
 
 ## Current status
 

@@ -8,6 +8,7 @@ Incant is experimental. These guides cover installation, resources, dashboards, 
 - [Datasets and analytical tables](datasets.md)
 - [Authorization and policy scoping](authorization.md)
 - [Design tokens and themes](design.md)
+- [Application structure conventions](conventions.md)
 - [LiveView adapter](live-components.md)
 - [LiveVue adapter prototype](live-vue-adapter.md)
 - [Visual regression captures](visual-regression.md)
