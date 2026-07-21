@@ -46,9 +46,10 @@ defmodule Incant.UI.Regions.Table do
 
   def from_context(context) do
     resource = context.resource
+    naming = Incant.Naming.for_admin(context.admin)
 
     columns = Enum.map(resource.table.columns, &column_from_metadata/1)
-    rows = Enum.map(context.rows || [], &row_from_record(&1, resource, context))
+    rows = Enum.map(context.rows || [], &row_from_record(&1, resource, context, naming))
 
     %__MODULE__{
       id: "resource.table",
@@ -95,10 +96,10 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
-  defp row_from_record(record, resource, context) do
+  defp row_from_record(record, resource, context, naming) do
     %Row{
       id: Incant.Live.Rows.id(record),
-      cells: Enum.map(resource.table.columns, &cell_from_record(record, &1)),
+      cells: Enum.map(resource.table.columns, &cell_from_record(record, &1, naming)),
       actions: available_actions(resource.table.actions, record, context),
       detail: row_detail_from_metadata(resource.table.row_detail),
       source: Incant.Sensitive.redact_row(record, resource)
@@ -143,7 +144,7 @@ defmodule Incant.UI.Regions.Table do
     }
   end
 
-  defp cell_from_record(record, column) do
+  defp cell_from_record(record, column, naming) do
     value = Incant.Live.Rows.field(record, column.name)
     display_value = Incant.Sensitive.redact(value, column.opts)
 
@@ -152,17 +153,17 @@ defmodule Incant.UI.Regions.Table do
     %Cell{
       column: to_string(column.name),
       value: display_value,
-      display: cell_display(display_value, format, column.opts),
+      display: cell_display(display_value, format, column.opts, naming),
       tone: column.opts[:tone],
       format: format,
       source: column
     }
   end
 
-  defp cell_display(true, :boolean, opts), do: opts[:true_label] || "Yes"
-  defp cell_display(false, :boolean, opts), do: opts[:false_label] || "No"
-  defp cell_display(value, :badge, _opts), do: Incant.Naming.label(value)
-  defp cell_display(value, format, _opts), do: Incant.Live.Format.value(value, format)
+  defp cell_display(true, :boolean, opts, _naming), do: opts[:true_label] || "Yes"
+  defp cell_display(false, :boolean, opts, _naming), do: opts[:false_label] || "No"
+  defp cell_display(value, :badge, _opts, naming), do: Incant.Naming.label(value, naming)
+  defp cell_display(value, format, _opts, _naming), do: Incant.Live.Format.value(value, format)
 
   defp dataset_column(column) do
     %Column{

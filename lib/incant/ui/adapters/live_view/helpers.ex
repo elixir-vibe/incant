@@ -438,11 +438,38 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
   def table_column_label(%{label: label}) when is_binary(label), do: label
   def table_column_label(column), do: column |> table_column_name() |> humanize()
 
-  def table_cell_display(%Incant.Dashboard.Column{opts: opts}, value),
-    do: Incant.Live.Format.value(value, Keyword.get(opts, :format))
+  def table_cell_display(column, value, naming \\ [])
 
-  def table_cell_display(%{format: format}, value), do: Incant.Live.Format.value(value, format)
-  def table_cell_display(_column, value), do: Incant.Live.Format.value(value, nil)
+  def table_cell_display(%Incant.Dashboard.Column{opts: opts}, value, naming) do
+    case Keyword.get(opts, :format) do
+      nil -> human_label(value, naming)
+      format -> Incant.Live.Format.value(value, format)
+    end
+  end
+
+  def table_cell_display(%{format: nil}, value, naming), do: human_label(value, naming)
+
+  def table_cell_display(%{name: _name, opts: opts}, value, naming) do
+    case opt(opts, :format) do
+      nil -> human_label(value, naming)
+      format -> Incant.Live.Format.value(value, format)
+    end
+  end
+
+  def table_cell_display(%{format: format}, value, _naming), do: Incant.Live.Format.value(value, format)
+  def table_cell_display(_column, value, naming), do: human_label(value, naming)
+
+  # Dashboard widget values are portable (atoms become strings across the RPC
+  # boundary), so map known vocabulary terms to their display text (e.g.
+  # "openai" -> "OpenAI"). Unknown values pass through untouched so model
+  # names and identifiers stay as-is.
+  defp human_label(value, naming) when is_atom(value) and not is_boolean(value),
+    do: Incant.Naming.label(value, naming)
+
+  defp human_label(value, naming) when is_binary(value),
+    do: Incant.Naming.term_label(value, naming) || value
+
+  defp human_label(value, _naming), do: Incant.Live.Format.value(value, nil)
 
   def table_cell_nowrap?(%Incant.Dashboard.Column{opts: opts}),
     do: Keyword.get(opts, :format) in [:datetime, :date, :time]

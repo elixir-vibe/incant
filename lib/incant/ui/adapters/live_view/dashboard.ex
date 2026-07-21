@@ -13,12 +13,13 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
   def widget_grid(assigns) do
     ~H"""
     <div class={Theme.slot(:widget_grid, :root)} style={widget_grid_style(@grid)}>
-      <.widget :for={widget <- @grid.widgets} widget={widget} />
+      <.widget :for={widget <- @grid.widgets} widget={widget} naming={@grid.naming} />
     </div>
     """
   end
 
   attr(:widget, :map, required: true)
+  attr(:naming, :list, default: [])
 
   def widget(%{widget: %{type: :stat}} = assigns) do
     ~H"""
@@ -131,7 +132,7 @@ defmodule Incant.UI.Adapters.LiveView.Dashboard do
           </thead>
           <tbody class={Theme.slot(:table, :body)}>
             <tr :if={@rows == []}><td colspan={length(table_columns(@widget))} class={Theme.slot(:table, :empty)}>No rows to display.</td></tr>
-            <tr :for={row <- @rows} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)} title={table_cell_title(column, table_cell(row, column))}>{table_cell_display(column, table_cell(row, column))}</td></tr>
+            <tr :for={row <- @rows} class={Theme.slot(:table, :row)}><td :for={column <- table_columns(@widget)} class={table_data_class(column)} title={table_cell_title(column, table_cell(row, column))}>{table_cell_display(column, table_cell(row, column), @naming)}</td></tr>
           </tbody>
         </table>
       </div>

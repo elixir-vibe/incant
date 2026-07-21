@@ -55,6 +55,27 @@ defmodule Incant.Naming do
   @spec title(term(), config()) :: String.t()
   def title(value, naming \\ []), do: humanize(value, :title, naming)
 
+  @doc """
+  Returns the display text for a value when the naming vocabulary defines an
+  explicit term for it, or `nil` when it does not. Unlike `label/2`, this does
+  not invent a title-cased form for unknown values, so it is safe for
+  humanizing data cells without mangling identifiers and model names.
+  """
+  @spec term_label(term(), config()) :: String.t() | nil
+  def term_label(value, naming \\ []) do
+    value = to_string(value)
+
+    if explicit_display_text?(value) do
+      nil
+    else
+      key = value |> String.downcase() |> String.replace("-", "_")
+
+      naming
+      |> vocabulary()
+      |> Map.get(key)
+    end
+  end
+
   @doc "Returns the naming options declared by an admin metadata value."
   @spec for_admin(term()) :: config()
   def for_admin(%{opts: opts}), do: option(opts, :naming, [])

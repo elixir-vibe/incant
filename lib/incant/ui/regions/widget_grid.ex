@@ -5,7 +5,7 @@ defmodule Incant.UI.Regions.WidgetGrid do
 
   alias Incant.UI.Regions.Chart
 
-  defstruct widgets: [], columns: 12, row_height: 8
+  defstruct widgets: [], columns: 12, row_height: 8, naming: []
 
   defmodule Widget do
     @moduledoc false
@@ -32,7 +32,8 @@ defmodule Incant.UI.Regions.WidgetGrid do
     %__MODULE__{
       widgets: widgets,
       columns: option(grid, :columns, 12),
-      row_height: option(grid, :row_height, 8)
+      row_height: option(grid, :row_height, 8),
+      naming: Incant.Naming.for_admin(context.admin)
     }
   end
 
