@@ -5,7 +5,9 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
+
+## 0.1.1 - 2026-07-22
 
 ### Added
 
@@ -43,5 +45,4 @@ still evolve before 1.0.
 - Row action buttons now send their target id (LiveView value-property override), so delete/disable/remove actions work.
 - Custom dashboard date ranges commit correctly and no longer crash on struct values.
 
-[Unreleased]: https://github.com/elixir-vibe/incant/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/elixir-vibe/incant/releases/tag/v0.1.0
