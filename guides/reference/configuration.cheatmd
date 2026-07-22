@@ -1,0 +1,535 @@
+# Configuration
+
+Incant combines application configuration with module DSL options. Library mode uses host Phoenix and asset configuration; standalone mode additionally reads endpoint and registry environment variables.
+
+## Application Options
+{: .col-2}
+
+### UI Adapter
+
+```elixir
+config :incant,
+  ui_adapter: Incant.UI.Adapters.LiveView
+```
+
+Default semantic UI adapter.
+
+### Density
+
+```elixir
+config :incant, density: :compact
+```
+
+Default adapter density. Themes may support `:compact`, `:comfortable`, and `:spacious`.
+
+### Per-Admin UI
+
+```elixir
+config :incant, MyApp.Admin,
+  density: :comfortable
+```
+
+Overrides application UI options for one admin root.
+
+### Global Naming
+
+```elixir
+config :incant,
+  naming: [terms: %{api: "API", oauth: "OAuth"}]
+```
+
+Fallback naming vocabulary. Admin-root naming takes precedence when contracts are resolved.
+
+### Standalone Serving
+
+```elixir
+config :incant, serve?: true
+```
+
+Starts Incant PubSub, registry server, and endpoint. Default: `false`.
+
+### Standalone Registry
+
+```elixir
+config :incant,
+  registry: [env: "HOSTKIT_RPC_BINDINGS"]
+```
+
+Binding-path environment variable used by the standalone registry.
+
+## Admin Root Options
+{: .col-2}
+
+### Repo
+
+```elixir
+use Incant.Admin, repo: MyApp.Repo
+```
+
+Default repo for inferred and resource-backed surfaces.
+
+### Theme
+
+```elixir
+use Incant.Admin, theme: MyApp.Admin.Themes.Default
+```
+
+Theme metadata module.
+
+### Policy
+
+```elixir
+use Incant.Admin, policy: MyApp.Admin.Policy
+```
+
+Default authorization and scoping policy.
+
+### Actor Assign
+
+```elixir
+use Incant.Admin, actor_assign: :current_scope
+```
+
+LiveView assign containing the actor.
+
+### Actor Callback
+
+```elixir
+use Incant.Admin,
+  actor: {MyApp.Admin.Actor, :from_assigns}
+```
+
+Custom extraction callback receiving LiveView assigns.
+
+### Naming
+
+```elixir
+use Incant.Admin,
+  naming: [terms: %{openai: "OpenAI", llm: "LLM"}]
+```
+
+Vocabulary for inferred titles, labels, options, badges, and known data terms.
+
+### Service Identity
+
+```elixir
+use Incant.Admin,
+  service: :billing,
+  version: "1"
+```
+
+Stable identity for portable service contracts.
+
+### RPC
+
+```elixir
+use Incant.Admin, rpc: true
+```
+
+Exposes standard Incant service operations through SafeRPC adapter metadata.
+
+## Surface Registration
+{: .col-2}
+
+### Resource
+
+```elixir
+resource MyApp.Admin.Resources.Product
+```
+
+Registers an explicit resource module.
+
+### Expose Schema
+
+```elixir
+expose MyApp.Catalog.Product
+```
+
+Uses a conventional resource override when present, otherwise infers a schema-backed resource.
+
+### Dashboard
+
+```elixir
+dashboard MyApp.Admin.Dashboards.Operations
+```
+
+### Dataset
+
+```elixir
+dataset MyApp.Admin.Datasets.Sales
+```
+
+## Resource Options
+{: .col-2}
+
+### Schema and Repo
+
+```elixir
+use Incant.Resource,
+  schema: MyApp.Catalog.Product,
+  repo: MyApp.Repo
+```
+
+### Base Query Callback
+
+```elixir
+use Incant.Resource,
+  schema: MyApp.Catalog.Product,
+  repo: MyApp.Repo
+
+query &MyApp.Admin.Queries.products/2
+```
+
+Returns the base queryable before policy scope, search, filters, sorting, and pagination are applied.
+
+### Custom Index and Read
+
+```elixir
+use Incant.Resource,
+  title: "Product Health"
+
+index &MyApp.Admin.Products.index/2
+read &MyApp.Admin.Products.read/2
+```
+
+Application-owned callbacks for custom storage, projections, or in-memory rows.
+
+### Local Policy
+
+```elixir
+use Incant.Resource,
+  policy: MyApp.Admin.Policies.Catalog
+```
+
+Overrides the root policy for the surface.
+
+## Table Options
+{: .col-2}
+
+### Column
+
+```elixir
+column :name,
+  label: "Product",
+  link: true,
+  sortable: true,
+  format: nil
+```
+
+### Badge
+
+```elixir
+column :status, as: :badge
+```
+
+Uses naming vocabulary for enum-style display.
+
+### Search
+
+```elixir
+search [:name, :email]
+```
+
+### Filter
+
+```elixir
+filter :status, :select,
+  options: [:draft, :active, :archived]
+```
+
+### Multi-Select Filter
+
+```elixir
+filter :provider, :multi_select,
+  options: [:openai, :anthropic, :google]
+```
+
+### Date-Range Filter
+
+```elixir
+filter :inserted_at, :date_range
+```
+
+### Row Action
+
+```elixir
+action :archive,
+  callback: &MyApp.Catalog.archive/2,
+  confirm: "Archive this product?",
+  destructive: true
+```
+
+### Bulk Action
+
+```elixir
+actions do
+  bulk :publish,
+    callback: &MyApp.Catalog.publish_many/2
+end
+```
+
+## Form Options
+{: .col-2}
+
+### Text Field
+
+```elixir
+field :name
+```
+
+### Select Field
+
+```elixir
+field :status, :select,
+  options: [:draft, :active, :archived]
+```
+
+### Textarea
+
+```elixir
+field :description, :textarea
+```
+
+### Boolean
+
+```elixir
+field :featured, :boolean
+```
+
+### Number
+
+```elixir
+field :position, :number
+```
+
+### Date
+
+```elixir
+field :published_on, :date
+```
+
+### Hidden
+
+```elixir
+field :account_id, :hidden
+```
+
+## Dashboard Options
+{: .col-2}
+
+### Variable
+
+```elixir
+var :range, :date_range,
+  default: {:last, 24, :hours}
+```
+
+Supported built-in controls include `:date_range`, `:select`, `:multi_select`, `:boolean`, `:number`, `:date`, hidden, and text-like controls.
+
+### Grid
+
+```elixir
+grid columns: 12, row_height: 8 do
+  # widgets
+end
+```
+
+### Stat
+
+```elixir
+stat :requests,
+  span: 3,
+  label: "Requests",
+  format: :compact_number,
+  query: &MyApp.Metrics.requests/2
+```
+
+### Timeseries
+
+```elixir
+timeseries :requests_over_time,
+  span: 8,
+  query: &MyApp.Metrics.timeline/2
+```
+
+### Table Widget
+
+```elixir
+table :recent_failures,
+  span: 4,
+  query: &MyApp.Metrics.failures/2 do
+  column :provider
+  column :latency_ms, format: :duration_ms
+  column :cost_usd, format: :money
+end
+```
+
+### Chart
+
+```elixir
+chart :cost_over_time, :line, span: 8 do
+  dataset MyApp.Admin.Datasets.Usage
+  x :timestamp, bucket: :hour
+  y :cost_usd
+  series :provider
+end
+```
+
+## Formats
+{: .col-2}
+
+### Money
+
+```elixir
+format: :money
+```
+
+USD display such as `$1,234.50`. `:currency` is an alias.
+
+### Number
+
+```elixir
+format: :number
+```
+
+Delimited integer/decimal display.
+
+### Compact Number
+
+```elixir
+format: :compact_number
+```
+
+Examples: `12.4k`, `1.4M`, `2.1B`.
+
+### Duration
+
+```elixir
+format: :duration_ms
+```
+
+Treats the value as milliseconds and displays `240ms`, `1.8s`, `2.4m`, or `1.2h`.
+
+### Date and Time
+
+```elixir
+format: :datetime
+format: :date
+format: :time
+```
+
+### Relative Time
+
+```elixir
+format: :relative
+```
+
+Examples: `45s ago`, `3h ago`, `in 2m`.
+
+### Percent
+
+```elixir
+format: :percent
+```
+
+Treats `0.125` as `12.5%`.
+
+### Boolean
+
+```elixir
+format: :boolean
+```
+
+Displays `Yes` or `No`.
+
+### Identifier
+
+```elixir
+format: :id
+```
+
+Shortens long string identifiers to the first eight characters plus an ellipsis. Full values remain available to adapter tooltips where supported.
+
+## Volt Assets
+{: .col-2}
+
+### Resolve Dependencies
+
+```elixir
+config :volt,
+  resolve_dirs: ["deps"]
+```
+
+### Mount Embedded Behavior
+
+```javascript
+import { mountIncant } from "incant"
+
+mountIncant()
+```
+
+### Standalone Entry
+
+```javascript
+import "incant/standalone"
+```
+
+Creates the standalone LiveSocket and mounts Incant behavior.
+
+### Tailwind Source
+
+```css
+@source "../deps/incant/lib";
+```
+
+## Standalone Environment
+{: .col-2}
+
+### Serve
+
+```text
+INCANT_SERVE=true
+```
+
+Enables the bundled endpoint in production.
+
+### HTTP Address
+
+```text
+INCANT_HTTP_IP=127.0.0.1
+INCANT_HTTP_PORT=4000
+```
+
+Invalid IP values fall back to loopback.
+
+### Secret Key Base
+
+```text
+INCANT_SECRET_KEY_BASE=...
+```
+
+Required when standalone serving is enabled in production.
+
+### LiveView Signing Salt
+
+```text
+INCANT_LIVE_VIEW_SIGNING_SALT=...
+```
+
+Standalone LiveView signing salt.
+
+### Binding Path
+
+```text
+HOSTKIT_RPC_BINDINGS=/run/incant/rpc.etf
+```
+
+Trusted ETF registry-binding file.
+
+### Binding Variable Name
+
+```text
+INCANT_RPC_BINDINGS_ENV=HOSTKIT_RPC_BINDINGS
+```
+
+Changes which environment variable contains the binding path.

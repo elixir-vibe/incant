@@ -1,0 +1,208 @@
+# Admin HTTP API
+
+Standalone Incant exposes a semantic JSON API under `/incant`. The API resolves discovered service entries, wraps them in `Incant.Service.Session`, and calls standard Incant operations. It does not expose arbitrary remote module/function calls.
+
+## Media Types
+{: .col-2}
+
+### Success
+
+```text
+application/vnd.incant.admin+json
+```
+
+Successful responses use a typed document envelope:
+
+```json
+{
+  "data": {},
+  "links": {},
+  "meta": {}
+}
+```
+
+### Errors
+
+```text
+application/problem+json
+```
+
+Errors use RFC 9457 Problem Details plus a stable `code` member:
+
+```json
+{
+  "type": "about:blank",
+  "code": "unknown-service",
+  "title": "Unknown service",
+  "status": 404,
+  "detail": "No Incant service named billing is registered.",
+  "instance": "/incant/services/billing"
+}
+```
+
+## Discovery Routes
+{: .col-2}
+
+### API Root
+
+```text
+GET /incant
+```
+
+Returns API discovery metadata.
+
+### Services
+
+```text
+GET /incant/services
+```
+
+Lists discovered service contracts.
+
+### Service
+
+```text
+GET /incant/services/:service
+```
+
+Returns one service contract.
+
+### Surfaces
+
+```text
+GET /incant/services/:service/surfaces
+```
+
+Lists resources, dashboards, and datasets exposed by a service.
+
+### Surface
+
+```text
+GET /incant/services/:service/surfaces/:surface
+```
+
+Returns semantic metadata for one surface.
+
+## Resource Routes
+{: .col-2}
+
+### Rows
+
+```text
+GET /incant/services/:service/surfaces/:surface/rows
+```
+
+Lists rows using URL table state.
+
+### Query Rows
+
+```text
+POST /incant/services/:service/surfaces/:surface/queries
+```
+
+Runs a typed table query.
+
+Request:
+
+```json
+{
+  "table": {
+    "page": 1,
+    "page_size": 25,
+    "search": "invoice",
+    "sort": "inserted_at:desc",
+    "filters": {}
+  },
+  "context": {}
+}
+```
+
+### Read Row
+
+```text
+GET /incant/services/:service/surfaces/:surface/rows/:id
+```
+
+Returns one row and its semantic detail document.
+
+## Action Routes
+{: .col-2}
+
+### Actions
+
+```text
+GET /incant/services/:service/surfaces/:surface/actions
+```
+
+Lists available action metadata.
+
+### Action
+
+```text
+GET /incant/services/:service/surfaces/:surface/actions/:action
+```
+
+Returns one action contract.
+
+### Run Action
+
+```text
+POST /incant/services/:service/surfaces/:surface/actions/:action/runs
+```
+
+Request:
+
+```json
+{
+  "payload": {
+    "id": "123",
+    "selected_ids": null,
+    "assigns": {},
+    "input": {}
+  },
+  "context": {}
+}
+```
+
+Payload conventions:
+
+- row action — set `id`;
+- bulk action — set `selected_ids`;
+- page action — leave both unset;
+- form/page input — put typed input fields under `input`.
+
+The owning service authorizes the operation and decides what the payload means.
+
+## Request Contracts
+
+Request bodies are decoded once at the HTTP boundary into strict JSONCodec-backed structs such as `Incant.Web.API.QueryRequest` and `Incant.Web.API.ActionRunRequest`.
+
+Unknown or mistyped fields fail at the boundary instead of reaching service callbacks as arbitrary maps.
+
+## Cache and Negotiation
+
+Admin responses include:
+
+```text
+Cache-Control: no-store
+Vary: Accept
+```
+
+Protocol errors:
+
+- `405 Method Not Allowed` with `Allow` for method mismatches;
+- `406 Not Acceptable` for unsupported response media types;
+- `415 Unsupported Media Type` for invalid request content types;
+- `application/problem+json` for typed errors.
+
+## Action Results
+
+Synchronous action runs return `200 OK` with an `action_run` resource in `data`. The result may represent success, failure, navigation, or a one-time reveal.
+
+Clients should treat reveal payloads as secrets and avoid logging or caching them.
+
+## Security
+
+The API shares the standalone Incant endpoint but does not provide operator authentication. Deploy it behind the same authenticated private boundary as the LiveView admin.
+
+Service policies remain authoritative. Do not expose the API publicly, and do not treat browser-supplied `context` as authenticated identity without a trusted translation layer.

@@ -1,13 +1,19 @@
 defmodule Incant.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/elixir-vibe/incant"
+
   def project do
     [
       app: :incant,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
+      name: "Incant",
       description: description(),
+      source_url: @source_url,
+      homepage_url: @source_url,
       package: package(),
       docs: docs(),
       dialyzer: [plt_add_apps: [:mix, :release_kit]],
@@ -18,7 +24,6 @@ defmodule Incant.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       mod: {Incant.Application, []},
@@ -32,44 +37,93 @@ defmodule Incant.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp description do
-    "Phoenix-native admin/control-plane DSL with semantic UI documents, a default LiveView adapter, resources, dashboards, forms, filters, actions, themes, and policies."
+    "Elixir/Phoenix admin framework for resources, dashboards, datasets, actions, " <>
+      "authorization, and service-owned remote admin surfaces."
   end
 
   defp package do
     [
       licenses: ["MIT"],
-      links: %{
-        "GitHub" => "https://github.com/elixir-vibe/incant"
-      },
-      files: ~w(assets lib mix.exs README.md CHANGELOG.md LICENSE PLAN.md REFERENCES.md docs)
+      links: %{"GitHub" => @source_url},
+      files:
+        ~w(assets config guides lib .formatter.exs mix.exs package.json npm.lock README.md CHANGELOG.md LICENSE)
     ]
   end
 
   defp docs do
     [
       main: "readme",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
       extras: [
         "README.md",
         "CHANGELOG.md",
-        "LICENSE",
-        "docs/conventions.md",
-        "PLAN.md",
-        "REFERENCES.md",
-        "docs/install.md",
-        "docs/resources.md",
-        "docs/dashboards.md",
-        "docs/datasets.md",
-        "docs/authorization.md",
-        "docs/design.md",
-        "docs/live-components.md",
-        "docs/live-vue-adapter.md",
-        "docs/visual-regression.md",
-        "docs/platform-admin-roadmap.md",
-        "docs/architecture.md",
-        "docs/service-interfaces.md",
-        "docs/release-checklist.md"
+        "guides/introduction/getting-started.md",
+        "guides/introduction/library-mode.md",
+        "guides/introduction/standalone-mode.md",
+        "guides/introduction/project-structure.md",
+        "guides/features/resources.md",
+        "guides/features/dashboards.md",
+        "guides/features/datasets.md",
+        "guides/features/authorization.md",
+        "guides/features/themes-and-liveview.md",
+        "guides/features/distributed-services.md",
+        "guides/deployment/standalone-deployment.md",
+        "guides/reference/configuration.cheatmd",
+        "guides/reference/admin-http-api.cheatmd",
+        "guides/internals/architecture.md"
+      ],
+      groups_for_extras: [
+        Introduction: ~r/guides\/introduction\//,
+        Features: ~r/guides\/features\//,
+        Deployment: ~r/guides\/deployment\//,
+        Reference: ~r/guides\/reference\//,
+        Internals: ~r/guides\/internals\//
+      ],
+      groups_for_modules: [
+        Core: [
+          Incant,
+          Incant.Admin,
+          Incant.Resource,
+          Incant.Dashboard,
+          Incant.Dataset,
+          Incant.Surface,
+          Incant.Session
+        ],
+        "Data and Forms": [
+          Incant.DataSource,
+          Incant.Ecto,
+          Incant.Query,
+          Incant.Result,
+          Incant.Form,
+          Incant.Forms
+        ],
+        "Actions and Policy": [
+          Incant.ActionResult,
+          Incant.Policy,
+          Incant.Filter
+        ],
+        "Distributed Services": [
+          Incant.Service,
+          Incant.Service.Client,
+          Incant.Service.Registry,
+          Incant.Service.RegistryServer,
+          Incant.Service.Session
+        ],
+        UI: [
+          Incant.UI,
+          Incant.UI.Adapter,
+          Incant.UI.Document,
+          Incant.UI.Adapters.LiveView,
+          Incant.Theme,
+          Incant.Design
+        ],
+        Phoenix: [
+          Incant.Router,
+          Incant.Live.Admin,
+          Incant.Web.Endpoint
+        ]
       ]
     ]
   end

@@ -1,7 +1,6 @@
 # Resources
 
-Incant is experimental; resource DSL and renderer details may still change before a first stable release.
-
+Resources describe tabular records, detail views, forms, filters, search, and actions. They can load through Ecto conventions, declarative service queries, or application-owned callbacks.
 
 ```elixir
 defmodule MyApp.Admin.Resources.Order do
@@ -32,7 +31,7 @@ defmodule MyApp.Admin.Resources.Order do
 end
 ```
 
-See also [Authorization](authorization.md) for policy scoping and [Design and theming](design.md) for table styling.
+See also [Authorization](authorization.md) for policy scoping and [Themes and LiveView](themes-and-liveview.md) for table styling.
 
 ## Naming and labels
 
@@ -257,7 +256,7 @@ defmodule MyApp.Admin.Resources.Product do
 end
 ```
 
-For local admins this query runs in the application VM. For remote admins the central Incant UI sends table state over SafeRPC and the same query runs inside the owning service VM. Repos, schemas, scoped Ecto queries, and callbacks never cross the RPC boundary.
+For local admins this query runs in the application VM. For remote admins the central Incant UI sends table state over [SafeRPC](https://hexdocs.pm/safe_rpc) and the same query runs inside the owning service VM. Repos, schemas, scoped Ecto queries, and callbacks never cross the RPC boundary.
 
 Incant applies authorization scope, declared search, typed filters, exact count, page clamping, allowlisted sorting with a primary-key tie-breaker, limit, and offset. `options: :distinct` returns at most 100 ordered schema values in the existing page metadata and option representation; the portable contract exposes only `options_from` to the renderer.
 

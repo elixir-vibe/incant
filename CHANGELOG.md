@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Multi-select filters and dashboard variables now render as checkbox dropdowns instead of native stacked select boxes.
+
+### Fixed
+
+- Resource badges and dashboard table cells now apply the admin naming vocabulary, preserving terms such as `OpenAI` without changing unknown identifiers or model names.
+- The Hex package now includes `package.json`, standalone configuration, and guides so Volt can resolve `import "incant"` from an installed dependency and packaged source can build the standalone release.
+
 ## [0.1.0] - 2026-07-20
 
 First public release. Incant is experimental; the DSL and adapter contracts may

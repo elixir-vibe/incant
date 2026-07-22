@@ -2,6 +2,8 @@
 
 Incant datasets describe analytical data: dimensions, metrics, default table views, heatmaps, and drilldowns. They are metadata-first. Data-source adapters own SQL generation and execution for QuackDB, Postgres, external APIs, or other analytical backends.
 
+## Define a dataset
+
 ```elixir
 defmodule MyApp.Admin.Datasets.CampaignPerformance do
   use Incant.Dataset, source: MyApp.Analytics.QuackDB
@@ -46,6 +48,8 @@ defmodule MyApp.Admin.Datasets.CampaignPerformance do
 end
 ```
 
+## Register and run
+
 Register datasets on an admin root:
 
 ```elixir
@@ -59,17 +63,21 @@ end
 Build and run normalized dataset queries through the configured source:
 
 ```elixir
-query =
-  Incant.Dataset.query(MyApp.Admin.Datasets.CampaignPerformance,
-    filters: %{"range" => "30d"},
-    page: 1,
-    page_size: 50
-  )
+opts = [
+  filters: %{"campaign" => "spring"},
+  page: 1,
+  page_size: 50
+]
 
-{:ok, result} = Incant.Dataset.run(MyApp.Admin.Datasets.CampaignPerformance, filters: query.filters)
+query = Incant.Dataset.query(MyApp.Admin.Datasets.CampaignPerformance, opts)
+{:ok, result} = Incant.Dataset.run(MyApp.Admin.Datasets.CampaignPerformance, opts)
 ```
 
+## Data sources
+
 Data sources implement the `Incant.DataSource` query callback and receive `%Incant.Query{}` with `from`, dimensions, metrics, groupings, columns, filters, sort, pagination, variables, and context. Incant normalizes source rows into `%Incant.Result{}`.
+
+## Filters and options
 
 Dataset filters use the same semantic controls as resource filters and are URL-persistent through `filter[...]` query params. The default LiveView adapter renders them in a right-side filter rail beside the dataset table.
 
@@ -89,6 +97,8 @@ filter :campaign, :select, options: &MyApp.Admin.Options.campaigns/2
 
 Option callbacks receive `%{source: filter}` and the current context, and should return a list of values or `{label, value}` pairs.
 
+## Drilldowns
+
 Drilldowns can switch grouping and columns through URL state:
 
 ```elixir
@@ -100,5 +110,3 @@ end
 ```
 
 The default LiveView adapter renders available drilldowns above the dataset table and passes the selected drilldown into `%Incant.Query{}`.
-
-Chart binding, saved views, and deeper breadcrumb-style drilldown paths are planned follow-up work.
