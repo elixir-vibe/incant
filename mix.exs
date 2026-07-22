@@ -43,8 +43,7 @@ defmodule Incant.MixProject do
       links: %{
         "GitHub" => "https://github.com/elixir-vibe/incant"
       },
-      files:
-        ~w(assets lib mix.exs README.md CHANGELOG.md LICENSE PLAN.md REFERENCES.md docs)
+      files: ~w(assets lib mix.exs README.md CHANGELOG.md LICENSE PLAN.md REFERENCES.md docs)
     ]
   end
 

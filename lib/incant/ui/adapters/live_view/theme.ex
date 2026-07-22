@@ -217,7 +217,8 @@ defmodule Incant.UI.Adapters.LiveView.Theme do
         root: "relative",
         trigger:
           "flex h-9 w-full cursor-pointer list-none items-center gap-2 rounded-md border border-[var(--incant-border)] bg-[var(--incant-bg-elevated)] px-2.5 text-sm text-[var(--incant-text-highlighted)] hover:border-[var(--incant-border-accented)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--incant-primary)] [&::-webkit-details-marker]:hidden",
-        trigger_label: "shrink-0 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]",
+        trigger_label:
+          "shrink-0 text-xs font-medium uppercase tracking-wide text-[var(--incant-text-muted)]",
         trigger_value: "min-w-0 flex-1 truncate text-left",
         chevron: "h-4 w-4 shrink-0 text-[var(--incant-text-muted)]",
         menu:

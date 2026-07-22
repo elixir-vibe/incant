@@ -456,7 +456,9 @@ defmodule Incant.UI.Adapters.LiveView.Helpers do
     end
   end
 
-  def table_cell_display(%{format: format}, value, _naming), do: Incant.Live.Format.value(value, format)
+  def table_cell_display(%{format: format}, value, _naming),
+    do: Incant.Live.Format.value(value, format)
+
   def table_cell_display(_column, value, naming), do: human_label(value, naming)
 
   # Dashboard widget values are portable (atoms become strings across the RPC
