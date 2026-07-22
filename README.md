@@ -10,8 +10,6 @@ def deps do
 end
 ```
 
-![Incant dashboard — light mode](docs/assets/hero-dashboard.png)
-
 > **Status:** Incant is pre-1.0 and evolving. The DSL and adapter contracts may still change between releases; see the [changelog](CHANGELOG.md) before upgrading.
 
 ## Why Incant
