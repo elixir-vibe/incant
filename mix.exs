@@ -150,7 +150,7 @@ defmodule Incant.MixProject do
       {:release_kit, "~> 0.3", runtime: false},
       {:json_codec, "~> 0.2.3"},
       {:volt, "~> 0.17.2"},
-      {:safe_rpc, "~> 0.1.12"},
+      {:safe_rpc, "~> 0.1.15"},
       {:ecto, "~> 3.13"},
       {:phoenix_live_view, "~> 1.1"},
       {:plug_cowboy, "~> 2.7"}

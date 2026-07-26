@@ -59,17 +59,13 @@ defmodule Incant.Web.APITest do
 
   setup do
     socket = socket_path()
-    {:ok, server} = Server.start_link(socket: socket)
+    start_supervised!({Server, socket: socket, id: {:server, socket}})
 
-    {:ok, registry} =
-      Incant.Service.RegistryServer.start_link(
-        bindings: %{accounts: %{socket: socket, modules: [Admin]}}
+    registry =
+      start_supervised!(
+        {Incant.Service.RegistryServer,
+         bindings: %{accounts: %{socket: socket, modules: [Admin]}}}
       )
-
-    on_exit(fn ->
-      if Process.alive?(registry), do: GenServer.stop(registry)
-      if Process.alive?(server), do: GenServer.stop(server)
-    end)
 
     %{registry: registry}
   end

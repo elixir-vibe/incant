@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Security
+
+- Require SafeRPC 0.1.15 or later for bounded frames, strict request validation, executable ETF rejection, and isolated listener failures.
+
 ## 0.1.1 - 2026-07-22
 
 ### Added
